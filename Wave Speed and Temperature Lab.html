@@ -1,0 +1,930 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Wave Speed and Temperature Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one part at a time (tabs), numbered big-button steps, the worksheet table mirrored underneath each part */
+:root{
+  --bg:#e9f3f5; --surface:#ffffff; --surface2:#f1f7f8; --ink:#14233b; --muted:#4a5d74;
+  --teal:#1f7488; --teal-soft:#d3ebf0; --bolt:#f2b200; --bolt-ink:#2e2100; --line:#c4d9df;
+  --bolt-text:#9a6b00; --good:#1d8549; --good-soft:#dcf3e5; --warn:#a85200; --head:#14233b; --head-ink:#ffffff;
+  --cold:#2f6fd6; --cool:#1f8a8a; --hot:#d2552a;
+  --display:"Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1622; --surface:#162133; --surface2:#1b293e; --ink:#e6eef6; --muted:#a3b5c8;
+  --teal:#5bbfd5; --teal-soft:#1d3a47; --bolt:#ffcc33; --bolt-ink:#2a1f00; --line:#2b3c55;
+  --bolt-text:#ffcc33; --good:#4fd08a; --good-soft:#173a29; --warn:#ffad5c; --head:#0a111b; --head-ink:#e6eef6;
+  --cold:#6ea2ff; --cool:#4fc9c9; --hot:#ff8a5c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1622; --surface:#162133; --surface2:#1b293e; --ink:#e6eef6; --muted:#a3b5c8;
+  --teal:#5bbfd5; --teal-soft:#1d3a47; --bolt:#ffcc33; --bolt-ink:#2a1f00; --line:#2b3c55;
+  --bolt-text:#ffcc33; --good:#4fd08a; --good-soft:#173a29; --warn:#ffad5c; --head:#0a111b; --head-ink:#e6eef6;
+  --cold:#6ea2ff; --cool:#4fc9c9; --hot:#ff8a5c; color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding-block:18px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);line-height:1.1;text-wrap:balance;margin:0}
+h1{font-size:clamp(1.9rem,5vw,2.5rem);font-weight:800}
+h2{font-size:1.5rem;font-weight:800}
+p{margin:0}
+button{font:inherit;cursor:pointer;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 16px;font-weight:700}
+button:hover:not(:disabled){border-color:var(--teal)}
+button:focus-visible{outline:4px solid var(--bolt);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+
+/* tabs */
+.tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+@media (max-width:760px){.tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:460px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tabs button{display:flex;flex-direction:column;align-items:flex-start;gap:0;padding:10px 14px;text-align:left}
+.tabs .n{font-family:var(--display);font-weight:800;font-size:.95rem;color:var(--teal)}
+.tabs .t{font-size:1rem;line-height:1.2}
+.tabs button[aria-selected="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+.tabs button[aria-selected="true"] .n{color:#fff}
+@media (max-width:560px){.tabs .t{font-size:.85rem}}
+
+section.part[hidden]{display:none}
+section.part{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:18px;min-width:0}
+
+/* step blocks */
+.step{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start}
+.num{font-family:var(--display);font-weight:800;font-size:1.4rem;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--teal);color:#fff}
+.step.done .num{background:var(--good)}
+.step-body{display:flex;flex-direction:column;gap:10px;min-width:0}
+.say{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.say .txt{font-size:1.2rem;font-weight:700}
+.speak{padding:6px 10px;border-radius:10px;display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--teal);background:var(--teal-soft);border-color:transparent}
+.speak svg{width:18px;height:18px}
+.choices{display:flex;flex-wrap:wrap;gap:10px}
+.choice{min-width:76px;padding:12px 16px;font-size:1.3rem;font-family:var(--display);font-weight:800;line-height:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.choice small{font-family:var(--body);font-size:.75rem;font-weight:700;color:var(--muted)}
+.choice.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.choice.on small{color:#fff}
+.choice .dots{display:flex;gap:3px}
+.choice .dots i{width:8px;height:8px;border-radius:50%;border:1.5px solid currentColor;display:block}
+.choice .dots i.f{background:currentColor}
+.choice.cold{border-color:var(--cold)} .choice.cool{border-color:var(--cool)} .choice.hot{border-color:var(--hot)}
+.choice.cold.on{background:var(--cold)} .choice.cool.on{background:var(--cool)} .choice.hot.on{background:var(--hot)}
+
+/* sim */
+.stage{border-radius:14px;overflow:hidden;background:#101a2b}
+#scene{display:block;width:100%;height:260px}
+@media (max-width:520px){#scene{height:200px}}
+.go{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.bigbtn{font-family:var(--display);font-size:1.6rem;font-weight:800;padding:16px 28px;border-radius:18px;display:inline-flex;align-items:center;gap:10px;min-width:260px;justify-content:center}
+.bigbtn svg{width:28px;height:28px}
+.bigbtn.light{background:var(--teal);border-color:var(--teal);color:#fff}
+.bigbtn.thunder{background:var(--bolt);border-color:var(--bolt);color:var(--bolt-ink)}
+.clock{font-family:var(--display);font-size:3rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;min-width:4ch}
+.clock small{font-size:1.2rem}
+.result{border-radius:14px;padding:14px 16px;background:var(--surface2);font-size:1.15rem}
+.result.good{background:var(--good-soft)}
+.result b{font-size:1.3rem}
+
+/* tables */
+.tbl-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.tbl-head .btns{display:flex;flex-wrap:wrap;gap:8px}
+.copy{background:var(--good);border-color:var(--good);color:#fff}
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:2px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:600px;font-variant-numeric:tabular-nums}
+th{background:var(--head);color:var(--head-ink);font-size:.85rem;line-height:1.25;padding:8px 6px;text-align:center;font-weight:700;vertical-align:bottom}
+td{border-top:1px solid var(--line);border-left:1px solid var(--line);padding:8px 6px;text-align:center;font-size:1.05rem;height:24px}
+td:first-child{border-left:0;font-weight:700}
+tbody tr:nth-child(odd) td{background:var(--surface2)}
+td.calc{font-weight:700;color:var(--teal)}
+tr.here td{background:var(--teal-soft)!important}
+td.new{animation:pop 1.2s}
+@keyframes pop{0%{background:var(--bolt);color:var(--bolt-ink)}100%{}}
+.hint{font-size:.95rem;color:var(--muted)}
+details{background:var(--surface2);border-radius:12px;padding:10px 14px}
+summary{cursor:pointer;font-weight:700;color:var(--teal)}
+details ol{margin:10px 0 0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+.progress{font-weight:700;color:var(--good)}
+
+/* race */
+#medium{display:block;width:100%;height:220px;border-radius:12px;background:var(--surface2)}
+
+
+/* part 2 */
+.p2grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,320px);gap:18px;align-items:start}
+@media (max-width:760px){.p2grid{grid-template-columns:minmax(0,1fr)}}
+.p2in{display:flex;flex-direction:column;gap:18px;min-width:0}
+.choice.data{font-size:1.1rem}
+.therm{display:flex;flex-direction:column;gap:6px;background:var(--surface2);border-radius:14px;padding:12px 14px}
+.tempbig{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.tempbig output{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1;color:var(--tc)}
+.tempbig span{font-weight:700;color:var(--muted)}
+#p2temp{width:100%;height:28px;accent-color:var(--tc)}
+.scale{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted)}
+#part-2{--tc:var(--cool)}
+#part-2[data-temp="cold"]{--tc:var(--cold)} #part-2[data-temp="hot"]{--tc:var(--hot)}
+.howcard{background:var(--head);color:var(--head-ink);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;font-size:.95rem}
+.howhead{display:flex;align-items:center;gap:10px}
+.boltdot{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--bolt);color:var(--bolt);flex:none}
+.boltdot svg{width:18px;height:18px}
+.formula{border:1.5px dashed rgba(255,255,255,.3);border-radius:10px;padding:10px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem}
+.formula b{color:var(--bolt)}
+.cards3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:720px){.cards3{grid-template-columns:minmax(0,1fr)}}
+.rcard{border:2.5px solid var(--tc);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;transition:border-color .3s}
+.rcard.mine{border-color:var(--line)}
+.rlabel{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.rbig{font-family:var(--display);font-size:1.6rem;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;color:var(--tc)}
+.rcard.mine .rbig{color:var(--ink)}
+.rsub{font-size:.82rem;color:var(--muted)}
+.rchange{font-size:.85rem;margin-top:2px;padding:4px 8px;border-radius:8px;background:var(--surface2)}
+.rchange.up{background:var(--good-soft);color:var(--good)}
+.rchange.down{background:var(--surface2);color:var(--warn)}
+.rchange .arr{font-size:.8rem}
+#medium{height:200px}
+#introRace{display:block;width:100%;height:220px;border-radius:12px;background:var(--surface2)}
+
+
+.qbox{border-top:2px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:10px}
+ol.qs{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:12px}
+ol.qs li{font-size:1.1rem}
+.qtext{font-weight:700;margin-bottom:6px}
+.qhint{margin-top:8px;background:var(--surface2);border-left:4px solid var(--bolt);border-radius:0 10px 10px 0;padding:8px 12px;font-size:1rem}
+.golink{margin-left:6px;padding:4px 10px;font-size:.9rem}
+
+.ls2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:560px){.ls2{grid-template-columns:minmax(0,1fr)}}
+.lscard{border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;border:2.5px solid}
+.lscard h3{font-size:1.5rem}
+.light-c{border-color:var(--bolt)} .sound-c{border-color:var(--teal)}
+.lscard .spd{font-family:var(--display);font-weight:800;font-size:1.4rem}
+.light-c .spd{color:var(--bolt-text)} .sound-c .spd{color:var(--teal)}
+#lsCanvas{display:block;width:100%;height:200px;border-radius:12px;background:var(--surface2)}
+
+.distrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.choice.sm{font-size:1rem;padding:8px 12px;min-width:0}
+table.small-tbl{min-width:420px}
+table.pair{min-width:560px}
+.pair th.hc{background:var(--cold);color:#fff} .pair th.hl{background:var(--cool);color:#fff} .pair th.hh{background:var(--hot);color:#fff}
+.pair td.pc{padding:6px}
+.pairbtn{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:8px 6px;border-radius:10px;font-variant-numeric:tabular-nums;font-size:1.05rem;border:2px dashed var(--teal);background:var(--teal-soft);color:var(--teal)}
+.pairbtn .q{font-family:var(--display);font-weight:800;font-size:1.2rem}
+.pairbtn.filled{border-style:solid;border-color:var(--line);background:var(--surface);color:var(--ink)}
+.pc.pc .pairbtn.active{outline:3px solid var(--bolt);outline-offset:1px}
+.pairbtn.pop{animation:pop 1.2s}
+.raceHead{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline}
+.raceHead b{font-family:var(--display);font-size:1.25rem}
+#medium{height:240px}
+
+#botTable th.hc{background:var(--cold);color:#fff} #botTable th.hl{background:var(--cool);color:#fff} #botTable th.hh{background:var(--hot);color:#fff}
+#botTable tbody tr td.gc{background:color-mix(in srgb,var(--cold) 13%,var(--surface))}
+#botTable tbody tr td.gl{background:color-mix(in srgb,var(--cool) 13%,var(--surface))}
+#botTable tbody tr td.gh{background:color-mix(in srgb,var(--hot) 13%,var(--surface))}
+#botTable td.gr,#botTable th:nth-child(3),#botTable th:nth-child(5),#botTable th:nth-child(7){border-right:3px solid var(--surface)}
+
+.howto{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:600px){.howto{grid-template-columns:minmax(0,1fr)}}
+.howto>div{background:var(--surface2);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.howto b{font-size:1.15rem}
+.hn{font-family:var(--display);font-weight:800;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--bolt);color:var(--bolt-ink)}
+.safety{border:2.5px solid var(--warn);border-radius:14px;padding:12px 16px;display:flex;flex-direction:column;gap:4px}
+.safety b{color:var(--warn);font-size:1.15rem}
+
+.graphbox{background:var(--surface2);border-radius:14px;padding:8px;overflow-x:auto}
+#graph{display:block;width:100%;min-width:420px;height:auto;touch-action:none;cursor:grab}
+#graph:active{cursor:grabbing}
+.g-grid{stroke:var(--line);stroke-width:1}
+.g-axis{stroke:var(--muted);stroke-width:1.5}
+.g-tick{fill:var(--muted);font:600 13px "Atkinson Hyperlegible",system-ui;font-variant-numeric:tabular-nums}
+.g-title{fill:var(--ink);font:700 14px "Atkinson Hyperlegible",system-ui}
+.g-line{stroke:var(--ink);stroke-width:3;stroke-linecap:round;opacity:.55}
+.g-pt{stroke:var(--surface2);stroke-width:2}
+.g-c{fill:var(--cold)} .g-l{fill:var(--cool)} .g-h{fill:var(--hot)}
+.g-ct{fill:var(--cold)} .g-lt{fill:var(--cool)} .g-ht{fill:var(--hot)}
+.g-lab{font:800 14px "Baloo 2",system-ui}
+.g-p1{fill:var(--surface2);stroke:var(--ink);stroke-width:2.5}
+.g-ink{fill:var(--ink)}
+.g-guide{stroke:var(--tcg);stroke-width:2;stroke-dasharray:5 5}
+.g-dot{fill:var(--tcg);stroke:var(--surface);stroke-width:3}
+.g-box{fill:var(--tcg)}
+.g-dotlab{fill:#fff;font:800 15px "Atkinson Hyperlegible",system-ui;font-variant-numeric:tabular-nums}
+#graph{--tcg:var(--cool)} #graph[data-temp="cold"]{--tcg:var(--cold)} #graph[data-temp="hot"]{--tcg:var(--hot)}
+#botTable td.target{outline:3px dashed var(--bolt);outline-offset:-4px}
+.go .progress{font-size:1.1rem}
+
+.job{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;border:2.5px solid var(--bolt);border-radius:16px;padding:14px 16px;background:var(--surface2)}
+.jobtext{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.jobgrid{border-collapse:separate;border-spacing:4px;min-width:0;width:auto}
+.jobgrid th{background:none;color:var(--ink);font-size:.85rem;padding:2px 6px;vertical-align:middle}
+.jobgrid thead th.hc{color:var(--cold)} .jobgrid thead th.hl{color:var(--cool)} .jobgrid thead th.hh{color:var(--hot)}
+.jobgrid td{border:0;padding:0;background:none!important;height:auto}
+.jobcell{width:46px;height:36px;padding:0;border-radius:8px;border:2px dashed var(--muted);background:var(--surface);font-size:1.2rem;color:var(--good)}
+.jobcell.done{border:2px solid var(--good);background:var(--good-soft)}
+.jobcell.cur{outline:3px solid var(--bolt);outline-offset:1px}
+.small{font-size:.95rem}
+
+/* compact part 3 */
+#part-2{gap:12px}
+#part-2 .step-body{gap:6px}
+#part-2 .say .txt{font-size:1.1rem}
+#part-2 .therm{padding:6px 12px;gap:2px;flex-direction:row;flex-wrap:wrap;align-items:center}
+#part-2 .tempbig{flex:0 0 auto;min-width:150px}
+#part-2 .tempbig output{font-size:1.8rem}
+#part-2 #p2temp{flex:1 1 240px}
+#part-2 .scale{display:none}
+#part-2 .choice{padding:6px 12px;font-size:1.05rem;min-width:64px}
+#part-2 .choice small{font-size:.7rem}
+#part-2 .num{width:36px;height:36px;font-size:1.15rem}
+#part-2 .step{grid-template-columns:36px minmax(0,1fr);gap:10px}
+#part-2 .rcard{padding:8px 12px;gap:2px}
+#part-2 .rbig{font-size:1.45rem}
+#part-2 .rchange{padding:3px 8px}
+#part-2 .graphbox{padding:4px 8px}
+#part-2 .job{align-items:flex-start}
+.jobside{display:flex;flex-direction:column;align-items:center;gap:6px}
+#part-2 .job .bigbtn{font-size:1.25rem;padding:10px 18px;min-width:0}
+
+.recprompt{font-size:1.1rem}
+.recread{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.recread span{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:6px 14px;display:flex;flex-direction:column}
+.recread span.rk{justify-content:center;font-weight:700;border:0;background:none;padding-left:0}
+.recread small{font-size:.75rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.recread b{font-family:var(--display);font-size:1.5rem;line-height:1.1}
+#part-2 .job{flex-direction:column;align-items:stretch;gap:10px}
+/* calculator */
+.calcbox{display:flex;flex-direction:column;gap:10px;max-width:320px}
+.kdisp{background:var(--head);color:var(--head-ink);border-radius:12px;padding:10px 14px;text-align:right;font-variant-numeric:tabular-nums;min-height:66px;display:flex;flex-direction:column;justify-content:end;overflow-wrap:anywhere}
+.kdisp .expr{font-size:.9rem;opacity:.75;min-height:1.2em}
+.kdisp .res{font-family:var(--display);font-size:1.8rem;font-weight:800;line-height:1.1}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.keys button{padding:10px 0;font-size:1.2rem}
+.keys .op{background:var(--teal-soft);color:var(--teal)}
+.keys .eqk{background:var(--teal);color:#fff;border-color:var(--teal)}
+@media (prefers-reduced-motion:reduce){td.new{animation:none}}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Wave Speed and Temperature Lab</h1>
+  <p class="hint">Do one part at a time. Your answers fill in the tables for you.</p>
+</header>
+
+<div class="tabs" role="tablist">
+  <button role="tab" id="tab-1" aria-selected="true" data-p="1"><span class="n">Part 1</span><span class="t">Thunderstorm<br>Top table</span></button>
+  <button role="tab" id="tab-i" aria-selected="false" data-p="i"><span class="n">Part 2</span><span class="t">Why it works</span></button>
+  <button role="tab" id="tab-2" aria-selected="false" data-p="2"><span class="n">Part 3</span><span class="t">Temperature lab<br>Bottom table</span></button>
+  <button role="tab" id="tab-0" aria-selected="false" data-p="0"><span class="n">Part 4</span><span class="t">Why did temperature do that?</span></button>
+  <button role="tab" id="tab-q" aria-selected="false" data-p="q"><span class="n">Part 5</span><span class="t">Questions</span></button>
+</div>
+
+<!-- ============ LIGHT AND SOUND ============ -->
+<section class="part" id="part-i" hidden>
+  <div>
+    <h2>Why it works</h2>
+    <p class="hint">Lightning makes two waves at the same time: light and sound. They travel at very different speeds.</p>
+  </div>
+  <div class="ls2">
+    <div class="lscard light-c">
+      <h3>Light</h3>
+      <p>Light is an <b>electromagnetic wave</b>.</p>
+      <p>It does <b>not</b> need air to travel. It can go through empty space.</p>
+      <p class="spd">300,000,000 m/s</p>
+    </div>
+    <div class="lscard sound-c">
+      <h3>Sound</h3>
+      <p>Sound is a <b>mechanical wave</b>.</p>
+      <p>It needs a <b>medium</b>, like air. Air particles bump into each other to pass it along.</p>
+      <p class="spd">about 343 m/s</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">1</div>
+    <div class="step-body">
+      <div class="say"><span class="txt">Lightning strikes 1 mile away. Watch the light and the sound travel to you.</span></div>
+      <canvas id="lsCanvas" aria-label="Two lanes from a lightning bolt to a person. Light crosses at once. Sound moves slowly as air particles bump."></canvas>
+      <div class="go"><button class="bigbtn light" id="lsBtn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>Make lightning</button></div>
+      <div class="result" id="lsResult">Which one gets to you first?</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">2</div>
+    <div class="step-body">
+      <div class="say"><span class="txt">This works in real life! The time from the flash to the BOOM tells you how far away the lightning is.</span></div>
+      <div class="ls2">
+        <div class="lscard sound-c">
+          <h3>Why 5 seconds?</h3>
+          <p>Sound goes about 343 meters each second.</p>
+          <p>1 mile is about 1,609 meters.</p>
+          <p>1,609 ÷ 343 ≈ <b>5 seconds</b> for each mile.</p>
+        </div>
+        <div class="lscard light-c">
+          <h3>Who uses this?</h3>
+          <p>People who work outside, coaches, lifeguards, and weather scientists use the flash-to-BOOM count to know how close a storm is.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">3</div>
+    <div class="step-body">
+      <div class="say"><span class="txt">How to use it in a real storm.</span></div>
+      <div class="howto">
+        <div><span class="hn">1</span><b>See the flash.</b><p>Start counting: one one-thousand, two one-thousand…</p></div>
+        <div><span class="hn">2</span><b>Hear the BOOM.</b><p>Stop counting.</p></div>
+        <div><span class="hn">3</span><b>Divide by 5.</b><p>15 seconds ÷ 5 = <b>3 miles</b> away.</p></div>
+      </div>
+      <div class="safety"><b>Stay safe: When thunder roars, go indoors.</b><p>If you can hear thunder, lightning is close enough to hit you. Go inside a building or a hard-top car. Wait 30 minutes after the last thunder before you go back out.</p></div>
+      <div class="go"><button class="bigbtn light" id="goPart2">Go to Part 3: Temperature lab</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INTRO ============ -->
+<section class="part" id="part-0" hidden>
+  <div>
+    <h2>Why did temperature do that?</h2>
+    <p class="hint">Sound moves through air. Does the temperature of the air matter?</p>
+  </div>
+  <div class="step">
+    <div class="num">1</div>
+    <div class="step-body">
+      <div class="say"><span class="txt">Look at the dots. Each dot is a tiny piece of air. Hot air dots move faster than cold air dots.</span></div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">2</div>
+    <div class="step-body">
+      <div class="say"><span class="txt">Sound moves when air bumps air. Race a sound through cold air and hot air.</span></div>
+      <canvas id="introRace" aria-label="Two rows of air particles, cold air at 20 °F on top and hot air at 100 °F on the bottom"></canvas>
+      <div class="go"><button class="bigbtn light" id="introBtn">Start the race</button></div>
+      <div class="result" id="introResult">Watch the yellow wave. Which one gets to the end first?</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="num">3</div>
+    <div class="step-body">
+      <div class="say"><span class="txt">You saw it with numbers in Part 3. Now you can see why. Next, answer the questions.</span></div>
+      <div class="go"><button class="bigbtn light" id="goStorm">Go to Part 5: Questions</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PART 1 ============ -->
+<section class="part" id="part-1">
+  <div class="step" id="s1">
+    <div class="num">1</div>
+    <div class="step-body">
+      <div class="say"><span class="txt">Pick how far away you stand.</span></div>
+      <div class="choices" id="milesBtns"></div>
+    </div>
+  </div>
+
+  <div class="stage"><canvas id="scene" aria-label="A storm cloud on the left and a person standing some miles away"></canvas></div>
+
+  <div class="step" id="s2">
+    <div class="num">2</div>
+    <div class="step-body">
+      <div class="say"><span class="txt" id="s2txt">Click the button. Watch the cloud for the flash.</span></div>
+      <div class="go">
+        <button class="bigbtn light" id="bigBtn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><span id="bigTxt">Make lightning</span></button>
+        <div class="clock" id="clock">0<small> s</small></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step" id="s3">
+    <div class="num">3</div>
+    <div class="step-body">
+      <div class="say"><span class="txt">Did you click I hear thunder right when you heard the BOOM? If yes, add it to the table. If not, try again.</span></div>
+      <div class="result" id="result">Do each distance 3 times.</div>
+    </div>
+  </div>
+
+  <div class="tbl-head">
+    <h2>Top table</h2>
+    <div class="btns">
+      <button id="undoTop">Undo last</button>
+      <button id="clearTop">Start over</button>
+      <button class="copy" id="copyTop">Copy table</button>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table id="topTable">
+      <thead><tr><th>Position (miles)</th><th>Distance (m)</th><th>Counted seconds Trial 1</th><th>Counted seconds Trial 2</th><th>Counted seconds Trial 3</th><th>Average Counted Seconds</th><th>Calculated Speed (m/s)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="hint">Copy the numbers onto your lab sheet, or click <b>Copy table</b> and paste it in.</p>
+  <div class="go"><button class="bigbtn light" id="goLS">Go to Part 2: Why it works</button></div>
+</section>
+
+<!-- ============ PART 2 ============ -->
+<section class="part" id="part-2" hidden>
+  <div class="say"><h2 class="txt">How does temperature change the speed of sound?</h2></div>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div class="step-body">
+      <div class="say"><span class="txt">Slide the temperature. Watch the boxes and the graph change.</span></div>
+      <div class="therm">
+        <div class="tempbig"><output id="tempBig">68 °F</output><span id="tempWord">Part 1 storm</span></div>
+        <input type="range" id="p2temp" min="0" max="110" step="1" value="68" aria-label="Air temperature in °F">
+        <div class="scale"><span>0 °F cold</span><span>110 °F hot</span></div>
+      </div>
+      <div class="choices" id="tempQuick">
+        <button class="choice cold" data-t="20">20 °F<small>cold</small></button>
+        <button class="choice cool" data-t="60">60 °F<small>cool</small></button>
+        <button class="choice hot" data-t="100">100 °F<small>hot</small></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards3" id="cards3">
+    <div class="rcard" id="cardSpeed">
+      <div class="rlabel">Speed of sound</div>
+      <div class="rbig" id="rSpeed">– m/s</div>
+      <div class="rsub" id="rSpeedSub"></div>
+      <div class="rchange" id="rSpeedChg"></div>
+    </div>
+    <div class="rcard" id="cardTime">
+      <div class="rlabel">Thunder arrives in (travel time)</div>
+      <div class="rbig" id="rTime">– s</div>
+      <div class="rsub" id="rTimeSub"></div>
+      <div class="rchange" id="rTimeChg"></div>
+    </div>
+    <div class="rcard mine">
+      <div class="rlabel">Your speed from Part 1</div>
+      <div class="rbig" id="rMine">–</div>
+      <div class="rsub" id="rMineSub"></div>
+    </div>
+  </div>
+
+  <div class="graphbox"><svg id="graph" viewBox="0 0 640 230" role="img" title="Drag the dot" aria-label="Line graph of speed of sound against air temperature. The line goes up as temperature goes up. Drag the dot to change the temperature."></svg></div>
+
+  <div class="step">
+    <div class="num">2</div>
+    <div class="step-body">
+      <div class="say"><span class="txt">Record your data.</span></div>
+      <div class="job">
+        <p><b>Do one distance at a time.</b> Start with 1 mile. Then 5 miles. Then 9 miles.</p>
+        <div class="choices" id="recDist"></div>
+        <p class="recprompt" id="recPrompt"></p>
+        <div class="choices" id="recTemps"></div>
+        <div class="recread" id="recRead"></div>
+        <div class="go"><button class="bigbtn light" id="saveBot">Save</button><button class="bigbtn" id="nextBot" hidden>Next one</button><span class="progress" id="botProg"></span></div>
+        <div class="result" id="p2Saved">Click a temperature. Then click Save.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tbl-head">
+    <h2>Bottom table</h2>
+    <div class="btns">
+      <button id="clearBot">Start over</button>
+      <button class="copy" id="copyBot">Copy table</button>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table id="botTable">
+      <thead><tr><th>Distance (miles)</th><th class="hc">Expected Travel Time @ 20 °F (s)</th><th class="hc">Speed of Sound @ 20 °F (m/s)</th><th class="hl">Expected Travel Time @ 60 °F (s)</th><th class="hl">Speed of Sound @ 60 °F (m/s)</th><th class="hh">Expected Travel Time @ 100 °F (s)</th><th class="hh">Speed of Sound @ 100 °F (m/s)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="hint">Copy these numbers onto your lab sheet, or click <b>Copy table</b> and paste it in.</p>
+  <div class="go"><button class="bigbtn light" id="goQs">Go to Part 4: Why did temperature do that?</button></div>
+</section>
+<!-- ============ QUESTIONS ============ -->
+<section class="part" id="part-q" hidden>
+  <div class="qbox" style="border-top:0;padding-top:0">
+    <h2>Now answer the questions</h2>
+    <p class="hint">Not sure? Click <b>Where do I look?</b></p>
+    <ol class="qs" id="qs"></ol>
+  </div>
+</section>
+
+
+</div>
+
+<script>
+(function(){
+const M_PER_MI=1609.34, SIM_F=68;
+const TOP_MILES=[1,5,9], TOP_M={1:1609,5:8047,9:14484};
+const BOT_MILES=[1,5,9], BOT_TEMPS=[20,60,100];
+const $=id=>document.getElementById(id);
+const fToC=f=>(f-32)*5/9, speedAt=f=>331.4+0.6*fToC(f);
+const fmt=(n,d=1)=>(Math.round(n*10**d)/10**d).toFixed(d);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- read aloud ---------- */
+const SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
+function speak(t){ try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=0.9; speechSynthesis.speak(u);}catch(e){} }
+if('speechSynthesis' in window){
+  document.querySelectorAll('.say').forEach(s=>{ const b=document.createElement('button'); b.className='speak'; b.innerHTML=SPK+'Read to me'; b.onclick=()=>speak(s.querySelector('.txt').textContent); s.appendChild(b); });
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  ['i','0','1','2','q'].forEach(n=>$('part-'+n).hidden=(b.dataset.p!==n));
+  window.scrollTo({top:0});
+  if(b.dataset.p==='2') p2refresh();
+});
+
+/* ---------- storage ---------- */
+const KEY='thunderTimeLab.v3';
+let store={top:{},bot:{},hist:[]};
+try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.top&&s.bot) store=Object.assign(store,s); }catch(e){}
+TOP_MILES.forEach(m=>{ if(!Array.isArray(store.top[m])) store.top[m]=[]; });
+const persist=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(store)); }catch(e){} };
+
+/* ---------- top table ---------- */
+const topBody=document.querySelector('#topTable tbody');
+TOP_MILES.forEach(mi=>{
+  const tr=document.createElement('tr'); tr.dataset.mi=mi;
+  tr.innerHTML=`<td>${mi}</td><td>${TOP_M[mi]} m</td><td id="t-${mi}-0"></td><td id="t-${mi}-1"></td><td id="t-${mi}-2"></td><td class="calc" id="avg-${mi}"></td><td class="calc" id="spd-${mi}"></td>`;
+  topBody.appendChild(tr);
+});
+function renderTop(newCell){
+  TOP_MILES.forEach(mi=>{
+    const v=store.top[mi];
+    [0,1,2].forEach(i=>$(`t-${mi}-${i}`).textContent= v[i]!=null? v[i] : '');
+    if(v.length){ const a=v.reduce((s,x)=>s+x,0)/v.length; $(`avg-${mi}`).textContent=fmt(a,1); $(`spd-${mi}`).textContent=Math.round(TOP_M[mi]/a); }
+    else { $(`avg-${mi}`).textContent=''; $(`spd-${mi}`).textContent=''; }
+  });
+  if(newCell){ const c=$(newCell); c.classList.remove('new'); void c.offsetWidth; c.classList.add('new'); }
+  renderMilesBtns();
+  persist();
+}
+
+/* ---------- part 1 choices ---------- */
+const sim={miles:1,state:'idle',flashAt:0,travel:0,stopT:null,arrived:false,bolt:null};
+function renderMilesBtns(){
+  const box=$('milesBtns'); box.innerHTML='';
+  TOP_MILES.forEach(m=>{
+    const n=store.top[m].length;
+    const b=document.createElement('button'); b.className='choice'+(m===sim.miles?' on':'');
+    b.innerHTML=`${m}<small>${m===1?'mile':'miles'}</small><span class="dots" aria-label="${n} of 3 done">${[0,1,2].map(i=>`<i class="${i<n?'f':''}"></i>`).join('')}</span>`;
+    b.disabled= sim.state==='waiting'||sim.state==='traveling';
+    b.onclick=()=>{ sim.miles=m; sim.state='idle'; setBig('light','Make lightning'); $('clock').innerHTML='0<small> s</small>'; resultMsg(); renderMilesBtns(); };
+    box.appendChild(b);
+  });
+  document.querySelectorAll('#topTable tbody tr').forEach(tr=>tr.classList.toggle('here',+tr.dataset.mi===sim.miles));
+}
+function resultMsg(){
+  const n=store.top[sim.miles].length;
+  $('result').className='result';
+  $('result').innerHTML = n>=3 ? `<b>${sim.miles} miles is done.</b> Pick a new distance.` : `You are <b>${sim.miles} ${sim.miles===1?'mile':'miles'}</b> away. Trial ${n+1} of 3.`;
+}
+
+/* ---------- audio ---------- */
+let actx=null;
+function initAudio(){ try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); actx.resume(); }catch(e){} }
+function thunderAt(when,miles){
+  if(!actx) return;
+  const dur=3.5,sr=actx.sampleRate,buf=actx.createBuffer(1,sr*dur,sr),d=buf.getChannelData(0); let last=0;
+  for(let i=0;i<d.length;i++){ const w=Math.random()*2-1; last=(last+0.02*w)/1.02; d[i]=last*3.5; }
+  const src=actx.createBufferSource(); src.buffer=buf;
+  const lp=actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=Math.max(180,900-miles*80);
+  const g=actx.createGain(), peak=Math.min(1,1.6/(0.6+miles*0.25));
+  g.gain.setValueAtTime(0.0001,when); g.gain.exponentialRampToValueAtTime(peak,when+0.05);
+  g.gain.exponentialRampToValueAtTime(peak*0.5,when+0.6); g.gain.exponentialRampToValueAtTime(peak*0.7,when+1.0);
+  g.gain.exponentialRampToValueAtTime(0.0001,when+dur);
+  src.connect(lp); lp.connect(g); g.connect(actx.destination); src.start(when); src.stop(when+dur);
+}
+
+/* ---------- big button flow ---------- */
+function setBig(kind,txt,dis=false){ const b=$('bigBtn'); b.className='bigbtn '+kind; $('bigTxt').textContent=txt; b.disabled=dis; }
+$('bigBtn').onclick=()=>{
+  if(sim.state==='idle'||sim.state==='done'){
+    if(store.top[sim.miles].length>=3){ resultMsg(); return; }
+    initAudio();
+    sim.state='waiting'; sim.stopT=null; sim.arrived=false; renderMilesBtns();
+    $('clock').innerHTML='0<small> s</small>';
+    setBig('light','Watch the cloud…',true);
+    $('s2txt').textContent='Watch the cloud. Get ready.';
+    setTimeout(flash,1200+Math.random()*2500);
+  } else if(sim.state==='traveling'){ heard(); }
+};
+function flash(){
+  sim.state='traveling'; sim.flashAt=performance.now();
+  sim.travel=sim.miles*M_PER_MI/speedAt(SIM_F); sim.bolt=makeBolt();
+  if(actx) thunderAt(actx.currentTime+sim.travel,sim.miles);
+  setBig('thunder','I hear thunder!');
+  $('s2txt').textContent='FLASH! Count. Click when you hear BOOM.';
+  $('bigBtn').focus({preventScroll:true});
+}
+function heard(){
+  if(sim.state!=='traveling'||sim.stopT!==null) return;
+  sim.stopT=(performance.now()-sim.flashAt)/1000;
+  setBig('light','Wait…',true);
+  if(sim.arrived) finish();
+}
+document.addEventListener('keydown',e=>{ if(e.code==='Space'&&sim.state==='traveling'&&e.target.tagName!=='INPUT'){ e.preventDefault(); heard(); } });
+function finish(){
+  sim.state='done';
+  const secs=Math.max(1,Math.round(sim.stopT));
+  const real=Math.round(sim.travel), off=Math.abs(secs-real);
+  $('clock').innerHTML=secs+'<small> s</small>';
+  renderMilesBtns();
+  $('result').className='result';
+  $('result').innerHTML=`Your time: <b>${secs} seconds</b><br><b>Did you click <i>I hear thunder!</i> right when you heard the BOOM?</b>`+
+    `<div class="go" style="margin-top:10px"><button class="copy" id="addBtn">Yes. Add ${secs} s to table</button><button id="skipBtn">No. Try again</button></div>`;
+  $('addBtn').onclick=()=>{
+    const row=store.top[sim.miles], slot=row.length;
+    if(slot>=3){ resultMsg(); return; }
+    row.push(secs); store.hist.push(sim.miles);
+    renderTop(`t-${sim.miles}-${slot}`);
+    const left=3-row.length;
+    $('result').className='result good';
+    $('result').innerHTML=`Added <b>${secs} seconds</b> to Trial ${slot+1}. `+(left?`Do it ${left} more ${left===1?'time':'times'}.`:'<b>This distance is done!</b> Pick a new one.');
+    setBig('light',left?'Make lightning again':'Pick a new distance',!left);
+  };
+  $('skipBtn').onclick=()=>{ resultMsg(); $('bigBtn').click(); };
+  $('s2txt').textContent='Click the button. Watch the cloud for the flash.';
+  setBig('light','Make lightning again');
+}
+$('undoTop').onclick=()=>{ const m=store.hist.pop(); if(m==null) return; store.top[m].pop(); sim.miles=m; sim.state='idle'; setBig('light','Make lightning'); renderTop(); resultMsg(); };
+armClear($('clearTop'),'Start over',()=>{ TOP_MILES.forEach(m=>store.top[m]=[]); store.hist=[]; sim.state='idle'; setBig('light','Make lightning'); renderTop(); resultMsg(); });
+
+/* ---------- scene ---------- */
+const canvas=$('scene'), ctx=canvas.getContext('2d'); let W=0,H=0,rain=[];
+function resize(){ const d=Math.min(2,devicePixelRatio||1), r=canvas.getBoundingClientRect(); W=r.width; H=r.height; canvas.width=W*d; canvas.height=H*d; ctx.setTransform(d,0,0,d,0,0); rain=[]; const n=reduce?0:Math.round(W/9); for(let i=0;i<n;i++) rain.push({x:Math.random()*W*0.4,y:Math.random()*H,s:4+Math.random()*4}); }
+new ResizeObserver(resize).observe(canvas);
+function makeBolt(){ const p=[]; for(let i=0;i<=9;i++) p.push([i?(Math.random()-0.5)*0.5:0,i]); return p; }
+function cloud(cx,cy,s,col){ ctx.fillStyle=col; ctx.beginPath(); [[0,0,1],[-0.9,0.2,0.75],[0.9,0.2,0.8],[-0.4,-0.45,0.75],[0.45,-0.4,0.7],[1.6,0.35,0.55],[-1.6,0.4,0.5]].forEach(([dx,dy,r])=>{ ctx.moveTo(cx+dx*s+r*s,cy+dy*s); ctx.arc(cx+dx*s,cy+dy*s,r*s,0,7); }); ctx.fill(); }
+function person(x,gy,col){ ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=3; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(x,gy-38,7,0,7); ctx.fill(); ctx.beginPath(); ctx.moveTo(x,gy-30); ctx.lineTo(x,gy-14); ctx.lineTo(x-7,gy); ctx.moveTo(x,gy-14); ctx.lineTo(x+7,gy); ctx.moveTo(x,gy-26); ctx.lineTo(x-9,gy-18); ctx.moveTo(x,gy-26); ctx.lineTo(x+6,gy-36); ctx.stroke(); }
+function draw(now){
+  if(W){
+    const left=Math.max(46,W*0.08), right=W-28, ppm=(right-left)/9, gy=H-44;
+    const live=sim.state==='traveling'||sim.state==='done';
+    const t=live?(now-sim.flashAt)/1000:0, since=live?t:99, fa=since<0.35?1-since/0.35:0;
+    const g=ctx.createLinearGradient(0,0,0,gy); g.addColorStop(0,'#0b1322'); g.addColorStop(1,'#26364f'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    if(fa>0){ ctx.fillStyle=`rgba(230,240,255,${0.6*fa})`; ctx.fillRect(0,0,W,H); }
+    ctx.strokeStyle='rgba(160,190,230,.35)'; ctx.lineWidth=1; ctx.beginPath();
+    rain.forEach(r=>{ r.y+=r.s; r.x-=0.6; if(r.y>gy){ r.y=-10; r.x=Math.random()*W*0.4+20; } ctx.moveTo(r.x,r.y); ctx.lineTo(r.x-2,r.y+9); }); ctx.stroke();
+    ctx.fillStyle='#1d3b2f'; ctx.fillRect(0,gy,W,H-gy); ctx.fillStyle='#2c5643'; ctx.fillRect(0,gy,W,4);
+    ctx.font='700 14px "Atkinson Hyperlegible", system-ui'; ctx.textAlign='center'; ctx.textBaseline='top';
+    for(let m=0;m<=9;m++){ const x=left+m*ppm; ctx.fillStyle=m===sim.miles?'#ffd34d':'rgba(220,232,245,.7)'; ctx.fillRect(x-1,gy+4,2,8); ctx.fillText(m===0?'0 mi':m,x,gy+14); }
+    if(live){
+      const rpx=(speedAt(SIM_F)*t/M_PER_MI)*ppm;
+      ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,gy); ctx.clip();
+      for(let k=0;k<4;k++){ const rr=rpx-k*10; if(rr<=0) continue; ctx.strokeStyle=`rgba(120,220,255,${0.75-k*0.17})`; ctx.lineWidth=k?2:3; ctx.beginPath(); ctx.arc(left,gy,rr,Math.PI,2*Math.PI); ctx.stroke(); }
+      ctx.restore();
+    }
+    const cx=left, cy=46;
+    if(since<0.5&&sim.bolt){ const a=1-since/0.5; ctx.strokeStyle=`rgba(255,240,170,${a})`; ctx.lineWidth=4; ctx.shadowColor='#fff3b0'; ctx.shadowBlur=18; ctx.beginPath(); sim.bolt.forEach(([bx,by],i)=>{ const X=cx+bx*ppm*0.6, Y=cy+20+(by/9)*(gy-cy-20); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }); ctx.stroke(); ctx.shadowBlur=0; }
+    const s=Math.max(22,Math.min(38,W*0.04));
+    cloud(cx+6,cy,s,fa>0?`rgb(${150+100*fa},${160+90*fa},${180+70*fa})`:'#5a6a84'); cloud(cx+s*1.4,cy+6,s*0.7,'#4a5974');
+    const ox=left+sim.miles*ppm; person(ox,gy,'#ffd34d');
+    ctx.fillStyle='#ffd34d'; ctx.font='700 13px "Atkinson Hyperlegible", system-ui'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('you',Math.min(Math.max(ox,20),W-20),gy-50);
+    if(sim.state==='traveling'&&t>=sim.travel&&!sim.arrived){ sim.arrived=true; if(sim.stopT!==null) finish(); else $('s2txt').textContent='BOOM! Click the button now!'; }
+    if(sim.arrived&&t-sim.travel<1.2){ ctx.fillStyle='#ffd34d'; ctx.font='800 22px "Baloo 2", system-ui'; ctx.fillText('BOOM!',Math.min(Math.max(ox,40),W-40),gy-68); }
+    if(sim.state==='traveling'&&sim.stopT===null) $('clock').innerHTML=Math.floor(t)+'<small> s</small>';
+  }
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+/* ---------- part 2 ---------- */
+const botBody=document.querySelector('#botTable tbody');
+const TCLS={20:'c',60:'l',100:'h'};
+BOT_MILES.forEach(mi=>{
+  const tr=document.createElement('tr'); tr.dataset.mi=mi;
+  tr.innerHTML=`<td>${mi}</td>`+BOT_TEMPS.map(t=>`<td class="g${TCLS[t]}" id="bt-${mi}-${t}"></td><td class="g${TCLS[t]} gr" id="bs-${mi}-${t}"></td>`).join('');
+  botBody.appendChild(tr);
+});
+function renderBot(){
+  let n=0;
+  BOT_MILES.forEach(mi=>BOT_TEMPS.forEach(t=>{
+    const on=!!store.bot[`${mi}-${t}`]; if(on) n++;
+    $(`bt-${mi}-${t}`).textContent= on? fmt(mi*M_PER_MI/speedAt(t),1) : '';
+    $(`bs-${mi}-${t}`).textContent= on? Math.round(speedAt(t)) : '';
+    $(`bt-${mi}-${t}`).classList.toggle('target',mi===p2.mi&&t===p2.t&&!on);
+    $(`bs-${mi}-${t}`).classList.toggle('target',mi===p2.mi&&t===p2.t&&!on);
+  }));
+  $('botProg').textContent=`${n} of 9 done`;
+  const mi=p2.mi, done=t=>!!store.bot[`${mi}-${t}`];
+  $('recDist').innerHTML=BOT_MILES.map(m=>{ const all=BOT_TEMPS.every(t=>store.bot[`${m}-${t}`]); return `<button class="choice recd${m===mi?' on':''}" data-m="${m}">${m} ${m===1?'mile':'miles'}<small>${all?'✓ done':BOT_TEMPS.filter(t=>store.bot[`${m}-${t}`]).length+' of 3'}</small></button>`; }).join('');
+  document.querySelectorAll('.recd').forEach(b=>b.onclick=()=>{ p2.mi=+b.dataset.m; const first=BOT_TEMPS.find(t=>!store.bot[`${p2.mi}-${t}`]); p2.t=first??20; p2refresh(); });
+  $('recTemps').innerHTML=BOT_TEMPS.map(t=>`<button class="choice rect ${{20:'cold',60:'cool',100:'hot'}[t]}${t===p2.t?' on':''}" data-t="${t}">${t} °F<small>${done(t)?'✓ saved':'click me'}</small></button>`).join('');
+  document.querySelectorAll('.rect').forEach(b=>b.onclick=()=>{ p2.t=+b.dataset.t; update(); });
+  const left=BOT_TEMPS.filter(t=>!done(t));
+  $('recPrompt').innerHTML= left.length? `<b>${mi} ${mi===1?'mile':'miles'}:</b> Click <b>${left[0]} °F</b> to see the data. Then click Save.` : `<b>${mi} ${mi===1?'mile':'miles'} is done!</b> ${BOT_MILES.find(m=>BOT_TEMPS.some(t=>!store.bot[`${m}-${t}`]))?'Click the next distance.':'All 9 are done!'}`;
+  if(BOT_TEMPS.includes(p2.t)){ const tt=mi*M_PER_MI/speedAt(p2.t); $('recRead').innerHTML=`<span class="rk">${mi} ${mi===1?'mile':'miles'} at ${p2.t} °F</span><span><small>Travel time</small><b>${fmt(tt,1)} s</b></span><span><small>Speed of sound</small><b>${Math.round(speedAt(p2.t))} m/s</b></span>`; $('recRead').hidden=false; }
+  else $('recRead').hidden=true;
+  persist();
+}
+const p2={mi:1,t:SIM_F};
+const avgOf=mi=>{ const v=store.top[mi]; return v&&v.length? v.reduce((s,x)=>s+x,0)/v.length : null; };
+function tempWord(t){ return t===SIM_F?'Part 1 storm':t<=32?'freezing':t<50?'cold':t<70?'cool':t<85?'warm':'hot'; }
+function tempClass(t){ return t<45?'cold':t<80?'cool':'hot'; }
+function p2refresh(){
+  update();
+}
+
+/* graph */
+const G={l:70,r:24,t:12,b:50,w:640,h:230,vmin:315,vmax:370};
+const gx=t=>G.l+t/110*(G.w-G.l-G.r), gy=v=>G.h-G.b-(v-G.vmin)/(G.vmax-G.vmin)*(G.h-G.t-G.b);
+const SVGNS='http://www.w3.org/2000/svg';
+function el(tag,attrs,txt){ const e=document.createElementNS(SVGNS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(txt!=null) e.textContent=txt; return e; }
+function drawGraph(){
+  const g=$('graph'); g.innerHTML='';
+  for(let v=320;v<=370;v+=10){ if(v%20&&v!==370&&false) continue; g.appendChild(el('line',{x1:G.l,x2:G.w-G.r,y1:gy(v),y2:gy(v),class:'g-grid'})); g.appendChild(el('text',{x:G.l-8,y:gy(v)+4,class:'g-tick','text-anchor':'end'},v)); }
+  for(let t=0;t<=110;t+=10){ g.appendChild(el('text',{x:gx(t),y:G.h-G.b+20,class:'g-tick','text-anchor':'middle'},t)); }
+  g.appendChild(el('line',{x1:G.l,x2:G.l,y1:G.t,y2:G.h-G.b,class:'g-axis'}));
+  g.appendChild(el('line',{x1:G.l,x2:G.w-G.r,y1:G.h-G.b,y2:G.h-G.b,class:'g-axis'}));
+  g.appendChild(el('text',{x:(G.l+G.w-G.r)/2,y:G.h-10,class:'g-title','text-anchor':'middle'},'Air temperature (°F)'));
+  g.appendChild(el('text',{x:18,y:(G.t+G.h-G.b)/2,class:'g-title','text-anchor':'middle',transform:`rotate(-90 18 ${(G.t+G.h-G.b)/2})`},'Speed of sound (m/s)'));
+  g.appendChild(el('line',{x1:gx(0),y1:gy(speedAt(0)),x2:gx(110),y2:gy(speedAt(110)),class:'g-line'}));
+  [[20,'c'],[60,'l'],[100,'h']].forEach(([t,c])=>{
+    g.appendChild(el('circle',{cx:gx(t),cy:gy(speedAt(t)),r:6,class:'g-pt g-'+c}));
+    g.appendChild(el('text',{id:'gl-'+t,x:gx(t),y:gy(speedAt(t))-12,class:'g-lab g-'+c+'t','text-anchor':'middle'},Math.round(speedAt(t))));
+  });
+  const grp=el('g',{id:'gDot'});
+  grp.appendChild(el('line',{id:'gV',class:'g-guide'})); grp.appendChild(el('line',{id:'gH',class:'g-guide'}));
+  grp.appendChild(el('circle',{id:'gC',r:11,class:'g-dot'}));
+  grp.appendChild(el('rect',{id:'gBox',rx:8,class:'g-box',height:28}));
+  grp.appendChild(el('text',{id:'gT',class:'g-dotlab'}));
+  g.appendChild(grp);
+}
+function moveDot(t){
+  const v=speedAt(t), X=gx(t), Y=gy(v);
+  const set=(id,a)=>{ const e=$(id); for(const k in a) e.setAttribute(k,a[k]); };
+  set('gV',{x1:X,x2:X,y1:Y,y2:G.h-G.b}); set('gH',{x1:G.l,x2:X,y1:Y,y2:Y});
+  set('gC',{cx:X,cy:Y});
+  const label=`${t} °F → ${fmt(v,1)} m/s`, bw=label.length*8.6+16, bx=Math.min(Math.max(X-bw/2,G.l+4),G.w-G.r-bw), by=Y-50<G.t?Y+16:Y-48;
+  set('gBox',{x:bx,y:by,width:bw}); set('gT',{x:bx+bw/2,y:by+19,'text-anchor':'middle'}); $('gT').textContent=label;
+  $('graph').dataset.temp=tempClass(t);
+  [20,60,100].forEach(p=>{ const l=$('gl-'+p); if(l) l.style.visibility=Math.abs(p-t)<12?'hidden':'visible'; });
+}
+drawGraph();
+(function(){
+  const g=$('graph'); let drag=false;
+  function setFrom(e){ const pt=g.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY; const p=pt.matrixTransform(g.getScreenCTM().inverse());
+    let t=Math.round((p.x-G.l)/(G.w-G.l-G.r)*110); t=Math.max(0,Math.min(110,t));
+    [20,60,100].forEach(s=>{ if(Math.abs(t-s)<=2) t=s; });
+    if(t!==p2.t){ p2.t=t; update(); } }
+  g.addEventListener('pointerdown',e=>{ drag=true; g.setPointerCapture(e.pointerId); setFrom(e); e.preventDefault(); });
+  g.addEventListener('pointermove',e=>{ if(drag) setFrom(e); });
+  ['pointerup','pointercancel'].forEach(ev=>g.addEventListener(ev,()=>drag=false));
+})();
+
+function update(){
+  const mi=p2.mi, t=p2.t, v=speedAt(t), v0=speedAt(SIM_F), m=mi*M_PER_MI, time=m/v, time0=m/v0;
+  $('tempBig').textContent=t+' °F'; $('tempWord').textContent=tempWord(t);
+  $('p2temp').value=t; $('part-2').dataset.temp=tempClass(t);
+  document.querySelectorAll('#tempQuick .choice').forEach(b=>b.classList.toggle('on',+b.dataset.t===t));
+  $('rSpeed').textContent=fmt(v,1)+' m/s'; $('rSpeedSub').textContent=`at ${t} °F (${fmt(fToC(t),1)} °C)`;
+  $('rTime').textContent=fmt(time,1)+' s'; $('rTimeSub').textContent=`for ${mi} ${mi===1?'mile':'miles'} (${Math.round(m).toLocaleString()} m)`;
+  const dv=v-v0, dt=time-time0;
+  if(t===SIM_F){ $('rSpeedChg').innerHTML='<b>Move the slider!</b>'; $('rTimeChg').innerHTML='Same as Part 1.'; ['rSpeedChg','rTimeChg'].forEach(id=>$(id).className='rchange'); }
+  else {
+    $('rSpeedChg').innerHTML= dv>0?`<span class="arr">▲</span> ${fmt(dv,1)} m/s <b>faster</b> than Part 1`:`<span class="arr">▼</span> ${fmt(-dv,1)} m/s <b>slower</b> than Part 1`;
+    $('rTimeChg').innerHTML= Math.abs(dt)<0.05? 'About the same as Part 1' : dt<0?`<span class="arr">▼</span> ${fmt(-dt,1)} s <b>sooner</b> than Part 1`:`<span class="arr">▲</span> ${fmt(dt,1)} s <b>later</b> than Part 1`;
+    $('rSpeedChg').className='rchange '+(dv>0?'up':'down'); $('rTimeChg').className='rchange '+(dt<0?'up':'down');
+  }
+  const a=avgOf(mi);
+  if(a!=null){ $('rMine').textContent=Math.round(TOP_M[mi]/a)+' m/s'; $('rMineSub').innerHTML=`You counted ${fmt(a,1)} s for ${mi} ${mi===1?'mile':'miles'} at 68 °F.`; }
+  else { $('rMine').textContent='–'; $('rMineSub').textContent=`No Part 1 data for ${mi} ${mi===1?'mile':'miles'} yet.`; }
+  moveDot(t);
+  // save button
+  if(!$('p2Saved').classList.contains('keep')) $('nextBot').hidden=true;
+  const ok=BOT_TEMPS.includes(t), sb=$('saveBot');
+  sb.disabled=!ok;
+  sb.textContent= ok? `Save ${mi} ${mi===1?'mile':'miles'} at ${t} °F` : 'Save';
+  if(!ok){ $('p2Saved').className='result'; $('p2Saved').textContent='Click a temperature. Then click Save.'; }
+  else if(store.bot[`${mi}-${t}`]){ $('p2Saved').className='result good'; $('p2Saved').innerHTML=`${mi} ${mi===1?'mile':'miles'} at ${t} °F is already in the table.`; }
+  else { $('p2Saved').className='result'; $('p2Saved').innerHTML=`Click <b>Save</b> to put ${mi} ${mi===1?'mile':'miles'} at ${t} °F in the table.`; }
+  renderBot();
+}
+$('saveBot').onclick=()=>{
+  const mi=p2.mi,t=p2.t; if(!BOT_TEMPS.includes(t)) return;
+  store.bot[`${mi}-${t}`]=1; renderBot();
+  [`bt-${mi}-${t}`,`bs-${mi}-${t}`].forEach(id=>{ const e=$(id); e.classList.remove('new'); void e.offsetWidth; e.classList.add('new'); });
+  $('p2Saved').className='result good';
+  const nx=nextSpot();
+  $('p2Saved').innerHTML=`<b>Saved!</b> At ${t} °F, thunder takes <b>${fmt(mi*M_PER_MI/speedAt(t),1)} s</b> to go ${mi} ${mi===1?'mile':'miles'}. Speed: <b>${Math.round(speedAt(t))} m/s</b>.<br>`+
+    (nx? (nx.mi===mi? `Now switch to <b>${nx.t} °F</b>.` : `This distance is done! Now switch to <b>${nx.mi} miles</b> at <b>${nx.t} °F</b>.`) : '<b>All 9 are done!</b> Copy the table onto your lab sheet.');
+  $('nextBot').hidden=!nx; if(nx) $('nextBot').textContent=`Next: ${nx.mi} ${nx.mi===1?'mile':'miles'} at ${nx.t} °F`;
+};
+function nextSpot(){ const order=[]; const start=BOT_MILES.indexOf(p2.mi); for(let i=0;i<3;i++){ const mi=BOT_MILES[(start+i)%3]; BOT_TEMPS.forEach(t=>order.push({mi,t})); } return order.find(o=>!store.bot[`${o.mi}-${o.t}`]); }
+$('nextBot').onclick=()=>{ const nx=nextSpot(); if(!nx) return; p2.mi=nx.mi; p2.t=nx.t; p2refresh(); };
+$('p2temp').addEventListener('input',e=>{ p2.t=+e.target.value; update(); });
+document.querySelectorAll('#tempQuick .choice').forEach(b=>b.onclick=()=>{ p2.t=+b.dataset.t; update(); });
+armClear($('clearBot'),'Start over',()=>{ store.bot={}; renderBot(); update(); });
+
+/* ---------- copy / clear helpers ---------- */
+function armClear(btn,label,fn){ let armed=false,tm; btn.onclick=()=>{ if(!armed){ armed=true; btn.textContent='Click again'; tm=setTimeout(()=>{armed=false;btn.textContent=label;},2500);} else { clearTimeout(tm); armed=false; btn.textContent=label; fn(); } }; }
+async function copyTable(id,btn){
+  const rows=[...$(id).querySelectorAll('tr')].map(tr=>[...tr.children].map(c=>c.innerText.replace(/\s+/g,' ').trim()));
+  const tsv=rows.map(r=>r.join('\t')).join('\n');
+  const html='<table border="1" style="border-collapse:collapse">'+rows.map((r,i)=>'<tr>'+r.map(c=>i?`<td>${c}</td>`:`<th>${c}</th>`).join('')+'</tr>').join('')+'</table>';
+  const label=btn.textContent;
+  try{ if(window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([tsv],{type:'text/plain'})})]); else await navigator.clipboard.writeText(tsv); btn.textContent='Copied! Now paste'; }
+  catch(e){ try{ await navigator.clipboard.writeText(tsv); btn.textContent='Copied! Now paste'; } catch(e2){ const r=document.createRange(); r.selectNodeContents($(id)); const s=getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent='Press Ctrl+C'; } }
+  setTimeout(()=>btn.textContent=label,2600);
+}
+$('copyTop').onclick=e=>copyTable('topTable',e.currentTarget);
+$('copyBot').onclick=e=>copyTable('botTable',e.currentTarget);
+
+const seeds=[...Array(400)].map(()=>[Math.random()*6.28,Math.random()*6.28]);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+
+/* ---------- questions ---------- */
+const QS=[
+ ['Which is faster, a light wave or a sound wave?','Look at Part 2. Which one got to the person first?',['i',2]],
+ ['How did distance impact the speed of sound?','Look at the last column of your top table in Part 1. Or in Part 3, pick 1, 5, then 9 miles. Watch the <b>Speed of sound</b> box.',['1',1]],
+ ['How did temperature impact the speed of sound?','In Part 3, slide the temperature up and down. Watch the <b>Speed of sound</b> box.',['2',3]],
+ ['Does sound travel faster in warm air or cold air?','Look at the race in Part 4. Which air won?',['0',4]],
+ ['If you only change the medium (the air), what happens to the wave speed? <b>It changes</b> or <b>it stays the same</b>?','The thunder was the same each time. Only the air temperature changed. In Part 3, did the <b>Speed of sound</b> box change?',['2',3]]];
+$('qs').innerHTML=QS.map((q,i)=>`<li><div class="qtext">${q[0]}</div><button class="speak qhelp" data-i="${i}">Where do I look?</button><div class="qhint" id="qh-${i}" hidden>${q[1]}${q[2]?` <button class="golink" data-tab="${q[2][0]}">Go to Part ${q[2][1]}</button>`:''}</div></li>`).join('');
+document.querySelectorAll('.qhelp').forEach(b=>b.onclick=()=>{ const h=$('qh-'+b.dataset.i); h.hidden=!h.hidden; });
+document.querySelectorAll('.golink').forEach(b=>b.onclick=()=>$('tab-'+b.dataset.tab).click());
+
+
+/* ---------- part 1: light and sound ---------- */
+(function(){
+  const c=$('lsCanvas'), x=c.getContext('2d'); let w=0,h=0,start=null,done=false;
+  new ResizeObserver(()=>{ const d=Math.min(2,devicePixelRatio||1), r=c.getBoundingClientRect(); w=r.width; h=r.height; c.width=w*d; c.height=h*d; x.setTransform(d,0,0,d,0,0); }).observe(c);
+  const SOUND_T=M_PER_MI/speedAt(SIM_F), LIGHT_ANIM=0.25;
+  $('lsBtn').onclick=()=>{ initAudio(); start=performance.now(); done=false; $('lsResult').className='result'; $('lsResult').textContent='Watch…'; if(actx) thunderAt(actx.currentTime+SOUND_T,1); };
+  $('goPart2').onclick=()=>$('tab-2').click();
+  $('goLS').onclick=()=>$('tab-i').click();
+  $('goQs').onclick=()=>$('tab-0').click();
+  function person(px,mid,ink){ x.strokeStyle=ink; x.fillStyle=ink; x.lineWidth=2; x.beginPath(); x.arc(px,mid-12,4,0,7); x.fill(); x.beginPath(); x.moveTo(px,mid-8); x.lineTo(px,mid+4); x.lineTo(px-5,mid+13); x.moveTo(px,mid+4); x.lineTo(px+5,mid+13); x.stroke(); }
+  function boltIcon(bx,mid,col){ x.fillStyle=col; x.beginPath(); x.moveTo(bx+2,mid-16); x.lineTo(bx-6,mid+2); x.lineTo(bx,mid+2); x.lineTo(bx-4,mid+16); x.lineTo(bx+6,mid-2); x.lineTo(bx,mid-2); x.closePath(); x.fill(); }
+  function frame(now){
+    if(w){
+      x.clearRect(0,0,w,h);
+      const x0=118,x1=w-40,dist=x1-x0,laneH=(h-16)/2,bolt=css('--bolt'),boltT=css('--bolt-text'),teal=css('--teal'),line=css('--line'),ink=css('--ink'),muted=css('--muted');
+      const el=start!==null?(now-start)/1000:-1, tt=now/1000*(reduce?0.3:1);
+      // lane labels
+      [['Light',boltT,'no air needed'],['Sound',teal,'air particles']].forEach(([n,col,sub],k)=>{
+        const mid=8+k*laneH+laneH/2;
+        x.textAlign='left'; x.textBaseline='middle'; x.fillStyle=col; x.font='800 18px "Baloo 2", system-ui'; x.fillText(n,8,mid-9);
+        x.fillStyle=muted; x.font='700 12px "Atkinson Hyperlegible", system-ui'; x.fillText(sub,8,mid+11);
+        x.strokeStyle=line; x.lineWidth=1.5; x.strokeRect(x0-14,8+k*laneH+4,dist+48,laneH-8);
+        boltIcon(x0-4,mid,bolt); person(x1+18,mid,ink);
+      });
+      // light lane: wavy line
+      const midL=8+laneH/2;
+      if(el>=0){
+        const p=Math.min(1,el/LIGHT_ANIM), end=x0+8+(dist-8)*p;
+        x.strokeStyle=bolt; x.lineWidth=3; x.beginPath();
+        for(let X=x0+8;X<=end;X+=2){ const Y=midL+Math.sin((X-tt*400)/9)*8; X===x0+8?x.moveTo(X,Y):x.lineTo(X,Y); }
+        x.stroke();
+        if(p>=1){ x.textAlign='right'; x.textBaseline='top'; x.fillStyle=boltT; x.font='800 14px "Baloo 2", system-ui'; x.fillText('Here! 0.000005 s',x1+34,12); }
+      }
+      // sound lane: particles
+      const midS=8+laneH+laneH/2, cols=Math.max(12,Math.floor(dist/18)), sp=(dist-8)/(cols-1);
+      const px= el>=0? x0+8+(dist-8)*Math.min(1,el/SOUND_T) : -999;
+      for(let i=0;i<cols;i++) for(let j=0;j<3;j++){
+        const [a,b]=seeds[(i*3+j)%400], bx=x0+8+i*sp, by=midS+(j-1)*((laneH-26)/3);
+        const dx=Math.sin(tt*4+a)*1.4, dy=Math.cos(tt*3.5+b)*1.4, dd=bx-px, push=Math.abs(dd)<40?Math.exp(-(dd*dd)/180)*7:0;
+        x.fillStyle=push>1?bolt:teal; x.beginPath(); x.arc(bx+dx+push*(dd<0?1:-0.3),by+dy,push>1?4.5:3.4,0,7); x.fill();
+      }
+      if(el>=0){ const shown=Math.min(SOUND_T,el); x.textAlign='right'; x.textBaseline='top'; x.fillStyle=el>=SOUND_T?teal:muted; x.font='800 14px "Baloo 2", system-ui'; x.fillText((el>=SOUND_T?'BOOM! ':'')+fmt(shown,1)+' s',x1+34,8+laneH+8); }
+      if(el>=0&&!done&&el>SOUND_T+0.1){ done=true; $('lsResult').className='result good'; $('lsResult').innerHTML=`<b>Light won!</b> The light got to you right away. The sound took about <b>${fmt(SOUND_T,1)} seconds</b> to go 1 mile.`; }
+      else if(el>LIGHT_ANIM&&!done){ $('lsResult').innerHTML='You see the flash! Now wait for the sound…'; }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* ---------- part 3: cold vs hot race ---------- */
+(function(){
+  const c=$('introRace'), x=c.getContext('2d'); let w=0,h=0,start=null,done=false;
+  new ResizeObserver(()=>{ const d=Math.min(2,devicePixelRatio||1), r=c.getBoundingClientRect(); w=r.width; h=r.height; c.width=w*d; c.height=h*d; x.setTransform(d,0,0,d,0,0); }).observe(c);
+  const lanes=[{n:'Cold air',f:20,col:'--cold'},{n:'Hot air',f:100,col:'--hot'}], RACE=2.6;
+  $('introBtn').onclick=()=>{ start=performance.now(); done=false; $('introResult').className='result'; $('introResult').textContent='Watch the yellow wave…'; };
+  $('goStorm').onclick=()=>$('tab-q').click();
+  function frame(now){
+    if(w){
+      x.clearRect(0,0,w,h);
+      const x0=96,x1=w-14,dist=x1-x0,laneH=(h-16)/2,vRef=speedAt(100),bolt=css('--bolt'),line=css('--line'),ink=css('--ink');
+      const cols=Math.max(12,Math.floor(dist/18)),sp=dist/(cols-1),tt=now/1000*(reduce?0.3:1),el=start!==null?(now-start)/1000:0;
+      lanes.forEach((ln,k)=>{
+        const top=8+k*laneH,mid=top+laneH/2,col=css(ln.col),jig=0.6+ln.f/110*2.4;
+        x.textAlign='left'; x.textBaseline='middle';
+        x.fillStyle=col; x.font='800 17px "Baloo 2", system-ui'; x.fillText(ln.n,8,mid-9);
+        x.fillStyle=ink; x.font='700 13px "Atkinson Hyperlegible", system-ui'; x.fillText(ln.f+' °F',8,mid+11);
+        x.strokeStyle=line; x.lineWidth=1.5; x.strokeRect(x0-8,top+4,dist+16,laneH-8);
+        const px=start!==null? x0+dist*Math.min(1,el/(RACE*vRef/speedAt(ln.f))) : -999;
+        for(let i=0;i<cols;i++) for(let j=0;j<3;j++){
+          const [a,b]=seeds[(i*3+j)%400],bx=x0+i*sp,by=mid+(j-1)*((laneH-26)/3);
+          const dx=Math.sin(tt*5*jig/1.5+a)*jig,dy=Math.cos(tt*4.4*jig/1.5+b)*jig,dd=bx-px,push=Math.abs(dd)<40?Math.exp(-(dd*dd)/180)*7:0;
+          x.fillStyle=push>1?bolt:col; x.beginPath(); x.arc(bx+dx+push*(dd<0?1:-0.3),by+dy,push>1?4.5:3.4,0,7); x.fill();
+        }
+      });
+      if(start!==null&&!done&&el>RACE*vRef/speedAt(20)+0.1){ done=true; $('introResult').className='result good'; $('introResult').innerHTML='<b>Hot air won!</b> Hot air particles move faster. They pass the sound along faster.'; }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+renderTop(); resultMsg(); renderBot(); p2refresh();
+})();
+</script>
+
+</body></html>
