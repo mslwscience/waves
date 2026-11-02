@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Interference Missions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: a lab "mission console" — briefing card on the left, live wave scope on the right, controls under the scope. Stacks on phones. */
+:root{
+  --bg:#0d1b26; --panel:#142838; --panel2:#1b3447; --line:#2f4d63;
+  --fg:#f2f6f9; --muted:#b9c9d6;
+  --waveA:#E69F00; --waveB:#56B4E9; --sum:#ffffff;
+  --go:#3fd38f; --warn:#ffcc4d; --bad:#ff8f8f;
+  --btn:#ffd166; --btnfg:#14212c;
+  --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --body:'Atkinson Hyperlegible',Verdana,system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4vw,40px);margin:0;line-height:1.1;text-wrap:balance}
+h1 small{display:block;font-size:16px;font-weight:500;color:var(--muted);margin-top:4px;font-family:var(--body)}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.step{font-family:var(--display);font-weight:600;font-size:14px;min-width:38px;height:38px;border-radius:19px;border:2px solid var(--line);
+  background:var(--panel);color:var(--muted);display:grid;place-items:center;padding:0 10px;cursor:pointer}
+.step[aria-current="true"]{border-color:var(--btn);color:var(--fg)}
+.step.done{background:var(--go);border-color:var(--go);color:#0b2a1c}
+.step:disabled{cursor:not-allowed;opacity:.55}
+.grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:16px}
+@media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.brief{background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.tag{align-self:flex-start;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+  padding:3px 10px;border-radius:8px;background:var(--panel2);color:var(--warn);border:1.5px solid var(--warn)}
+.tag.con{color:var(--go);border-color:var(--go)}
+.brief h2{font-family:var(--display);font-weight:700;font-size:26px;margin:0;line-height:1.15}
+.brief p{margin:0}
+.goal{background:var(--panel2);border-radius:12px;padding:10px 12px;border-left:5px solid var(--btn)}
+.goal b{font-family:var(--display);font-weight:600;color:var(--btn)}
+.art{display:flex;justify-content:center}
+.scope{background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-weight:700;font-size:15px}
+.legend span{display:flex;align-items:center;gap:7px}
+.legend svg{flex:none}
+canvas{width:100%;height:300px;display:block;border-radius:10px;background:#0a1620}
+.meter{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.meter .lab{font-family:var(--display);font-weight:600;min-width:150px}
+.bar{flex:1;min-width:160px;height:22px;border-radius:11px;background:#0a1620;border:2px solid var(--line);overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--warn);transition:width .25s}
+.bar .target{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--fg)}
+.meter .val{font-family:var(--display);font-weight:700;font-size:20px;min-width:70px;font-variant-numeric:tabular-nums}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.ctl{display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px}
+.ctl label{font-weight:700}
+input[type=range]{width:100%;accent-color:var(--waveB);height:30px}
+button{font-family:var(--display);font-weight:600;font-size:17px;border-radius:12px;border:2px solid transparent;padding:9px 16px;cursor:pointer;
+  background:var(--btn);color:var(--btnfg)}
+button.ghost{background:var(--panel2);color:var(--fg);border-color:var(--line)}
+button:focus-visible,.step:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.status{font-family:var(--display);font-weight:600;font-size:19px;min-height:28px}
+.status.win{color:var(--go)}
+.check{background:var(--panel);border:2px solid var(--go);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.check h3{font-family:var(--display);font-size:22px;margin:0;color:var(--go)}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;background:var(--panel2);color:var(--fg);border:2px solid var(--line);font-family:var(--body);font-weight:400;font-size:16.5px}
+.opt.right{border-color:var(--go);background:#173d2e}
+.opt.wrong{border-color:var(--bad);background:#3c2024}
+.explain{margin:0;color:var(--fg)}
+.quiz{display:grid;gap:10px}
+.qcard{background:var(--panel2);border-radius:12px;padding:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.qcard p{margin:0;flex:1;min-width:220px}
+.qcard .row button{font-size:15px;padding:7px 12px}
+.mark{font-weight:700;min-width:20px}
+.final{text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center;padding:10px}
+.code{font-family:var(--display);font-weight:700;font-size:34px;letter-spacing:.08em;color:var(--btn);background:var(--panel2);padding:8px 20px;border-radius:14px;border:2px dashed var(--btn)}
+.note{font-size:14.5px;color:var(--muted)}
+.vocab{display:flex;gap:6px;flex-wrap:wrap}
+.vocab span{font-size:13.5px;font-weight:700;border:1.5px solid var(--muted);border-radius:7px;padding:1px 8px;color:var(--fg)}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Interference Missions<small>Unit 4 · 4.10 Wave Interference · Ms. Welch's Science 7</small></h1>
+    <nav class="steps" id="steps" aria-label="Missions"></nav>
+  </header>
+
+  <div class="grid">
+    <section class="brief" id="brief" aria-live="polite"></section>
+    <section class="scope">
+      <div class="legend" id="legend"></div>
+      <canvas id="cv" role="img" aria-label="Wave scope showing two waves and the new wave they make"></canvas>
+      <div class="meter"><span class="lab" id="mlab">Loudness</span><div class="bar"><i id="mbar"></i><span class="target" id="mtarget"></span></div><span class="val" id="mval">0</span></div>
+      <div class="controls" id="controls"></div>
+      <div class="status" id="status" role="status"></div>
+    </section>
+  </div>
+  <section id="after" hidden></section>
+</div>
+
+<script>
+(function(){
+const TAU = Math.PI*2;
+const $ = id => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- small inline art per mission ---------- */
+const ART = {
+  plane:`<svg width="230" height="120" viewBox="0 0 230 120"><path d="M20 70 L160 60 Q200 58 210 66 Q200 74 160 74 L20 78 Z" fill="#b9c9d6"/><path d="M90 66 L60 30 L80 30 L120 64 Z M95 74 L70 108 L88 108 L125 72 Z" fill="#8aa3b5"/><path d="M28 70 L14 48 L30 48 L44 69 Z" fill="#8aa3b5"/>
+    <g fill="none" stroke="#E69F00" stroke-width="3"><path d="M140 92 q6 6 0 12"/><path d="M150 88 q10 10 0 20"/></g>
+    <circle cx="190" cy="98" r="14" fill="none" stroke="#56B4E9" stroke-width="5"/><rect x="178" y="94" width="8" height="14" rx="3" fill="#56B4E9"/><rect x="196" y="94" width="8" height="14" rx="3" fill="#56B4E9"/></svg>`,
+  surf:`<svg width="230" height="120" viewBox="0 0 230 120"><path d="M0 90 Q40 40 80 90 T160 90 T240 90 V120 H0Z" fill="#1f6f9f"/><path d="M0 98 Q30 70 60 98 T120 98 T180 98 T240 98 V120 H0Z" fill="#56B4E9"/>
+    <ellipse cx="120" cy="58" rx="34" ry="6" fill="#E69F00" transform="rotate(-12 120 58)"/><circle cx="120" cy="34" r="7" fill="#f2f6f9"/><path d="M120 41 L118 54 M118 46 L106 42 M118 46 L132 44 M118 54 L110 60 M118 54 L128 58" stroke="#f2f6f9" stroke-width="3.5" stroke-linecap="round"/></svg>`,
+  harbor:`<svg width="230" height="120" viewBox="0 0 230 120"><rect x="150" y="40" width="70" height="12" fill="#8a6a45"/><rect x="160" y="52" width="6" height="60" fill="#8a6a45"/><rect x="200" y="52" width="6" height="60" fill="#8a6a45"/>
+    <path d="M0 88 Q20 70 40 88 T80 88 T120 88 T160 88 T200 88 T240 88 V120 H0Z" fill="#1f6f9f"/><text x="12" y="30" fill="#E69F00" font-family="Fredoka,sans-serif" font-weight="700" font-size="20">A + B = ?</text></svg>`,
+  mower:`<svg width="230" height="120" viewBox="0 0 230 120"><rect x="0" y="100" width="230" height="20" fill="#2e6b3a"/><rect x="40" y="70" width="80" height="26" rx="6" fill="#d55e00"/><circle cx="54" cy="100" r="10" fill="#14212c" stroke="#b9c9d6" stroke-width="3"/><circle cx="106" cy="100" r="10" fill="#14212c" stroke="#b9c9d6" stroke-width="3"/><path d="M118 74 L160 34" stroke="#b9c9d6" stroke-width="5" stroke-linecap="round"/>
+    <g fill="none" stroke="#E69F00" stroke-width="3.5"><path d="M128 84 q8 8 0 16"/><path d="M140 78 q14 14 0 28"/><path d="M152 72 q20 20 0 40"/></g>
+    <circle cx="198" cy="56" r="16" fill="none" stroke="#56B4E9" stroke-width="5"/><rect x="185" y="52" width="9" height="16" rx="3" fill="#56B4E9"/><rect x="203" y="52" width="9" height="16" rx="3" fill="#56B4E9"/></svg>`,
+  radio:`<svg width="230" height="120" viewBox="0 0 230 120"><rect x="4" y="18" width="10" height="90" fill="#b9c9d6"/><path d="M9 18 L-4 108 M9 18 L22 108" stroke="#b9c9d6" stroke-width="2"/><circle cx="9" cy="14" r="5" fill="#E69F00"/>
+    <rect x="170" y="10" width="54" height="98" fill="#5e6f7d"/><g fill="#9fd3f5">${[0,1,2,3].map(r=>[0,1].map(c=>`<rect x="${178+c*24}" y="${20+r*22}" width="14" height="12"/>`).join('')).join('')}</g>
+    <path d="M30 60 L150 92" stroke="#E69F00" stroke-width="3" stroke-dasharray="8 6"/><path d="M30 50 L168 40 L120 92" stroke="#56B4E9" stroke-width="3" stroke-dasharray="3 5" fill="none"/>
+    <rect x="96" y="90" width="58" height="18" rx="6" fill="#ffd166"/><circle cx="108" cy="110" r="7" fill="#14212c"/><circle cx="142" cy="110" r="7" fill="#14212c"/></svg>`,
+  bolt:`<svg width="230" height="110" viewBox="0 0 230 110"><text x="115" y="70" text-anchor="middle" fill="#ffd166" font-family="Fredoka,sans-serif" font-weight="700" font-size="44">C or D?</text></svg>`
+};
+
+/* ---------- missions ---------- */
+const M = [
+ {id:'hush', short:'1', kind:'des', tag:'Destructive', title:'Airplane Hush', art:'plane',
+  story:'You are on a long flight. The engines make a steady hum. Your headphones have a tiny microphone and speaker. They make their own sound wave to fight the hum.',
+  goal:'Make the sound at your ear go <b>silent</b>. Slide or flip your headphone wave until the new wave is flat.',
+  A:3, B:3, ph:60, ctl:['shift','flip'], meter:'Loudness at your ear', target:0.2, win:s=>s<=0.25,
+  winText:'Silence! Every crest of your wave met a trough of the hum. That is destructive interference.',
+  q:{t:'Why did the hum disappear?', o:['Your wave was the same size, and its crests lined up with the hum\'s troughs.','Your wave was louder than the hum, so it covered it up.','Your wave turned the sound into light.','The plane landed.'], a:0,
+     e:'Crest + trough cancel when the waves are the same size: +3 and −3 make 0. That is how noise-canceling headphones work.'}},
+ {id:'surf', short:'2', kind:'con', tag:'Constructive', title:'Surf\'s Up', art:'surf',
+  story:'Two ocean swells are rolling toward the beach. A surfer is waiting for the biggest wave of the day. You control when the second swell arrives.',
+  goal:'Make the <b>biggest</b> wave you can. The 5 m line on the meter is the record.',
+  A:2, B:3, ph:150, ctl:['shift','flip'], meter:'Wave height at the beach', target:1, win:s=>s>=4.9, unit:' m',
+  winText:'Gnarly! Crest met crest, so the heights added: 2 m + 3 m = 5 m. That is constructive interference.',
+  q:{t:'The swells were 2 m and 3 m tall. Why did the surfer get a 5 m wave?', o:['The crests lined up, so the amplitudes added: 2 + 3 = 5.','The crest met a trough, so the waves canceled.','The water got denser.','The waves slowed down and bent.'], a:0,
+     e:'In constructive interference, crests meet crests and troughs meet troughs. The new amplitude is the two amplitudes added together.'}},
+ {id:'harbor', short:'3', kind:'mix', tag:'Wave Math', title:'Harbor Engineer', art:'harbor', math:true,
+  story:'You keep the boats in the harbor safe. Two waves will hit the dock at the same time. Predict how big the new wave will be before it hits.',
+  goal:'Answer all three predictions. Then watch the scope to check yourself.',
+  rounds:[{A:3,B:2,ph:0,ask:'Wave A is 3 m. Wave B is 2 m. They meet <b>crest to crest</b>.',o:['1 m','5 m','6 m','0 m'],a:1},
+          {A:4,B:4,ph:180,ask:'Wave A is 4 m. Wave B is 4 m. They meet <b>crest to trough</b>.',o:['8 m','4 m','0 m','16 m'],a:2},
+          {A:5,B:2,ph:180,ask:'Wave A is 5 m. Wave B is 2 m. They meet <b>crest to trough</b>.',o:['7 m','3 m','0 m','10 m'],a:1}],
+  meter:'Wave height at the dock', unit:' m'},
+ {id:'mower', short:'4', kind:'des', tag:'Destructive', title:'Lawn Mower Level', art:'mower',
+  story:'Your neighbor\'s lawn mower is much louder than the plane. Your headphones need to work harder this time.',
+  goal:'Make it <b>silent</b> again. Flipping is not enough. Your wave also has to be the <b>same size</b> as the noise.',
+  A:4, B:2, ph:0, ctl:['shift','flip','amp'], meter:'Loudness at your ear', target:0.2, win:s=>s<=0.25,
+  winText:'Quiet! Your wave matched the mower\'s amplitude (4) and lined up crest to trough. +4 and −4 = 0.',
+  q:{t:'Why did your headphone wave have to get bigger?', o:['To cancel completely, the anti-noise needs the same amplitude as the noise.','Bigger waves are always quieter.','A bigger wave changes the color of the sound.','It did not matter. Flipping is always enough.'], a:0,
+     e:'With amplitude 2 against 4, you get −2 + 4 = 2 left over. Only an equal amplitude cancels everything.'}},
+ {id:'radio', short:'5', kind:'con', tag:'Real World', title:'Road Trip Radio', art:'radio',
+  story:'You are driving past a tall building. The radio signal comes straight from the tower, and a copy bounces off the building. Where the two meet, the music gets stronger or cuts out.',
+  goal:'Drive the car to a spot with <b>full bars</b>. Avoid the dead spots where the signal cancels.',
+  A:3, B:2, ph:180, ctl:['drive'], meter:'Signal strength', target:1, win:s=>s>=4.8, bars:true,
+  winText:'Full bars! At this spot the two signals arrive crest to crest, so they add up. A few feet away, they cancel.',
+  q:{t:'Why does the radio cut out in some spots?', o:['The bounced signal arrives crest to trough with the direct signal, so they cancel.','Radio waves need air as a medium.','The building makes the radio waves faster.','The radio station turns off.'], a:0,
+     e:'Radio waves are electromagnetic waves, and they interfere too. Dead spots are destructive interference.'}},
+ {id:'final', short:'★', kind:'mix', tag:'Lightning Round', title:'Constructive or Destructive?', art:'bolt', quiz:true,
+  story:'Last mission! Decide what kind of interference is happening in each real-world case.',
+  goal:'Get all five right to earn your mission code.',
+  items:[['Two friends push a swing at the exact same moment, and it goes higher.','C'],
+         ['Noise-canceling earbuds quiet the bus engine.','D'],
+         ['Two small waves in a pool meet and make one tall splash.','C'],
+         ['One seat in the gym is quiet because sound from two speakers cancels there.','D'],
+         ['A guitar and a piano play the same note in time, and it sounds louder.','C']]}
+];
+const CODE = 'QUIET-SURF-410';
+
+/* ---------- state ---------- */
+let cur = 0, done = new Array(M.length).fill(false), st = {};
+try { const s = JSON.parse(localStorage.getItem('im410')||'null'); if (s && Array.isArray(s.done)) done = M.map((_,i)=>!!s.done[i]); } catch(e){}
+const save = () => { try { localStorage.setItem('im410', JSON.stringify({done})); } catch(e){} };
+const unlocked = i => i===0 || done[i-1];
+
+function steps(){
+  $('steps').innerHTML = M.map((m,i)=>`<button class="step ${done[i]?'done':''}" aria-current="${i===cur}" ${unlocked(i)?'':'disabled'} data-i="${i}" aria-label="Mission ${i+1}: ${m.title}${done[i]?' (done)':''}">${m.short}</button>`).join('');
+  $('steps').querySelectorAll('.step').forEach(b=>b.onclick=()=>load(+b.dataset.i));
+}
+
+/* ---------- canvas ---------- */
+const cv = $('cv'), cx = cv.getContext('2d');
+let W=0,H=0,t=0;
+function size(){ const r = cv.getBoundingClientRect(), d = devicePixelRatio||1; W=r.width; H=r.height; cv.width=W*d; cv.height=H*d; cx.setTransform(d,0,0,d,0,0); }
+addEventListener('resize', size);
+const sumAmp = (a,b,ph) => Math.sqrt(Math.max(0,a*a+b*b+2*a*b*Math.cos(ph*Math.PI/180)));
+
+function draw(){
+  cx.clearRect(0,0,W,H);
+  const m = M[cur]; if (m.quiz) return;
+  const A = st.A, B = st.B, ph = st.ph;
+  const lanes = [H*0.27, H*0.73], scale = H*0.042, L = Math.max(160, W/3.2);
+  // lane labels + rest lines
+  cx.font = '600 14px Fredoka, sans-serif';
+  [['Two waves overlap',lanes[0]],['New wave (what you hear / see)',lanes[1]]].forEach(([s,y])=>{
+    cx.strokeStyle='#3d5c73'; cx.setLineDash([5,5]); cx.lineWidth=1.2; cx.beginPath(); cx.moveTo(8,y); cx.lineTo(W-8,y); cx.stroke(); cx.setLineDash([]);
+    cx.fillStyle='#b9c9d6'; cx.fillText(s, 10, y - scale*5.6 - 4 < 14 ? 16 : y - scale*5.6);
+  });
+  const wave = (amp, phase, y, col, w, dash) => {
+    cx.strokeStyle=col; cx.lineWidth=w; cx.setLineDash(dash||[]); cx.beginPath();
+    for (let x=8; x<=W-8; x+=2){ const v = amp*Math.sin(TAU*(x/L) - t + phase); x===8?cx.moveTo(x,y-v*scale):cx.lineTo(x,y-v*scale); }
+    cx.stroke(); cx.setLineDash([]);
+  };
+  wave(A, 0, lanes[0], '#E69F00', 3.5);
+  wave(B, ph*Math.PI/180, lanes[0], '#56B4E9', 3.5, [10,6]);
+  // sum
+  cx.strokeStyle='#ffffff'; cx.lineWidth=5; cx.beginPath();
+  for (let x=8; x<=W-8; x+=2){ const v = A*Math.sin(TAU*(x/L)-t) + B*Math.sin(TAU*(x/L)-t+ph*Math.PI/180); x===8?cx.moveTo(x,lanes[1]-v*scale):cx.lineTo(x,lanes[1]-v*scale); }
+  cx.stroke();
+  // crest marker on wave A at a fixed x to show what meets what
+  const mx = W*0.5, pA = A*Math.sin(TAU*(mx/L)-t), pB = B*Math.sin(TAU*(mx/L)-t+ph*Math.PI/180);
+  cx.strokeStyle='rgba(255,255,255,.35)'; cx.lineWidth=1; cx.beginPath(); cx.moveTo(mx, lanes[0]-scale*5.5); cx.lineTo(mx, lanes[1]+scale*5.5); cx.stroke();
+  [[pA,'#E69F00'],[pB,'#56B4E9']].forEach(([v,c])=>{ cx.fillStyle=c; cx.beginPath(); cx.arc(mx, lanes[0]-v*scale, 6, 0, TAU); cx.fill(); });
+  cx.fillStyle='#fff'; cx.beginPath(); cx.arc(mx, lanes[1]-(pA+pB)*scale, 7, 0, TAU); cx.fill();
+}
+function loop(){ if(!reduce) t += 0.035; draw(); requestAnimationFrame(loop); }
+
+/* ---------- UI per mission ---------- */
+const legendHTML = (a,b) => `<span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="#E69F00" stroke-width="4"/></svg>${a}</span>
+ <span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="#56B4E9" stroke-width="4" stroke-dasharray="9 5"/></svg>${b}</span>
+ <span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="#fff" stroke-width="6"/></svg>New wave</span>`;
+const NAMES = {hush:['Engine hum','Your headphone wave'], surf:['Swell A (2 m)','Swell B (3 m)'], harbor:['Wave A','Wave B'], mower:['Mower noise','Your headphone wave'], radio:['Signal from the tower','Signal bounced off the building']};
+
+function load(i){
+  if (!unlocked(i)) return;
+  cur = i; const m = M[i]; steps();
+  $('after').hidden = true; $('after').innerHTML='';
+  $('brief').innerHTML = `<span class="tag ${m.kind==='con'?'con':''}">${m.tag}</span><h2>Mission ${i+1}: ${m.title}</h2>
+   <div class="art">${ART[m.art]}</div><p>${m.story}</p><div class="goal"><b>Goal:</b> ${m.goal}</div>
+   <div class="vocab"><span>crest</span><span>trough</span><span>amplitude</span><span>${m.kind==='con'?'constructive':m.kind==='des'?'destructive':'interference'}</span></div>`;
+  $('status').textContent=''; $('status').className='status';
+  const scope = document.querySelector('.scope');
+  if (m.quiz){ scope.hidden = true; quiz(m); return; }
+  scope.hidden = false; size();
+  $('legend').innerHTML = legendHTML(...NAMES[m.id]);
+  $('mlab').textContent = m.meter;
+  if (m.math){ st = {A:m.rounds[0].A, B:m.rounds[0].B, ph:m.rounds[0].ph, r:0, won:false}; math(m); update(); return; }
+  st = {A:m.A, B:m.B, ph:m.ph, won:false};
+  let c = '';
+  if (m.ctl.includes('shift')) c += `<div class="ctl"><label for="shift">Slide your wave ←→</label><input id="shift" type="range" min="0" max="345" step="15" value="${m.ph}" aria-valuetext="shift ${m.ph} degrees"></div>`;
+  if (m.ctl.includes('drive')) c += `<div class="ctl"><label for="drive">Drive the car ←→</label><input id="drive" type="range" min="0" max="23" step="1" value="12"></div>`;
+  let r = '';
+  if (m.ctl.includes('flip')) r += `<button id="flip" class="ghost">Flip my wave ↕</button>`;
+  if (m.ctl.includes('amp')) r += `<button id="ampD" class="ghost" aria-label="Make my wave smaller">Smaller −</button><button id="ampU" class="ghost" aria-label="Make my wave bigger">Bigger +</button><span id="ampV" style="font-weight:700;align-self:center">My amplitude: ${m.B}</span>`;
+  if (m.id==='hush'||m.id==='mower') r += `<button id="hear" class="ghost">Hear it 🔊</button>`;
+  c += r ? `<div class="row">${r}</div>` : '';
+  $('controls').innerHTML = c;
+  if ($('shift')) $('shift').oninput = e => { st.ph = +e.target.value; e.target.setAttribute('aria-valuetext','shift '+st.ph+' degrees'); update(); };
+  if ($('drive')) $('drive').oninput = e => { st.ph = (+e.target.value*15 + 0) % 360; update(); };
+  if ($('drive')) st.ph = (12*15)%360;
+  if ($('flip')) $('flip').onclick = () => { st.ph = (st.ph+180)%360; if($('shift')) $('shift').value = st.ph; update(); };
+  if ($('ampU')) $('ampU').onclick = () => { st.B = Math.min(6, st.B+1); update(); };
+  if ($('ampD')) $('ampD').onclick = () => { st.B = Math.max(1, st.B-1); update(); };
+  if ($('hear')) $('hear').onclick = hear;
+  update();
+}
+
+function update(){
+  const m = M[cur]; if (m.quiz) return;
+  if ($('ampV')) $('ampV').textContent = 'My amplitude: ' + st.B;
+  const s = sumAmp(st.A, st.B, st.ph), max = m.math ? 10 : (m.id==='mower' ? 10 : 6);
+  const pct = Math.min(100, s/max*100);
+  $('mbar').style.width = pct + '%';
+  $('mbar').style.background = (m.kind==='des' ? (s<=0.25?'var(--go)':'var(--warn)') : (m.win && m.win(s)?'var(--go)':'var(--waveB)'));
+  const tgt = m.math ? null : (m.kind==='des' ? 2 : (m.id==='surf' ? 5/6*100 : 5/6*100));
+  $('mtarget').style.display = tgt==null ? 'none' : 'block';
+  if (tgt!=null) $('mtarget').style.left = tgt + '%';
+  $('mval').textContent = m.bars ? '▮'.repeat(Math.round(s/5*4)).padEnd(4,'▯') : (s<0.05?'0':s.toFixed(1)) + (m.unit||'');
+  if (!m.math && !st.won && m.win(s)) win();
+  if (!m.math && !st.won){
+    const what = Math.cos(st.ph*Math.PI/180);
+    $('status').className='status';
+    $('status').textContent = what>0.9 ? 'Crest meets crest: the waves add up.' : what<-0.9 ? 'Crest meets trough: the waves cancel.' : 'The crests are not lined up yet. Keep sliding.';
+  }
+  if (!st.lastDraw && reduce) draw();
+}
+
+function win(){
+  const m = M[cur]; st.won = true;
+  $('status').className='status win'; $('status').textContent = m.winText;
+  check(m.q, () => complete());
+}
+
+function check(q, onRight){
+  const box = $('after'); box.hidden = false;
+  const order = q.o.map((_,i)=>i).sort(()=>Math.random()-0.5);
+  box.innerHTML = `<div class="check"><h3>Science Check</h3><p style="margin:0;font-weight:700">${q.t}</p><div class="opts">${order.map(i=>`<button class="opt" data-i="${i}">${q.o[i]}</button>`).join('')}</div><p class="explain" id="exp" hidden></p></div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i;
+    if (i===q.a){ b.classList.add('right'); box.querySelectorAll('.opt').forEach(x=>x.disabled=true); const e=$('exp'); e.hidden=false; e.innerHTML='<b>Yes!</b> '+q.e; onRight(); }
+    else { b.classList.add('wrong'); b.disabled=true; }
+  });
+  box.scrollIntoView({behavior: reduce?'auto':'smooth', block:'nearest'});
+}
+
+function complete(){
+  done[cur] = true; save(); steps();
+  const nxt = cur+1 < M.length ? `<button id="next">Next mission →</button>` : '';
+  $('after').querySelector('.check').insertAdjacentHTML('beforeend', `<div class="row">${nxt}</div>`);
+  if ($('next')) $('next').onclick = () => { load(cur+1); scrollTo({top:0,behavior:reduce?'auto':'smooth'}); };
+}
+
+/* harbor math rounds */
+function math(m){
+  const r = m.rounds[st.r];
+  st.A = r.A; st.B = r.B; st.ph = 0; update();
+  $('controls').innerHTML = `<div style="width:100%"><p style="margin:0 0 8px"><b>Prediction ${st.r+1} of 3:</b> ${r.ask} How tall is the new wave?</p>
+   <div class="row" id="mopts">${r.o.map((o,i)=>`<button class="ghost" data-i="${i}">${o}</button>`).join('')}</div></div>`;
+  $('status').className='status'; $('status').textContent = 'The scope shows the two waves before they meet. Make your prediction.';
+  $('mopts').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i;
+    if (i!==r.a){ b.disabled=true; b.style.borderColor='var(--bad)'; $('status').textContent='Not quite. Crest + crest: add. Crest + trough: subtract the smaller from the bigger.'; return; }
+    st.ph = r.ph; update();
+    $('mopts').querySelectorAll('button').forEach(x=>x.disabled=true); b.style.borderColor='var(--go)';
+    $('status').className='status win';
+    $('status').textContent = r.ph===0 ? `Right! ${r.A} + ${r.B} = ${r.A+r.B} m. Constructive.` : `Right! ${r.A} − ${r.B} = ${r.A-r.B} m. Destructive.`;
+    if (st.r < 2){ $('mopts').insertAdjacentHTML('beforeend', `<button id="mnext">Next prediction →</button>`); $('mnext').onclick=()=>{ st.r++; math(m); }; }
+    else { done[cur]=true; save(); steps(); $('after').hidden=false;
+      $('after').innerHTML = `<div class="check"><h3>Harbor safe!</h3><p class="explain"><b>Rule:</b> crest + crest, <b>add</b> the amplitudes. Crest + trough, <b>subtract</b> them. Same size + crest to trough = 0.</p><div class="row"><button id="next">Next mission →</button></div></div>`;
+      $('next').onclick = () => { load(cur+1); scrollTo({top:0,behavior:reduce?'auto':'smooth'}); }; }
+  });
+}
+
+/* lightning round */
+function quiz(m){
+  const box = $('after'); box.hidden=false;
+  const got = new Array(m.items.length).fill(false);
+  box.innerHTML = `<div class="check"><h3>Lightning Round</h3><div class="quiz">${m.items.map(([t],i)=>`<div class="qcard"><p>${i+1}. ${t}</p><div class="row" data-i="${i}"><button class="ghost" data-v="C">Constructive</button><button class="ghost" data-v="D">Destructive</button><span class="mark" id="mk${i}"></span></div></div>`).join('')}</div><div id="fin"></div></div>`;
+  box.querySelectorAll('.qcard .row').forEach(row=>row.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const i=+row.dataset.i;
+    if (b.dataset.v===m.items[i][1]){ got[i]=true; b.style.borderColor='var(--go)'; b.style.background='#173d2e'; row.querySelectorAll('button').forEach(x=>x.disabled=true); $('mk'+i).textContent='✓'; $('mk'+i).style.color='var(--go)'; }
+    else { b.disabled=true; b.style.borderColor='var(--bad)'; $('mk'+i).textContent='Try again'; $('mk'+i).style.color='var(--bad)'; }
+    if (got.every(Boolean)){ done[cur]=true; save(); steps();
+      $('fin').innerHTML = `<div class="final"><h3 style="font-size:28px">All missions complete!</h3><p style="margin:0">Type this code on your 4.10 Classkick slide:</p><div class="code">${CODE}</div><p class="note">Constructive: crest + crest, waves add, bigger wave. Destructive: crest + trough, waves cancel, smaller or flat wave.</p></div>`; }
+  }));
+}
+
+/* sound: plays the new (combined) wave as a tone */
+let ac=null;
+function hear(){
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const s = sumAmp(st.A, st.B, st.ph), o = ac.createOscillator(), g = ac.createGain();
+    o.type='sine'; o.frequency.value=180; g.gain.value=0;
+    g.gain.linearRampToValueAtTime(Math.min(0.5, s/10), ac.currentTime+0.05);
+    g.gain.linearRampToValueAtTime(0, ac.currentTime+1.2);
+    o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime+1.25);
+    $('status').textContent = s<=0.25 ? 'Hear that? Nothing. The waves canceled.' : 'That is what reaches your ear right now.';
+  }catch(e){ $('status').textContent='Sound is not available on this device.'; }
+}
+
+size(); load(Math.max(0, done.lastIndexOf(true)+1 < M.length ? done.lastIndexOf(true)+1 : 0)); loop();
+})();
+</script>
+
+</body>
+</html>
