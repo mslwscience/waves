@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wave Speed Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+
+/* Layout: a lab "mission console" — briefing card on the left, live wave scope on the right, controls under the scope. Stacks on phones. */
+:root{
+  --bg:#0d1b26; --panel:#142838; --panel2:#1b3447; --line:#2f4d63;
+  --fg:#f2f6f9; --muted:#b9c9d6;
+  --waveA:#E69F00; --waveB:#56B4E9; --sum:#ffffff;
+  --go:#3fd38f; --warn:#ffcc4d; --bad:#ff8f8f;
+  --btn:#ffd166; --btnfg:#14212c;
+  --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --body:'Atkinson Hyperlegible',Verdana,system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4vw,40px);margin:0;line-height:1.1;text-wrap:balance}
+h1 small{display:block;font-size:16px;font-weight:500;color:var(--muted);margin-top:4px;font-family:var(--body)}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.step{font-family:var(--display);font-weight:600;font-size:14px;min-width:38px;height:38px;border-radius:19px;border:2px solid var(--line);
+  background:var(--panel);color:var(--muted);display:grid;place-items:center;padding:0 10px;cursor:pointer}
+.step[aria-current="true"]{border-color:var(--btn);color:var(--fg)}
+.step.done{background:var(--go);border-color:var(--go);color:#0b2a1c}
+.step:disabled{cursor:not-allowed;opacity:.55}
+.grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:16px}
+@media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.brief{background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.tag{align-self:flex-start;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+  padding:3px 10px;border-radius:8px;background:var(--panel2);color:var(--warn);border:1.5px solid var(--warn)}
+.tag.con{color:var(--go);border-color:var(--go)}
+.brief h2{font-family:var(--display);font-weight:700;font-size:26px;margin:0;line-height:1.15}
+.brief p{margin:0}
+.goal{background:var(--panel2);border-radius:12px;padding:10px 12px;border-left:5px solid var(--btn)}
+.goal b{font-family:var(--display);font-weight:600;color:var(--btn)}
+.art{display:flex;justify-content:center}
+.scope{background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-weight:700;font-size:15px}
+.legend span{display:flex;align-items:center;gap:7px}
+.legend svg{flex:none}
+canvas{width:100%;height:300px;display:block;border-radius:10px;background:#0a1620}
+.meter{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.meter .lab{font-family:var(--display);font-weight:600;min-width:150px}
+.bar{flex:1;min-width:160px;height:22px;border-radius:11px;background:#0a1620;border:2px solid var(--line);overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--warn);transition:width .25s}
+.bar .target{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--fg)}
+.meter .val{font-family:var(--display);font-weight:700;font-size:20px;min-width:70px;font-variant-numeric:tabular-nums}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.ctl{display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px}
+.ctl label{font-weight:700}
+input[type=range]{width:100%;accent-color:var(--waveB);height:30px}
+button{font-family:var(--display);font-weight:600;font-size:17px;border-radius:12px;border:2px solid transparent;padding:9px 16px;cursor:pointer;
+  background:var(--btn);color:var(--btnfg)}
+button.ghost{background:var(--panel2);color:var(--fg);border-color:var(--line)}
+button:focus-visible,.step:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.status{font-family:var(--display);font-weight:600;font-size:19px;min-height:28px}
+.status.win{color:var(--go)}
+.check{background:var(--panel);border:2px solid var(--go);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.check h3{font-family:var(--display);font-size:22px;margin:0;color:var(--go)}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;background:var(--panel2);color:var(--fg);border:2px solid var(--line);font-family:var(--body);font-weight:400;font-size:16.5px}
+.opt.right{border-color:var(--go);background:#173d2e}
+.opt.wrong{border-color:var(--bad);background:#3c2024}
+.explain{margin:0;color:var(--fg)}
+.quiz{display:grid;gap:10px}
+.qcard{background:var(--panel2);border-radius:12px;padding:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.qcard p{margin:0;flex:1;min-width:220px}
+.qcard .row button{font-size:15px;padding:7px 12px}
+.mark{font-weight:700;min-width:20px}
+.final{text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center;padding:10px}
+.code{font-family:var(--display);font-weight:700;font-size:34px;letter-spacing:.08em;color:var(--btn);background:var(--panel2);padding:8px 20px;border-radius:14px;border:2px dashed var(--btn)}
+.note{font-size:14.5px;color:var(--muted)}
+.vocab{display:flex;gap:6px;flex-wrap:wrap}
+.vocab span{font-size:13.5px;font-weight:700;border:1.5px solid var(--muted);border-radius:7px;padding:1px 8px;color:var(--fg)}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+
+/* kangaroo-race additions */
+canvas{height:340px}
+.pred{display:flex;flex-wrap:wrap;gap:8px}
+.pred button.on{outline:3px solid var(--fg);outline-offset:2px}
+.stats{width:100%;border-collapse:collapse;font-size:15.5px;font-variant-numeric:tabular-nums}
+.stats th,.stats td{border:1.5px solid var(--line);padding:6px 8px;text-align:center}
+.stats th{background:var(--panel2);font-family:var(--display);font-weight:600}
+.stats td.k{color:var(--waveA);font-weight:700}.stats td.b{color:var(--waveB);font-weight:700}
+.big{font-family:var(--display);font-weight:700;font-size:24px}
+.myth{display:grid;gap:10px}
+.callout{background:var(--panel2);border-radius:12px;padding:10px 12px;border-left:5px solid var(--waveB)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Wave Speed Lab<small>Unit 4 · 4.03 Frequency and Speed of a Wave · Ms. Welch's Science 7</small></h1>
+    <div class="row" style="align-items:center"><button id="mute" class="ghost" style="font-size:14px;padding:6px 12px">🔊 Sound on</button><nav class="steps" id="steps" aria-label="Missions"></nav></div>
+  </header>
+  <div class="grid">
+    <section class="brief" id="brief" aria-live="polite"></section>
+    <section class="scope" id="scope">
+      <div class="legend" id="legend"></div>
+      <canvas id="cv" role="img" aria-label="Animated race scene"></canvas>
+      <div class="controls" id="controls"></div>
+      <div class="status" id="status" role="status"></div>
+    </section>
+  </div>
+  <section id="after" hidden></section>
+</div>
+
+<script>
+(function(){
+const $ = id => document.getElementById(id);
+const TAU = Math.PI*2, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const KC = '#E69F00', BC = '#56B4E9', WH = '#f2f6f9';
+/* ---- sound (starts only after a button press) ---- */
+let AC=null, MUTE=false;
+function ac(){ try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); return AC; }catch(e){ return null; } }
+function tone(freq,dur,vol,type,delay){ if(MUTE) return; const a=ac(); if(!a) return; const t0=a.currentTime+(delay||0), o=a.createOscillator(), g=a.createGain();
+  o.type=type||'sine'; o.frequency.value=freq; g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(vol||0.25,t0+0.03); g.gain.exponentialRampToValueAtTime(0.0008,t0+dur);
+  o.connect(g).connect(a.destination); o.start(t0); o.stop(t0+dur+0.05); }
+function thunder(delay){ if(MUTE) return; const a=ac(); if(!a) return; const t0=a.currentTime+(delay||0), n=a.sampleRate*2.6, buf=a.createBuffer(1,n,a.sampleRate), d=buf.getChannelData(0);
+  let last=0; for(let i=0;i<n;i++){ last=(last+0.02*(Math.random()*2-1))/1.02; d[i]=last*3.5*(1-i/n); }
+  const src=a.createBufferSource(), f=a.createBiquadFilter(), g=a.createGain(); src.buffer=buf; f.type='lowpass'; f.frequency.value=160; g.gain.value=MUTE?0:1.6;
+  src.connect(f).connect(g).connect(a.destination); src.start(t0); }
+const SQUEAK=()=>{ tone(1180,0.18,0.18,'triangle'); tone(1320,0.22,0.16,'triangle',0.16); };
+const RUMBLE=()=>{ tone(95,0.55,0.4,'sawtooth'); tone(80,0.5,0.25,'sine',0.05); };
+const CODE = 'HOP-TIE-403';
+
+/* ------------ missions ------------ */
+const M = [
+ {id:'tramp', s:'1', tag:'Warm-Up', title:'Trampoline Frequency',
+  story:'Warm-up! Mia and Leo are on trampolines. Each bounce is like one wave. The graph next to each kid tracks <b>how high</b> they are, second by second. The ball rides the graph so you can follow it.',
+  goal:'Change how often Mia bounces. Watch her graph. Then answer the questions.', words:true},
+ {id:'predict', s:'2', tag:'Predict', title:'Who Will Win?',
+  story:'Kiki takes <b>short, frequent hops</b>: 4 hops every second (her <b>frequency</b>), 1 meter each (her <b>wavelength</b>). Bo takes <b>long, less frequent hops</b>: 1 hop every second (his <b>frequency</b>), 4 meters each (his <b>wavelength</b>). They race 12 meters.',
+  words:true,
+  goal:'Study each kangaroo\'s hop pattern. Then make your prediction.'},
+ {id:'watch', s:'3', tag:'The Race', title:'The Big Race',
+  story:'Time to race! Watch each kangaroo ride its hop pattern from the start line to the finish line.',
+  goal:'Watch the race. Then answer the Science Check.',
+  q:{t:'Why did Kiki and Bo tie?', o:['Kiki hops 4 times as often, but Bo\'s hops are 4 times as long. They both cover 4 meters every second.','Kiki wins because she hops more often.','Bo wins because his hops are longer.','The race was rigged.'], a:0,
+     e:'Wave speed is how far you go each second. Kiki: 1 m × 4 hops = 4 m/s. Bo: 4 m × 1 hop = 4 m/s. A higher <b>frequency</b> is not a higher speed, and a longer <b>wavelength</b> is not a higher speed.'}},
+ {id:'trail', s:'4', tag:'Hops Make Waves', title:'Hops Make Waves',
+  story:'Look at the path each kangaroo leaves behind. Each hop is like one wave! The top of a hop is a <b>crest</b>. The length of one hop is the <b>wavelength</b>. Hops per second is the <b>frequency</b>.',
+  goal:'Answer the three wave questions about the paths.', words:true},
+ {id:'rope', s:'5', tag:'Speed Predictions', title:'Rope Race',
+  story:'Two friends shake ropes tied to a wall. First, watch the <b>preview</b>: the dotted line shows the wave each person will make. Then predict which wave slaps the wall first.',
+  goal:'Make a prediction for all four rounds.'},
+ {id:'medium', s:'6', tag:'Same Frequency', title:'Same Note, New Medium',
+  story:'A tuning fork plays one note: <b>440 waves every second</b> (440 Hz). The same note travels through <b>air</b>, <b>water</b>, and a <b>steel</b> rail at the same moment. Then a thunderstorm rolls in.',
+  goal:'Predict which medium carries the note fastest. Then predict: lightning or thunder?',
+  q:{t:'Light from lightning reaches you long before the thunder. Is that because light has a different frequency?', o:['No. Light is an electromagnetic wave and sound is a mechanical wave. They are different kinds of waves, so they travel at different speeds.','Yes. Higher frequency always means faster.','Yes. Thunder has a longer wavelength, so it is slower.','No. The thunder stops to rest.'], a:0,
+     e:'Frequency does not set speed. The 440 Hz note had the <b>same frequency</b> in air, water, and steel, but <b>different speeds</b>, because the medium changed. Light is a different kind of wave (electromagnetic), so it is far faster than any sound.'}},
+ {id:'can', s:'7', tag:'Real World', title:'Tin Can Phones',
+  story:'Squeak the mouse has a tiny, <b>high</b> voice. Rumble the hippo has a huge, <b>low</b> voice. Each one has a tin can phone with the same kind of string, stretched all the way to Kiki the kangaroo. They yell "HELLO!" at the exact same moment.',
+  goal:'Listen to each voice and watch its preview wave. Predict whose "HELLO!" reaches Kiki first. Then send it.',
+  q:{t:'A band plays in a big park. You sit far away. Do the high notes reach you before the low notes?', o:['No. In the same air, high and low sounds travel at the same speed, so the song sounds right.','Yes. High notes have a higher frequency, so they arrive first.','Yes. Low notes have longer wavelengths, so they arrive first.','No. Low notes stop halfway.'], a:0,
+     e:'If speed depended on pitch, music from far away would arrive scrambled! The speed of sound depends on the <b>medium</b> (air, water, steel, string), not on frequency or wavelength.'}},
+ {id:'myth', s:'★', tag:'Myth Busters', title:'Fact or Myth?', quiz:true,
+  story:'Last mission! Sort each statement as a fact or a myth.',
+  goal:'Get all eight right to earn your code.',
+  items:[['Waves with a higher frequency travel faster.','M'],
+         ['Two waves in the same medium travel at the same speed.','F'],
+         ['A wave with a longer wavelength travels faster.','M'],
+         ['A wave speeds up or slows down when it enters a new medium.','F'],
+         ['Bouncing up and down more often means moving forward faster.','M'],
+         ['Speed = wavelength × frequency, so if frequency goes up, wavelength goes down.','F'],
+         ['The same note (same frequency) travels faster through steel than through air.','F'],
+         ['At a far-away concert, the high notes reach you before the low notes.','M']]}
+];
+const ROUNDS = [
+ {ask:'Same rope. Top: <b>low</b> frequency. Bottom: <b>high</b> frequency.', top:{f:1,A:22,v:1,lab:'Low frequency'}, bot:{f:3,A:22,v:1,lab:'High frequency'}, ans:'tie',
+  why:'Tie! The high-frequency wave has a shorter wavelength, but both travel at the same speed on the same rope. Frequency does not change wave speed.'},
+ {ask:'Same rope. Top: <b>small</b> amplitude. Bottom: <b>big</b> amplitude.', top:{f:2,A:9,v:1,lab:'Small amplitude'}, bot:{f:2,A:30,v:1,lab:'Big amplitude'}, ans:'tie',
+  why:'Tie again! A bigger wave carries more energy, but it is not faster.'},
+ {ask:'Same frequency. Top: a <b>heavy, thick rope</b>. Bottom: a <b>light, tight rope</b>. (Notice: on the slower rope, the waves get squished closer together.)', top:{f:2,A:22,v:0.55,lab:'Heavy rope (new medium)'}, bot:{f:2,A:22,v:1,lab:'Light, tight rope'}, ans:'bot',
+  why:'The light, tight rope wins. A different medium is the only thing that changed the speed!'},
+ {change:true, ask:'A friend <b>claps once</b>. In the top tank, the pulse goes through <b>air</b>, then <b>water</b> (same distance each). In the bottom demo tank, it goes through <b>air</b> the whole way. What happens to the top pulse in the water?', ans:'fast',
+  why:'The clap <b>sped up</b> in the water! The two pulses stayed side by side in the air, then the top one pulled ahead and arrived first. Its dots spread farther apart in the water. Same clap, new <b>medium</b>, new <b>speed</b>. (Sound is about 4 times faster in water than in air.)'}
+];
+
+/* ------------ state ------------ */
+let cur=0, done=new Array(M.length).fill(false), st={};
+try{const s=JSON.parse(localStorage.getItem('kr403c')||'null'); if(s&&Array.isArray(s.done)) done=M.map((_,i)=>!!s.done[i]);}catch(e){}
+const save=()=>{try{localStorage.setItem('kr403c',JSON.stringify({done}));}catch(e){}};
+const unlocked=i=>i===0||done[i-1];
+function steps(){
+  $('steps').innerHTML=M.map((m,i)=>`<button class="step ${done[i]?'done':''}" aria-current="${i===cur}" ${unlocked(i)?'':'disabled'} data-i="${i}" aria-label="Mission ${i+1}: ${m.title}">${m.s}</button>`).join('');
+  $('steps').querySelectorAll('.step').forEach(b=>b.onclick=()=>load(+b.dataset.i));
+}
+
+/* ------------ canvas ------------ */
+const cv=$('cv'), cx=cv.getContext('2d'); let W=0,H=0;
+function size(){const r=cv.getBoundingClientRect(),d=devicePixelRatio||1;W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0);}
+addEventListener('resize',()=>{size();});
+const text=(s,x,y,c,sz,al)=>{cx.fillStyle=c||WH;cx.font=`600 ${sz||14}px Fredoka, sans-serif`;cx.textAlign=al||'left';cx.fillText(s,x,y);cx.textAlign='left';};
+
+function shade(hex,k){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=(n>>8)&255,b=n&255; r=Math.round(r*k);g=Math.round(g*k);b=Math.round(b*k); return `rgb(${Math.min(255,r)},${Math.min(255,g)},${Math.min(255,b)})`; }
+function roo(x,y,col,sc,air,lab){ // side-view kangaroo facing right, feet at (x,y). air: 0 = crouched on ground, 1 = fully stretched mid-hop
+  sc=sc||1; air=air||0; const dark=shade(col,0.62), light=shade(col,1.25);
+  cx.save(); cx.translate(x,y); cx.scale(sc,sc);
+  const lean = -0.35 - air*0.25;                       // body tilts forward more in the air
+  cx.lineJoin='round'; cx.lineCap='round';
+  // tail: thick tapered curve back to the ground
+  cx.fillStyle=dark; cx.beginPath();
+  cx.moveTo(-10,-20); cx.bezierCurveTo(-28,-16,-42,-6+air*6,-58,2-air*10); cx.lineTo(-60,-2-air*10);
+  cx.bezierCurveTo(-44,-14+air*4,-30,-26,-12,-30); cx.closePath(); cx.fill();
+  // hind leg: big thigh + long foot (stretches back when in the air)
+  cx.fillStyle=dark; cx.beginPath(); cx.ellipse(-2,-18,13,10,-0.4,0,TAU); cx.fill();
+  cx.strokeStyle=dark; cx.lineWidth=6;
+  const kx=4+air*2, ky=-6+air*2, fx=-6-air*16, fy=0+air*2;
+  cx.beginPath(); cx.moveTo(0,-14); cx.lineTo(kx,ky); cx.lineTo(fx+22,fy); cx.stroke();
+  cx.lineWidth=5; cx.beginPath(); cx.moveTo(fx+22,fy); cx.lineTo(fx+30-air*12,fy+air*4); cx.stroke();
+  // body
+  cx.save(); cx.translate(4,-30); cx.rotate(lean);
+  cx.fillStyle=col; cx.beginPath(); cx.ellipse(0,0,13,21,0,0,TAU); cx.fill();
+  cx.fillStyle=light; cx.beginPath(); cx.ellipse(6,4,6,13,0,0,TAU); cx.fill();   // belly
+  cx.restore();
+  // little arms
+  cx.strokeStyle=dark; cx.lineWidth=3.5; cx.beginPath(); cx.moveTo(14,-38); cx.lineTo(22,-30+air*3); cx.lineTo(25,-28+air*3); cx.stroke();
+  // neck + head
+  cx.fillStyle=col; cx.beginPath(); cx.ellipse(16,-50,7,9,0.5,0,TAU); cx.fill();
+  cx.beginPath(); cx.moveTo(14,-60); cx.bezierCurveTo(22,-66,34,-62,38,-56); cx.bezierCurveTo(36,-52,30,-50,20,-50); cx.closePath(); cx.fill(); // snout
+  cx.beginPath(); cx.ellipse(18,-58,8,7,0,0,TAU); cx.fill();
+  cx.fillStyle='#14212c'; cx.beginPath(); cx.arc(37,-56,1.8,0,TAU); cx.fill();            // nose
+  cx.beginPath(); cx.arc(23,-60,1.9,0,TAU); cx.fill();                                    // eye
+  // ears
+  cx.fillStyle=col; cx.beginPath(); cx.moveTo(12,-63); cx.quadraticCurveTo(4,-80,10,-84); cx.quadraticCurveTo(16,-76,17,-64); cx.closePath(); cx.fill();
+  cx.fillStyle=dark; cx.beginPath(); cx.moveTo(17,-63); cx.quadraticCurveTo(14,-78,20,-82); cx.quadraticCurveTo(24,-74,21,-62); cx.closePath(); cx.fill();
+  cx.restore();
+  if(lab) text(lab,x,y-92*sc,col,14,'center');
+}
+
+/* ===== Mission 1/2 race model ===== */
+const L=12, V=4, KIKI={f:4,h:1,col:KC,name:'Kiki'}, BO={f:1,h:4,col:BC,name:'Bo'};
+// each hop = one wave. Position along the track x (m); height follows a smooth wave with wavelength = hop length
+const waveY=(r,x)=>Math.sin(TAU*x/r.h);
+const slope=(r,x)=>Math.cos(TAU*x/r.h)*TAU/r.h;
+function drawRace(t,trail,preview,warm){
+  cx.clearRect(0,0,W,H);
+  const nar=W<560, pad=nar?44:70, sx=(W-pad-(nar?24:40))/L, lanes=[H*0.33,H*0.8], A=nar?16:Math.min(30,H*0.1), sc=Math.min(nar?0.5:0.75,H/440);
+  const tt=Math.max(0,Math.min(t,L/V));
+  [[KIKI,lanes[0]],[BO,lanes[1]]].forEach(([r,y])=>{
+    cx.strokeStyle='#3d5c73'; cx.lineWidth=1.2; cx.setLineDash([5,5]); cx.beginPath(); cx.moveTo(pad,y); cx.lineTo(pad+L*sx,y); cx.stroke(); cx.setLineDash([]);
+    for(let m=0;m<=L;m+=2){ cx.fillStyle='#b9c9d6'; cx.fillRect(pad+m*sx-1,y+A+6,2,6); text(m+' m',pad+m*sx,y+A+24,'#b9c9d6',11,'center'); }
+    text(nar?`${r.name}: f = ${r.f}/s, λ = ${r.h} m`:`${r.name}: frequency ${r.f} hop${r.f>1?'s':''}/s · wavelength ${r.h} m`, pad, y-A-34*sc-14, r.col, 14);
+    const path=(x0,x1)=>{ cx.beginPath(); for(let x=x0;x<=x1+1e-9;x+=0.02){ const X=pad+x*sx, Y=y-waveY(r,x)*A; x===x0?cx.moveTo(X,Y):cx.lineTo(X,Y);} cx.stroke(); };
+    if(preview!==false){ cx.save(); cx.globalAlpha=0.55; cx.strokeStyle=r.col; cx.lineWidth=3; cx.setLineDash([3,5]); path(0,L); cx.restore(); cx.setLineDash([]); }
+    if(t===0){ const c1=pad+r.h*0.25*sx, c2=pad+r.h*1.25*sx, cy=y-A-8;
+      cx.strokeStyle='#ffd166'; cx.lineWidth=2; cx.beginPath(); cx.moveTo(c1,cy+4); cx.lineTo(c1,cy-3); cx.lineTo(c2,cy-3); cx.lineTo(c2,cy+4); cx.stroke();
+      text(nar?`${r.h} m`:`1 hop = ${r.h} m (wavelength)`, c2+8, cy, '#ffd166', 12); }
+    if(trail&&tt>0){ cx.strokeStyle=r.col; cx.lineWidth=4; cx.setLineDash(r===BO?[10,5]:[]); path(0,V*tt); cx.setLineDash([]); }
+    // kangaroo rides the wave: feet on the curve, body tilted with the slope
+    const wy = warm!=null ? Math.sin(TAU*r.f*warm) : null;
+    const x=V*tt, X=pad+x*sx, Y= wy!=null ? y-wy*A : y-waveY(r,x)*A, ang=Math.max(-0.3,Math.min(0.3,Math.atan(-slope(r,x)*A/sx)*0.35)), air=Math.max(0,Math.min(1,0.5+0.5*(wy!=null?wy:waveY(r,x))));
+    cx.save(); cx.translate(X,Y); cx.rotate(ang); roo(0,0,r.col,sc,air); cx.restore();
+  });
+  cx.strokeStyle='#ffd166'; cx.lineWidth=3; cx.setLineDash([6,5]); cx.beginPath(); cx.moveTo(pad+L*sx,30); cx.lineTo(pad+L*sx,H-6); cx.stroke(); cx.setLineDash([]);
+  text('FINISH',pad+L*sx-6,22,'#ffd166',13,'right');
+  text(warm!=null?(nar?'Warming up in place':'Warming up: each kangaroo bounces in place at its own frequency'):t===0?(nar?'Hop patterns':'The dotted lines show each kangaroo\'s hop pattern'):`time: ${tt.toFixed(1)} s`,pad,22,WH,nar?13:15);
+}
+
+/* ===== Mission 3 trampolines ===== */
+const TH=[]; // trampoline graph history per kid
+function drawTramp(t){
+  cx.clearRect(0,0,W,H);
+  const nar=W<560, kids=[{f:st.mia,col:KC,n:'Mia'},{f:1,col:BC,n:'Leo'}], rowH=H/2;
+  kids.forEach((k,i)=>{
+    const top=i*rowH, base=top+rowH-22, kx=nar?44:80, gh=rowH-58;
+    const hgt=Math.abs(Math.sin(Math.PI*k.f*t));           // 0..1 height
+    // trampoline + kid
+    cx.strokeStyle='#b9c9d6'; cx.lineWidth=3; cx.beginPath(); cx.moveTo(kx-34,base+10); cx.lineTo(kx-28,base); cx.moveTo(kx+34,base+10); cx.lineTo(kx+28,base); cx.stroke();
+    cx.fillStyle='#14212c'; cx.beginPath(); cx.ellipse(kx,base,36,6,0,0,TAU); cx.fill(); cx.strokeStyle=k.col; cx.lineWidth=3; cx.stroke();
+    const y=base-6-hgt*(gh-34);
+    cx.strokeStyle=k.col; cx.fillStyle=k.col; cx.lineWidth=4; cx.lineCap='round';
+    cx.beginPath(); cx.arc(kx,y-30,8,0,TAU); cx.fill();
+    cx.beginPath(); cx.moveTo(kx,y-22); cx.lineTo(kx,y-6); cx.moveTo(kx,y-6); cx.lineTo(kx-6,y+3); cx.moveTo(kx,y-6); cx.lineTo(kx+6,y+3); cx.moveTo(kx,y-18); cx.lineTo(kx-11,y-27); cx.moveTo(kx,y-18); cx.lineTo(kx+11,y-27); cx.stroke(); cx.lineCap='butt';
+    text(`${k.n}: ${k.f} bounce${k.f>1?'s':''} per second`, nar?6:14, top+18, k.col, nar?13:15);
+    // graph: height vs time, last 3 s; ball at "now"
+    const gx0=kx+(nar?44:70), gx1=W-16, gy0=base-gh-6, gy1=base-6, span=3, pps=(gx1-gx0)/span;
+    cx.strokeStyle='#3d5c73'; cx.lineWidth=1.5; cx.beginPath(); cx.moveTo(gx0,gy0); cx.lineTo(gx0,gy1); cx.lineTo(gx1,gy1); cx.stroke();
+    text('height',gx0-4,gy0-4,'#b9c9d6',11,'left');
+    // 1-second bands + solid second lines (labeled top and bottom)
+    for(let sec=Math.floor(t-span); sec<=t; sec++){ if(sec<0) continue;
+      const Xa=Math.max(gx0, gx1-(t-sec)*pps), Xb=Math.min(gx1, gx1-(t-sec-1)*pps);
+      if(sec%2===0 && Xb>Xa){ cx.fillStyle='rgba(185,201,214,0.08)'; cx.fillRect(Xa,gy0,Xb-Xa,gy1-gy0); } }
+    for(let sec=Math.ceil(t-span); sec<=t; sec++){ if(sec<0) continue; const X=gx1-(t-sec)*pps;
+      cx.strokeStyle='#8aa3b5'; cx.lineWidth=2; cx.beginPath(); cx.moveTo(X,gy0); cx.lineTo(X,gy1); cx.stroke();
+      text(sec+' s',X,gy1+14,WH,12,'center'); }
+    if(st.paused){ const s1=Math.floor(t)-1; if(s1>=0){ const Xa=gx1-(t-s1)*pps, Xb=gx1-(t-s1-1)*pps;
+      cx.fillStyle='rgba(255,209,102,0.12)'; cx.fillRect(Xa,gy0,Xb-Xa,gy1-gy0); cx.strokeStyle='#ffd166'; cx.lineWidth=3; cx.strokeRect(Xa,gy0,Xb-Xa,gy1-gy0);
+      text('1 second',(Xa+Xb)/2,gy0-4,'#ffd166',12,'center');
+      let n=0; for(let c=0;;c++){ const tc=(c+0.5)/k.f; if(tc>s1+1) break; if(tc<s1) continue; n++; const X=gx1-(t-tc)*pps;
+        cx.fillStyle='#ffd166'; cx.beginPath(); cx.arc(X,gy0+10,9,0,TAU); cx.fill(); text(String(n),X,gy0+14,'#14212c',12,'center'); } } }
+    cx.strokeStyle=k.col; cx.lineWidth=3; cx.setLineDash(i?[9,5]:[]); cx.beginPath(); let first=true;
+    for(let tau=Math.max(0,t-span); tau<=t; tau+=0.01){ const X=gx1-(t-tau)*pps, Y=gy1-Math.abs(Math.sin(Math.PI*k.f*tau))*(gh-4); first?cx.moveTo(X,Y):cx.lineTo(X,Y); first=false; }
+    cx.stroke(); cx.setLineDash([]);
+    const by=gy1-hgt*(gh-4); cx.fillStyle=WH; cx.beginPath(); cx.arc(gx1,by,7,0,TAU); cx.fill(); cx.strokeStyle=k.col; cx.lineWidth=3; cx.stroke();
+  });
+}
+
+/* ===== Mission 4 rope race ===== */
+function shaker(x,y,col,handY){ // stick figure holding the rope end at (x+22, handY)
+  cx.strokeStyle=col; cx.fillStyle=col; cx.lineWidth=4; cx.lineCap='round';
+  cx.beginPath(); cx.arc(x,y-46,8,0,TAU); cx.fill();
+  cx.beginPath(); cx.moveTo(x,y-38); cx.lineTo(x,y-14); cx.moveTo(x,y-14); cx.lineTo(x-8,y); cx.moveTo(x,y-14); cx.lineTo(x+8,y);
+  cx.moveTo(x,y-32); cx.lineTo(x-10,y-22); cx.moveTo(x,y-32); cx.lineTo(x+22,handY); cx.stroke(); cx.lineCap='butt';
+}
+function drawRope(t,R,preview){ // preview: t drives only the hand + dotted pattern
+  cx.clearRect(0,0,W,H);
+  const nar=W<560, pad=nar?46:70, wall=W-20, len=wall-pad, lanes=[H*0.3,H*0.78], base=len/5, sc=H/320;
+  [[R.top,lanes[0],KC],[R.bot,lanes[1],BC]].forEach(([w,y,col])=>{
+    text(w.lab,pad,y-48*sc,col,14);
+    cx.fillStyle='#5e6f7d'; cx.fillRect(wall,y-40,14,80);
+    cx.strokeStyle='#3d5c73'; cx.lineWidth=1.2; cx.setLineDash([5,5]); cx.beginPath(); cx.moveTo(pad,y); cx.lineTo(wall,y); cx.stroke(); cx.setLineDash([]);
+    const lam=(w.v*base)/w.f, A=w.A*sc, front=preview?0:Math.min(len, w.v*base*t);
+    const handPh = preview ? TAU*w.f*t : TAU*front/lam;
+    if(preview||front<len){ // dotted preview of the full wave pattern
+      cx.save(); cx.globalAlpha=0.55; cx.strokeStyle=col; cx.lineWidth=w.v<1?5:3; cx.setLineDash([3,5]); cx.beginPath();
+      for(let x=0;x<=len;x+=2){ const yy=y-A*Math.sin(TAU*(-x)/lam + (preview?handPh:0)); x===0?cx.moveTo(pad+x,yy):cx.lineTo(pad+x,yy);} cx.stroke(); cx.restore(); cx.setLineDash([]); }
+    if(!preview){ cx.strokeStyle=col; cx.lineWidth=w.v<1?6:3.5; cx.setLineDash(col===BC?[10,6]:[]); cx.beginPath();
+      for(let x=0;x<=len;x+=2){ const yy = x<=front ? y - A*Math.sin(TAU*(front-x)/lam) : y; x===0?cx.moveTo(pad+x,yy):cx.lineTo(pad+x,yy); }
+      cx.stroke(); cx.setLineDash([]); }
+    const handY = y - A*Math.sin(handPh);
+    shaker(pad-28, y+34, col, handY);
+    if(!preview&&front>=len){ text('SLAP!',wall-6,y-48*sc,'#ffd166',15,'right'); }
+  });
+  text(preview?'Preview: the dotted lines show each wave':`time: ${t.toFixed(1)} s`,pad,16,WH,14);
+}
+
+function drawPulse(t,preview){ // one clap = one pulse; two demo tanks: air→water (top) and air only (bottom)
+  cx.clearRect(0,0,W,H);
+  const nar=W<560, pad=nar?50:80, x1=W-16, len=x1-pad, b=len*0.5, A=22*(H/320), w=18, th=A*2+34;
+  const vAir=b/2.4, vWat=vAir*4.3, tEnd=2.4+(len-b)/vWat, tAir=len/vAir;
+  const lanes=[{y:H*0.3, water:true},{y:H*0.74, water:false}];
+  const bump=(y,cxp,col,lw)=>{ cx.strokeStyle=col; cx.lineWidth=lw; cx.beginPath(); const a0=Math.max(0,cxp-w*2.4), a1=Math.min(len,cxp+w*2.4);
+    for(let x=a0;x<=a1;x+=2){ const yy=y-A*Math.exp(-(((x-cxp)/w)**2)); x===a0?cx.moveTo(pad+x,yy):cx.lineTo(pad+x,yy);} cx.stroke(); };
+  lanes.forEach((L,i)=>{ const y=L.y, top=y-A-14;
+    cx.fillStyle='rgba(185,201,214,0.08)'; cx.fillRect(pad,top,L.water?b:len,th);
+    if(L.water){ cx.fillStyle='rgba(86,180,233,0.22)'; cx.fillRect(pad+b,top,len-b,th); cx.strokeStyle=BC; cx.lineWidth=2; cx.beginPath(); cx.moveTo(pad+b,top); cx.lineTo(pad+b,top+th); cx.stroke(); }
+    cx.strokeStyle='#3d5c73'; cx.lineWidth=1.2; cx.strokeRect(pad,top,len,th);
+    cx.setLineDash([5,5]); cx.beginPath(); cx.moveTo(pad,y); cx.lineTo(x1,y); cx.stroke(); cx.setLineDash([]);
+    if(L.water){ text(nar?'AIR':'AIR (343 m/s)',pad+b/2,top-6,WH,13,'center'); text(nar?'WATER':'WATER (1,480 m/s)',pad+b+(len-b)/2,top-6,BC,13,'center'); }
+    else text(nar?'AIR ONLY':'Demo tank: AIR the whole way (343 m/s)',pad+len/2,top-6,WH,13,'center');
+    if(preview) return;
+    const T=L.water?Math.min(t,tEnd):Math.min(t,tAir);
+    const pos=tt=> !L.water||tt<=2.4 ? vAir*tt : b+vWat*(tt-2.4);
+    let n=0; for(let g=0.25; g<=T+1e-9; g+=0.25){ n++; const gx=pos(g); const inW=L.water&&gx>=b; cx.fillStyle=inW?BC:KC; cx.beginPath(); cx.arc(pad+gx,top+th-7,4,0,TAU); cx.fill(); }
+    const px=pos(T), inW=L.water&&px>=b; bump(y,px,inW?BC:KC,4);
+    if((L.water&&t>=tEnd)||(!L.water&&t>=tAir)) text('arrived!',x1-4,y-A-2,'#ffd166',13,'right');
+  });
+  // clapper beside the top tank; the bottom tank sits right below him
+  const clap = preview ? (Math.sin(TAU*0.6*t)>0.95) : t<0.25, fx=pad-36, fy=lanes[0].y+30;
+  cx.strokeStyle=KC; cx.fillStyle=KC; cx.lineWidth=4; cx.lineCap='round';
+  cx.beginPath(); cx.arc(fx,fy-52,8,0,TAU); cx.fill();
+  cx.beginPath(); cx.moveTo(fx,fy-44); cx.lineTo(fx,fy-18); cx.moveTo(fx,fy-18); cx.lineTo(fx-8,fy); cx.moveTo(fx,fy-18); cx.lineTo(fx+8,fy);
+  if(clap){ cx.moveTo(fx,fy-38); cx.lineTo(fx+16,fy-48); cx.moveTo(fx,fy-38); cx.lineTo(fx+16,fy-44); } else { cx.moveTo(fx,fy-38); cx.lineTo(fx+18,fy-56); cx.moveTo(fx,fy-38); cx.lineTo(fx+18,fy-30); }
+  cx.stroke(); cx.lineCap='butt';
+  if(clap) text('CLAP!',fx-6,fy-66,'#ffd166',13);
+  // a "speaker" pipe from the clap down to the bottom tank so both pulses start together
+  cx.strokeStyle='#5e6f7d'; cx.lineWidth=3; cx.beginPath(); cx.moveTo(fx+4,fy+6); cx.lineTo(fx+4,lanes[1].y); cx.lineTo(pad,lanes[1].y); cx.stroke();
+  if(preview){ text('One clap = one pulse in each tank. Predict, then clap!',pad,18,WH,14); return; }
+  text(t>2.4&&t<tEnd+0.5?'Top tank: FASTER in water!':'Dots drop every 0.25 s. Farther apart = faster.',pad,18,t>2.4&&t<tEnd+0.5?'#3fd38f':WH,14);
+  text('slow motion',x1,18,'#b9c9d6',12,'right');
+}
+
+/* ===== Same note, new medium ===== */
+const MED=[{n:'Steel',v:5960,col:'#b9c9d6'},{n:'Water',v:1480,col:BC},{n:'Air',v:343,col:KC}];
+function drawMedium(t){ // t = slow-motion seconds; real time = t/40
+  cx.clearRect(0,0,W,H);
+  const nar=W<560, pad=nar?8:16, x1=W-36, len=x1-pad, D=60, lanes=[H*0.22,H*0.52,H*0.82], real=t/40;
+  const kz=Math.max(1,26/((343/440)/D*len));
+  MED.forEach((m,i)=>{ const y=lanes[i], front=Math.min(len, m.v*real/D*len), lam=(m.v/440)/D*len*kz;
+    text(nar?`${m.n}: ${m.v} m/s`:`${m.n}: ${m.v.toLocaleString()} m/s · wavelength ${(m.v/440).toFixed(2)} m`, pad, y-28, m.col, 14);
+    cx.strokeStyle='#3d5c73'; cx.lineWidth=1.2; cx.setLineDash([5,5]); cx.beginPath(); cx.moveTo(pad,y); cx.lineTo(x1,y); cx.stroke(); cx.setLineDash([]);
+    if(front>0){ cx.strokeStyle=m.col; cx.lineWidth=3.5; cx.beginPath(); for(let x=0;x<=front;x+=2){ const yy=y-14*Math.sin(TAU*(front-x)/Math.max(lam,4)); x===0?cx.moveTo(pad+x,yy):cx.lineTo(pad+x,yy);} cx.stroke(); }
+    cx.fillStyle='#5e6f7d'; cx.fillRect(x1,y-18,10,36);
+    if(front>=len) text(`${(D/m.v*1000).toFixed(0)} ms`, x1-6, y+30, '#ffd166', 13, 'right');
+  });
+  text(`real time: ${(Math.min(real,D/343)*1000).toFixed(0)} ms (super slow motion)`, pad, 18, WH, 13);
+  if(!nar) text('Waves drawn larger so you can see them', W-10, 18, '#b9c9d6', 12, 'right');
+}
+function drawStorm(t){
+  cx.clearRect(0,0,W,H);
+  const xL=70, xP=W-60, gy=H*0.82, v=(xP-xL)/5; // sound takes 5 s
+  cx.fillStyle='#5e6f7d'; [[0,0,34],[30,-10,28],[58,2,26]].forEach(([dx,dy,r])=>{cx.beginPath();cx.arc(xL-20+dx,H*0.2+dy,r,0,TAU);cx.fill();});
+  if(t<0.35){ cx.strokeStyle='#ffd166'; cx.lineWidth=4; cx.beginPath(); cx.moveTo(xL+10,H*0.27); cx.lineTo(xL-6,H*0.5); cx.lineTo(xL+12,H*0.5); cx.lineTo(xL-4,gy); cx.stroke(); }
+  cx.strokeStyle='#3d5c73'; cx.lineWidth=2; cx.beginPath(); cx.moveTo(10,gy); cx.lineTo(W-10,gy); cx.stroke();
+  // person
+  cx.strokeStyle=WH; cx.lineWidth=4; cx.lineCap='round'; cx.beginPath(); cx.arc(xP,gy-58,9,0,TAU); cx.moveTo(xP,gy-49); cx.lineTo(xP,gy-22); cx.moveTo(xP,gy-22); cx.lineTo(xP-8,gy); cx.moveTo(xP,gy-22); cx.lineTo(xP+8,gy); cx.moveTo(xP,gy-42); cx.lineTo(xP-10,gy-32); cx.stroke(); cx.lineCap='butt';
+  text('1.7 km away',(xL+xP)/2,gy+22,'#b9c9d6',13,'center');
+  if(t>0) text('⚡ SEE IT: 0.000006 s',xP-10,H*0.18,'#ffd166',15,'right');
+  if(t>0){ const r=Math.min(xP-xL, v*t); cx.strokeStyle=KC; cx.lineWidth=3; cx.setLineDash([8,6]);
+    for(let k=0;k<3;k++){ const rr=r-k*16; if(rr>0){ cx.beginPath(); cx.arc(xL,gy,rr,-1.2,-0.05); cx.stroke(); } } cx.setLineDash([]); }
+  if(t>=5) text('🔊 HEAR IT: 5 s',xP-10,H*0.32,KC,15,'right');
+  text(`time: ${Math.min(t,5).toFixed(1)} s`,10,18,WH,14);
+}
+
+/* ===== Tin can phones ===== */
+function can(x,y,ang,len){ // tin can: open end faces direction ang
+  len=len||26; cx.save(); cx.translate(x,y); cx.rotate(ang);
+  const g=cx.createLinearGradient(0,-12,0,12); g.addColorStop(0,'#e9eef2'); g.addColorStop(0.5,'#9aa6b0'); g.addColorStop(1,'#d5dde3');
+  cx.fillStyle=g; cx.fillRect(-len,-12,len,24);
+  cx.strokeStyle='#5e6f7d'; cx.lineWidth=1.3; for(let k=1;k<4;k++){ cx.beginPath(); cx.moveTo(-len*k/4,-12); cx.lineTo(-len*k/4,12); cx.stroke(); }
+  cx.fillStyle='#14212c'; cx.beginPath(); cx.ellipse(0,0,4,12,0,0,TAU); cx.fill(); cx.strokeStyle='#e9eef2'; cx.lineWidth=2; cx.stroke(); // open mouth of can
+  cx.fillStyle='#c4ccd3'; cx.beginPath(); cx.ellipse(-len,0,4,12,0,0,TAU); cx.fill(); cx.strokeStyle='#5e6f7d'; cx.lineWidth=1.3; cx.stroke(); // bottom
+  cx.restore();
+}
+function mouse(x,y){ // facing right, mouth at about (x+30,y-26)
+  cx.fillStyle='#9aa6b0'; cx.strokeStyle='#14212c'; cx.lineWidth=1.5;
+  cx.strokeStyle='#c98a9a'; cx.lineWidth=3; cx.beginPath(); cx.moveTo(x-22,y-8); cx.bezierCurveTo(x-48,y-4,x-44,y-34,x-58,y-30); cx.stroke();
+  cx.fillStyle='#9aa6b0'; cx.beginPath(); cx.ellipse(x-4,y-14,22,15,0,0,TAU); cx.fill();
+  cx.beginPath(); cx.ellipse(x+16,y-26,13,11,0.2,0,TAU); cx.fill();
+  cx.beginPath(); cx.moveTo(x+24,y-31); cx.lineTo(x+36,y-26); cx.lineTo(x+24,y-21); cx.fill();
+  cx.fillStyle='#f2a8b8'; cx.beginPath(); cx.arc(x+36,y-26,2.5,0,TAU); cx.fill();
+  [[x+6,y-40],[x+18,y-42]].forEach(([ex,ey])=>{ cx.fillStyle='#9aa6b0'; cx.beginPath(); cx.arc(ex,ey,9,0,TAU); cx.fill(); cx.fillStyle='#f2a8b8'; cx.beginPath(); cx.arc(ex,ey,5,0,TAU); cx.fill(); });
+  cx.fillStyle='#14212c'; cx.beginPath(); cx.arc(x+22,y-29,2,0,TAU); cx.fill();
+  cx.fillStyle='#9aa6b0'; cx.fillRect(x-14,y-4,5,6); cx.fillRect(x+4,y-4,5,6);
+}
+function hippo(x,y){ // big, facing right, mouth at about (x+46,y-30)
+  const c='#8E7BA8', d='#6e5d87';
+  cx.fillStyle=c; cx.beginPath(); cx.ellipse(x-10,y-28,40,28,0,0,TAU); cx.fill();
+  cx.fillStyle=d; [x-36,x-18,x+4,x+18].forEach(lx=>cx.fillRect(lx,y-8,11,10));
+  cx.fillStyle=c; cx.beginPath(); cx.ellipse(x+26,y-40,22,18,0,0,TAU); cx.fill();
+  cx.beginPath(); cx.ellipse(x+44,y-32,16,14,0,0,TAU); cx.fill();
+  cx.fillStyle=d; cx.beginPath(); cx.arc(x+50,y-38,2.5,0,TAU); cx.arc(x+56,y-34,2.5,0,TAU); cx.fill();
+  cx.beginPath(); cx.ellipse(x+16,y-58,5,4,0,0,TAU); cx.ellipse(x+30,y-58,5,4,0,0,TAU); cx.fill();
+  cx.fillStyle='#14212c'; cx.beginPath(); cx.arc(x+30,y-46,2.3,0,TAU); cx.fill();
+}
+function drawCan(t,preview){
+  cx.clearRect(0,0,W,H);
+  const nar=W<560, x0=nar?128:150, x1=W-(nar?60:96), lanes=[H*0.34,H*0.8], len=x1-x0, v=len/3, ky=H*0.8;
+  // listener: Kiki facing left with two cans at her ear
+  cx.save(); cx.translate(W-(nar?18:34),ky+10); cx.scale(-1,1); roo(0,0,KC,nar?0.6:0.85,0); cx.restore();
+  const ear=[W-(nar?44:66), ky-(nar?40:56)];
+  [[lanes[0],KC,'Squeak the mouse (high voice)',4,'mouse'],[lanes[1],BC,'Rumble the hippo (low voice)',1.2,'hippo']].forEach(([y,col,lab,f,who],i)=>{
+    const cy=y-22;
+    text(lab,8,y-(who==='hippo'?84:66),col,nar?12:14);
+    if(who==='mouse') mouse(x0-56,y+4); else hippo(x0-70,y+8);
+    can(x0,cy,Math.PI,22);                                   // speaker's can, open end toward the animal
+    cx.strokeStyle='#d8c9a3'; cx.lineWidth=2; cx.beginPath(); cx.moveTo(x0+22,cy); cx.lineTo(x1,ear[1]+i*10); cx.stroke(); // string
+    can(ear[0]+2,ear[1]+i*10,0,18);                          // listener cans at Kiki's ear
+    const sx=x0+22, ex=x1, ey=ear[1]+i*10, L2=ex-sx, lam=v/(f*0.9), ang=Math.atan2(ey-cy,L2);
+    const ptAt=(d,off)=>[sx+Math.cos(ang)*d-Math.sin(ang)*off, cy+Math.sin(ang)*d+Math.cos(ang)*off];
+    const draw=(d0,d1,dash,alpha,ph)=>{ cx.save(); cx.globalAlpha=alpha; cx.strokeStyle=col; cx.lineWidth=3; cx.setLineDash(dash); cx.beginPath();
+      for(let d=d0; d<=d1; d+=2){ const [X,Y]=ptAt(d, -10*Math.sin(TAU*(ph-d)/lam)); d===d0?cx.moveTo(X,Y):cx.lineTo(X,Y);} cx.stroke(); cx.restore(); cx.setLineDash([]); };
+    if(preview) draw(0,L2,[3,5],0.65,(t*v)%lam);            // animated dotted preview along the string
+    else { const front=Math.min(L2,v*t); if(front>0) draw(0,front,col===BC?[10,6]:[],1,front); if(front>=L2) text('heard!',ex-6,ey+(i?36:-22),'#ffd166',14,'right'); }
+  });
+  text(preview?(nar?'Preview: each voice\'s wave':'Preview: the dotted lines show each voice\'s sound wave'):(nar?'Slow motion!':'Slow motion: real sound is much faster!'),8,18,WH,14);
+}
+
+/* ------------ animation driver ------------ */
+let anim=null;
+function play(draw, dur, onEnd){
+  if(anim) cancelAnimationFrame(anim);
+  // always animate: the student pressed a button to watch this, and the motion is the lesson
+  const t0=performance.now();
+  const step=now=>{ const t=(now-t0)/1000; draw(Math.min(t,dur)); if(t<dur) anim=requestAnimationFrame(step); else {anim=null; onEnd&&onEnd();} };
+  anim=requestAnimationFrame(step);
+}
+function loopDraw(draw){ if(anim) cancelAnimationFrame(anim); const t0=performance.now(); const step=now=>{ draw((now-t0)/1000); anim=requestAnimationFrame(step); }; anim=requestAnimationFrame(step); }
+
+/* ------------ UI helpers ------------ */
+const legend=(a,b)=>`<span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="${KC}" stroke-width="4"/></svg>${a}</span><span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="${BC}" stroke-width="4" stroke-dasharray="9 5"/></svg>${b}</span>`;
+function status(s,win){ $('status').className='status'+(win?' win':''); $('status').innerHTML=s; }
+function predButtons(opts, onPick){
+  return `<div style="width:100%"><p style="margin:0 0 8px;font-weight:700">Your prediction:</p><div class="pred" id="pred">${opts.map(([v,l])=>`<button class="ghost" data-v="${v}">${l}</button>`).join('')}</div></div>`;
+}
+function wirePred(cb){ $('pred').querySelectorAll('button').forEach(b=>b.onclick=()=>{ $('pred').querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); cb(b.dataset.v); }); }
+function check(q,onRight){
+  const box=$('after'); box.hidden=false;
+  const order=q.o.map((_,i)=>i).sort(()=>Math.random()-0.5);
+  box.innerHTML=`<div class="check"><h3>Science Check</h3><p style="margin:0;font-weight:700">${q.t}</p><div class="opts">${order.map(i=>`<button class="opt" data-i="${i}">${q.o[i]}</button>`).join('')}</div><p class="explain" id="exp" hidden></p></div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i;
+    if(i===q.a){ b.classList.add('right'); box.querySelectorAll('.opt').forEach(x=>x.disabled=true); const e=$('exp'); e.hidden=false; e.innerHTML='<b>Yes!</b> '+q.e; onRight(); }
+    else { b.classList.add('wrong'); b.disabled=true; } });
+  box.scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'});
+}
+function complete(){
+  done[cur]=true; save(); steps();
+  const box=$('after'); box.hidden=false;
+  const holder=box.querySelector('.check')||(box.innerHTML='<div class="check"></div>',box.querySelector('.check'));
+  if(cur+1<M.length){ holder.insertAdjacentHTML('beforeend','<div class="row"><button id="next">Next mission →</button></div>'); $('next').onclick=()=>{ load(cur+1); scrollTo({top:0,behavior:reduce?'auto':'smooth'}); }; }
+}
+const mc=(id,q,opts,ans,ok,cb)=>`<div class="qcard"><p><b>${q}</b></p><div class="row" id="${id}">${opts.map(o=>`<button class="ghost" data-v="${o}">${o}</button>`).join('')}</div></div>`;
+
+/* ------------ load mission ------------ */
+function load(i){
+  if(!unlocked(i)) return; cur=i; const m=M[i]; steps();
+  if(anim) cancelAnimationFrame(anim); anim=null;
+  $('after').hidden=true; $('after').innerHTML=''; status('');
+  $('brief').innerHTML=`<span class="tag">${m.tag}</span><h2>Mission ${i+1}: ${m.title}</h2><p>${m.story}</p><div class="goal"><b>Goal:</b> ${m.goal}</div>
+   ${m.words?`<div class="callout"><b>Word check</b><br><b style="color:var(--waveA)">Frequency</b> = how many waves (hops) happen each second.<br><b style="color:var(--waveB)">Wavelength</b> = the length of one wave (one hop), crest to crest.<br><b style="color:var(--go)">Wave speed</b> = how far the wave travels each second.</div>`:''}
+   <div class="vocab"><span>frequency</span><span>wavelength</span><span>wave speed</span><span>medium</span></div>`;
+  const quiz=!!m.quiz; $('scope').hidden=quiz; document.querySelector('.grid').style.gridTemplateColumns=quiz?'minmax(0,1fr)':'';
+  if(quiz) return myth(m);
+  size(); $('controls').innerHTML=''; $('legend').innerHTML='';
+  ({predict:mPredict,watch:mWatch,trail:mTrail,tramp:mTramp,rope:mRope,medium:mMedium,can:mCan})[m.id](m);
+}
+
+let PICK=null; try{PICK=localStorage.getItem('kr403pick');}catch(e){}
+const PNAME={k:'Kiki wins',b:'Bo wins',t:'It\'s a tie'};
+function mPredict(m){
+  $('legend').innerHTML=legend('Kiki: short, frequent hops','Bo: long, less frequent hops');
+  drawRace(0,false,true);
+  $('controls').innerHTML=predButtons([['k','Kiki wins'],['b','Bo wins'],['t','It\'s a tie']])+`<div class="row"><button id="lock" disabled>Lock in my prediction →</button></div>`;
+  wirePred(v=>{ PICK=v; $('lock').disabled=false; status('Ready? Lock it in to go to the race.'); });
+  $('lock').onclick=()=>{ try{localStorage.setItem('kr403pick',PICK);}catch(e){} done[cur]=true; save(); steps(); load(cur+1); scrollTo({top:0,behavior:reduce?'auto':'smooth'}); };
+  status('Look at the hop patterns. Who will cross the finish line first?');
+}
+function mWatch(m){
+  $('legend').innerHTML=legend('Kiki: short, frequent hops','Bo: long, less frequent hops');
+  drawRace(0,false,true);
+  $('controls').innerHTML=`<p style="margin:0;width:100%">Your prediction: <b>${PICK?PNAME[PICK]:'(none yet)'}</b></p><div class="row"><button id="go">Start the race ▶</button><button id="again" class="ghost" hidden>Watch again ↺</button></div>`;
+  const run=()=>{ $('go').disabled=true; status('And they\'re off… (slow motion)');
+    play(tm=>drawRace(tm/2,true), (L/V)*2+0.4, ()=>{
+      $('again').hidden=false; $('go').hidden=true;
+      if(m._shown) return; m._shown=true;
+      status((PICK==='t'?'You predicted it! ':'Surprise! ')+'It\'s a <b>TIE</b>. Both kangaroos crossed 12 m at 3.0 s. Kiki had the higher <b>frequency</b>. Bo had the longer <b>wavelength</b>. Their <b>speed</b> was the same.',true);
+      $('controls').insertAdjacentHTML('beforeend',`<table class="stats"><tr><th></th><th>Hops each second (frequency)</th><th>Hop length (wavelength)</th><th>Speed</th></tr>
+        <tr><td class="k">Kiki</td><td>4</td><td>1 m</td><td>4 m/s</td></tr><tr><td class="b">Bo</td><td>1</td><td>4 m</td><td>4 m/s</td></tr></table>`);
+      check(m.q,complete); }); };
+  $('go').onclick=run; $('again').onclick=()=>{ $('again').disabled=true; play(tm=>drawRace(tm/2,true),(L/V)*2+0.4,()=>{$('again').disabled=false;}); };
+}
+
+function mTrail(m){
+  $('legend').innerHTML=legend('Kiki\'s path','Bo\'s path');
+  drawRace(L/V,true);
+  const box=$('after'); box.hidden=false; st={ok:0};
+  const qs=[['q1','Whose path has the higher <b>frequency</b> (more crests each second)?',['Kiki','Bo','Same'],'Kiki','Kiki makes 4 crests every second. Bo makes 1.'],
+            ['q2','Whose path has the longer <b>wavelength</b> (crest to crest)?',['Kiki','Bo','Same'],'Bo','Bo\'s crests are 4 m apart. Kiki\'s are 1 m apart.'],
+            ['q3','Speed = wavelength × frequency. Kiki: 1 m × 4. Bo: 4 m × 1. What are their speeds?',['Kiki 4 m/s, Bo 4 m/s','Kiki 4 m/s, Bo 1 m/s','Kiki 1 m/s, Bo 4 m/s'],'Kiki 4 m/s, Bo 4 m/s','Same speed! High frequency came with a short wavelength.']];
+  box.innerHTML=`<div class="check"><h3>Read the waves</h3><div class="quiz">${qs.map(([id,q,o])=>mc(id,q,o)).join('')}</div><p class="explain" id="trex" hidden></p></div>`;
+  qs.forEach(([id,q,o,a,why])=>$(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    if(b.dataset.v===a){ b.style.borderColor='var(--go)'; b.style.background='#173d2e'; $(id).querySelectorAll('button').forEach(x=>x.disabled=true); $(id).insertAdjacentHTML('beforeend',`<span style="color:var(--go);font-weight:700;align-self:center">✓ ${why}</span>`); st.ok++;
+      if(st.ok===3){ const e=$('trex'); e.hidden=false; e.innerHTML='<b>Big idea:</b> when frequency goes up, wavelength goes down, so the speed stays the same. In one medium, every wave has the same speed.'; status('All three right!',true); complete(); } }
+    else { b.disabled=true; b.style.borderColor='var(--bad)'; } }));
+  status('The paths look just like waves. Answer the questions below.');
+}
+
+function mTramp(m){
+  $('legend').innerHTML=legend('Mia','Leo');
+  st={mia:1,ok:0};
+  $('controls').innerHTML=`<div class="ctl"><label for="mia">How often Mia bounces: <span id="miav">1</span> per second</label><input id="mia" type="range" min="1" max="5" step="1" value="1"></div><div class="row"><button id="pause">⏸ Pause to count</button></div>`;
+  st.t=3.2; st.paused=false; let last=performance.now();
+  const tick=now=>{ if(!st.paused) st.t+=(now-last)/1000; last=now; drawTramp(st.t); anim=requestAnimationFrame(tick); };
+  if(anim) cancelAnimationFrame(anim); anim=requestAnimationFrame(tick);
+  $('pause').onclick=()=>{ st.paused=!st.paused; $('pause').textContent=st.paused?'▶ Play':'⏸ Pause to count';
+    if(st.paused) status('Paused! Look inside the yellow 1-second box. The numbers count each crest (bump) in that second.'); else status('Playing. Pause again any time to count.'); };
+  $('mia').oninput=e=>{ st.mia=+e.target.value; $('miav').textContent=st.mia; if(!st.paused) status(`Mia: ${st.mia} bounce${st.mia>1?'s':''} per second. Press Pause to count the bumps in 1 second.`); };
+  status('Slide Mia\'s bounces up. Then press Pause to count the bumps in 1 second.');
+  const box=$('after'); box.hidden=false;
+  const qs=[['t1','Set Mia to <b>3</b>. How many bumps (crests) does her graph show in <b>1 second</b>? (Pause and look in the yellow box.)',['1','3','6'],'3','Each bounce makes one crest, so 3 bounces each second = 3 crests each second.'],
+            ['t2','Leo bounces once each second. Mia bounces 3 times each second. Who has the higher <b>frequency</b>?',['Mia','Leo','Same'],'Mia','More bounces each second = higher frequency.'],
+            ['t3','So, what is <b>frequency</b>?',['How many bounces (waves) happen each second','How fast you move forward','How high you bounce'],'How many bounces (waves) happen each second','That is it! Frequency = how many waves each second.']];
+  box.innerHTML=`<div class="check"><h3>Observe</h3><div class="quiz">${qs.map(([id,q,o])=>mc(id,q,o)).join('')}</div><p class="explain" id="trex" hidden></p></div>`;
+  qs.forEach(([id,q,o,a,why])=>$(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    if(b.dataset.v===a){ b.style.borderColor='var(--go)'; b.style.background='#173d2e'; $(id).querySelectorAll('button').forEach(x=>x.disabled=true); $(id).insertAdjacentHTML('beforeend',`<span style="color:var(--go);font-weight:700;align-self:center">✓ ${why}</span>`); st.ok++;
+      if(st.ok===3){ const e=$('trex'); e.hidden=false; e.innerHTML='<b>Remember:</b> frequency tells how <b>often</b> something happens. It does <b>not</b> tell how <b>fast</b> something travels. Mia bounced 5 times a second and never moved forward at all! Keep that in mind for the kangaroo race.'; complete(); } }
+    else { b.disabled=true; b.style.borderColor='var(--bad)'; } }));
+}
+
+function host_end(){ $('after').hidden=false; $('after').innerHTML=`<div class="check"><h3>What changes wave speed?</h3><p class="explain"><b>Frequency?</b> No. <b>Amplitude?</b> No. <b>Wavelength?</b> No. <b>The medium?</b> YES! You saw one clap speed up the moment it went from air into water.</p></div>`; complete(); }
+function mRope(m){
+  $('legend').innerHTML=legend('Top rope','Bottom rope');
+  st={r:0}; round();
+  function round(){
+    const R=ROUNDS[st.r];
+    if(R.change){ loopDraw(tm=>drawPulse(tm,true));
+      $('legend').innerHTML=legend('Pulse in air','Pulse in water');
+      $('controls').innerHTML=`<p style="margin:0;width:100%"><b>Round ${st.r+1} of ${ROUNDS.length}:</b> ${R.ask}</p>`+predButtons([['fast','It speeds up'],['slow','It slows down'],['same','It stays the same']])+`<div class="row"><button id="go" disabled>Clap! ▶</button></div>`;
+      wirePred(v=>{ st.pick=v; $('go').disabled=false; });
+      $('go').onclick=()=>{ $('go').disabled=true; $('pred').querySelectorAll('button').forEach(b=>b.disabled=true);
+        tone(320,0.12,0.35,'square');
+        play(tm=>drawPulse(tm,false), 5.2, ()=>{ status((st.pick===R.ans?'Nice prediction! ':'Not what you predicted. ')+R.why, st.pick===R.ans);
+          host_end(); }); };
+      return; }
+    loopDraw(tm=>drawRope(tm,R,true));
+    $('controls').innerHTML=`<p style="margin:0;width:100%"><b>Round ${st.r+1} of ${ROUNDS.length}:</b> ${R.ask} Which wave slaps the wall first?</p>`+predButtons([['top','Top first'],['bot','Bottom first'],['tie','Tie']])+`<div class="row"><button id="go" disabled>Send the waves ▶</button></div>`;
+    wirePred(v=>{ st.pick=v; $('go').disabled=false; });
+    $('go').onclick=()=>{ $('go').disabled=true; $('pred').querySelectorAll('button').forEach(b=>b.disabled=true);
+      const dur = 5/Math.min(R.top.v,R.bot.v)+0.3;
+      play(t=>drawRope(t,R), dur, ()=>{
+        status((st.pick===R.ans?'Nice prediction! ':'Not what you predicted. ')+R.why, st.pick===R.ans);
+        if(st.r<ROUNDS.length-1){ $('controls').insertAdjacentHTML('beforeend','<div class="row"><button id="nr">Next round →</button></div>'); $('nr').onclick=()=>{ st.r++; status(''); round(); }; }
+        else host_end();
+      }); };
+  }
+}
+
+function mMedium(m){
+  $('legend').innerHTML='<span>Same frequency (440 Hz) in every medium</span>';
+  st={}; drawMedium(0);
+  $('controls').innerHTML=`<p style="margin:0;width:100%"><b>Part A:</b> The same 440 Hz note travels 60 meters through each medium. Which gets there first?</p><div class="row"><button id="hear440" class="ghost">🔊 Hear the 440 Hz note</button></div>`+predButtons([['steel','Steel'],['water','Water'],['air','Air'],['tie','All tie (same frequency)']])+`<div class="row"><button id="go" disabled>Strike the tuning fork ▶</button></div>`;
+  $('hear440').onclick=()=>tone(440,1.2,0.25,'sine');
+  wirePred(v=>{ st.pick=v; $('go').disabled=false; });
+  $('go').onclick=()=>{ $('go').disabled=true; $('pred').querySelectorAll('button').forEach(b=>b.disabled=true);
+    tone(440,1.2,0.25,'sine'); MED.forEach(md=>tone(440,0.35,0.2,'sine',40*60/md.v));
+    play(drawMedium, 40*60/343+0.3, ()=>{
+      status((st.pick==='steel'?'Nice! ':'Surprise! ')+'Hear the three dings? <b>Steel</b> wins, then water, then air. Same <b>frequency</b> in all three, but different <b>speeds</b>, because the <b>medium</b> changed. Notice the faster medium also stretches the <b>wavelength</b>.', st.pick==='steel');
+      $('controls').insertAdjacentHTML('beforeend','<div class="row"><button id="partb">Part B: the storm →</button></div>');
+      $('partb').onclick=storm; }); };
+  function storm(){
+    $('legend').innerHTML=legend('Thunder (sound wave)','Lightning (light wave)'); drawStorm(0); status('');
+    $('controls').innerHTML=`<p style="margin:0;width:100%"><b>Part B:</b> Lightning strikes 1.7 km away. Which reaches you first: the flash (light) or the thunder (sound)?</p>`+predButtons([['light','The flash'],['sound','The thunder'],['tie','Same time']])+`<div class="row"><button id="go" disabled>Strike! ▶</button></div>`;
+    wirePred(v=>{ st.pick2=v; $('go').disabled=false; });
+    $('go').onclick=()=>{ $('go').disabled=true; $('pred').querySelectorAll('button').forEach(b=>b.disabled=true);
+      thunder(5);
+      play(drawStorm, 5.4, ()=>{ status((st.pick2==='light'?'Correct! ':'Not quite. ')+'You <b>see</b> the flash right away, but the thunder takes about <b>5 seconds</b>. Light is a different kind of wave than sound. That is why you can count seconds to find a storm, like in your 4.05 Thunder Lab!', st.pick2==='light'); check(m.q,complete); }); };
+  }
+}
+
+function mCan(m){
+  $('legend').innerHTML=legend('Squeak\'s high voice','Rumble\'s low voice');
+  loopDraw(tm=>drawCan(tm,true)); st={};
+  $('controls').innerHTML=`<div class="row"><button id="hs" class="ghost">🔊 Hear Squeak</button><button id="hr" class="ghost">🔊 Hear Rumble</button></div>`+predButtons([['s','Squeak first'],['r','Rumble first'],['t','Same time']])+`<div class="row"><button id="go" disabled>Yell "HELLO!" ▶</button></div>`;
+  $('hs').onclick=SQUEAK; $('hr').onclick=RUMBLE;
+  wirePred(v=>{ st.pick=v; $('go').disabled=false; });
+  status('Squeak\'s wave has a high frequency (short waves). Rumble\'s has a low frequency (long waves).');
+  $('go').onclick=()=>{ $('go').disabled=true; $('pred').querySelectorAll('button').forEach(b=>b.disabled=true); SQUEAK(); RUMBLE();
+    play(tm=>drawCan(tm,false),3.3,()=>{ SQUEAK(); RUMBLE();
+      status((st.pick==='t'?'Correct! ':'Surprise! ')+'Kiki heard both "HELLO!"s at the <b>same time</b>. Squeak\'s voice has a higher <b>frequency</b> and shorter <b>wavelength</b>, but on the same string the <b>speed</b> is the same.',true); check(m.q,complete); }); };
+}
+
+function myth(m){
+  const box=$('after'); box.hidden=false; const got=new Array(m.items.length).fill(false);
+  box.innerHTML=`<div class="check"><h3>Fact or Myth?</h3><div class="myth">${m.items.map(([t],i)=>`<div class="qcard"><p>${i+1}. ${t}</p><div class="row" data-i="${i}"><button class="ghost" data-v="F">Fact</button><button class="ghost" data-v="M">Myth</button><span class="mark" id="mk${i}"></span></div></div>`).join('')}</div><div id="fin"></div></div>`;
+  box.querySelectorAll('.qcard .row').forEach(row=>row.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const i=+row.dataset.i;
+    if(b.dataset.v===m.items[i][1]){ got[i]=true; b.style.borderColor='var(--go)'; b.style.background='#173d2e'; row.querySelectorAll('button').forEach(x=>x.disabled=true); $('mk'+i).textContent='✓'; $('mk'+i).style.color='var(--go)'; }
+    else { b.disabled=true; b.style.borderColor='var(--bad)'; $('mk'+i).textContent='Try again'; $('mk'+i).style.color='var(--bad)'; }
+    if(got.every(Boolean)){ done[cur]=true; save(); steps();
+      certFlow($('fin'),{title:'Wave Speed Lab',code:CODE,missions:M.length,unit:'Unit 4 · 4.03 Frequency and Speed of a Wave'}); }
+  }));
+}
+
+$('mute').onclick=()=>{ MUTE=!MUTE; $('mute').textContent=MUTE?'🔇 Sound off':'🔊 Sound on'; };
+/* ---- name + certificate of completion ---- */
+function certFlow(el, o){ // o: {title, code, missions, accent, unit}
+  el.innerHTML=`<div class="final"><h3 style="font-size:28px">All missions complete!</h3>
+   <label for="sname" style="font-weight:700">Type your first name and last initial to get your code and certificate:</label>
+   <div class="row" style="justify-content:center"><input id="sname" maxlength="30" autocomplete="off" placeholder="Example: Maya R."
+     style="font-family:var(--body);font-size:18px;padding:8px 12px;border-radius:10px;border:2px solid var(--line);background:var(--panel2);color:var(--fg);min-width:230px">
+   <button id="getcode" disabled>Get my code</button></div><div id="certout" style="display:flex;flex-direction:column;gap:10px;align-items:center;width:100%"></div></div>`;
+  const inp=el.querySelector('#sname'), btn=el.querySelector('#getcode');
+  inp.oninput=()=>{ btn.disabled=inp.value.trim().length<2; };
+  inp.onkeydown=e=>{ if(e.key==='Enter'&&!btn.disabled) btn.click(); };
+  btn.onclick=()=>{
+    const name=inp.value.trim().replace(/\s+/g,' ').slice(0,30), c=drawCert(name,o);
+    const out=el.querySelector('#certout');
+    out.innerHTML=`<p style="margin:0">Great job, <b>${name.replace(/</g,'&lt;')}</b>! Type this code on your Classkick slide:</p><div class="code">${o.code}</div>
+      <img id="certimg" alt="Certificate of completion for ${name.replace(/"/g,'')}" style="width:100%;max-width:640px;border-radius:12px;border:2px solid var(--line)">
+      <div class="row" style="justify-content:center"><button id="copycert">📋 Copy certificate</button><a id="savecert" class="ghost" style="font-family:var(--display);font-weight:600;font-size:17px;border-radius:12px;border:2px solid var(--line);padding:9px 16px;background:var(--panel2);color:var(--fg);text-decoration:none" download="certificate.png">⬇ Save certificate</a></div>
+      <p class="note" id="certmsg">Copy the certificate, then paste it onto your Classkick slide (Ctrl + V).</p>`;
+    out.querySelector('#certimg').src=c.toDataURL('image/png');
+    out.querySelector('#savecert').href=c.toDataURL('image/png');
+    out.querySelector('#savecert').download=`${o.title.replace(/\W+/g,'_')}_${name.replace(/\W+/g,'_')}.png`;
+    out.querySelector('#copycert').onclick=()=>{ const msg=out.querySelector('#certmsg');
+      try{ c.toBlob(b=>{ navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(()=>{ msg.innerHTML='<b style="color:var(--go)">Copied!</b> Now go to Classkick and press Ctrl + V to paste it.'; })
+        .catch(()=>{ msg.innerHTML='Copy did not work on this computer. <b>Right-click the certificate</b> and choose <b>Copy image</b>, then paste it in Classkick.'; }); }); }
+      catch(e){ msg.innerHTML='Copy did not work on this computer. <b>Right-click the certificate</b> and choose <b>Copy image</b>, then paste it in Classkick.'; } };
+  };
+}
+function drawCert(name,o){
+  const W=1000,H=600,c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
+  const F=(w,s,f)=>`${w} ${s}px ${f==='b'?"'Atkinson Hyperlegible',Verdana,sans-serif":"Fredoka,'Trebuchet MS',sans-serif"}`;
+  g.fillStyle='#0d1b26'; g.fillRect(0,0,W,H);
+  g.strokeStyle='#ffd166'; g.lineWidth=8; g.strokeRect(22,22,W-44,H-44); g.lineWidth=2; g.strokeRect(36,36,W-72,H-72);
+  const wave=(y,amp,lam,col,dash)=>{ g.strokeStyle=col; g.lineWidth=4; g.setLineDash(dash||[]); g.beginPath(); for(let x=60;x<=W-60;x+=3){ const yy=y-amp*Math.sin(2*Math.PI*(x-60)/lam); x===60?g.moveTo(x,yy):g.lineTo(x,yy);} g.stroke(); g.setLineDash([]); };
+  wave(H-92,14,60,'#E69F00'); wave(H-92,14,240,'#56B4E9',[12,7]);
+  g.textAlign='center';
+  g.fillStyle='#ffd166'; g.font=F(700,50); g.fillText('Certificate of Completion',W/2,118);
+  g.fillStyle='#f2f6f9'; g.font=F(600,32); g.fillText(o.title,W/2,170);
+  g.fillStyle='#b9c9d6'; g.font=F(400,22,'b'); g.fillText('proudly awarded to',W/2,232);
+  let fs=60; g.font=F(700,fs); while(g.measureText(name).width>W-200&&fs>28){ fs-=4; g.font=F(700,fs); }
+  g.fillStyle='#ffffff'; g.fillText(name,W/2,305); g.strokeStyle='#ffd166'; g.lineWidth=2; g.beginPath(); g.moveTo(W/2-300,322); g.lineTo(W/2+300,322); g.stroke();
+  g.fillStyle='#f2f6f9'; g.font=F(400,22,'b'); g.fillText(`for completing all ${o.missions} missions and every Science Check`,W/2,366);
+  g.fillStyle='#b9c9d6'; g.font=F(400,18,'b'); g.fillText(o.unit,W/2,396);
+  const d=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  g.textAlign='left'; g.fillStyle='#f2f6f9'; g.font=F(400,18,'b'); g.fillText('Date: '+d,70,H-140);
+  g.textAlign='right'; g.fillText("Ms. Welch's Science 7",W-70,H-140);
+  g.textAlign='center'; g.fillStyle='#14212c'; g.strokeStyle='#ffd166'; g.lineWidth=2; g.setLineDash([8,5]);
+  g.fillRect(W/2-150,H-176,300,52); g.strokeRect(W/2-150,H-176,300,52); g.setLineDash([]);
+  g.fillStyle='#ffd166'; g.font=F(700,28); g.fillText(o.code,W/2,H-140);
+  return c;
+}
+
+size(); load(Math.max(0, done.lastIndexOf(true)+1<M.length ? done.lastIndexOf(true)+1 : 0));
+})();
+</script>
+
+</body>
+</html>
