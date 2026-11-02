@@ -19,6 +19,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
 .wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
@@ -128,7 +129,7 @@ const ART = {
     <rect x="170" y="10" width="54" height="98" fill="#5e6f7d"/><g fill="#9fd3f5">${[0,1,2,3].map(r=>[0,1].map(c=>`<rect x="${178+c*24}" y="${20+r*22}" width="14" height="12"/>`).join('')).join('')}</g>
     <path d="M30 60 L150 92" stroke="#E69F00" stroke-width="3" stroke-dasharray="8 6"/><path d="M30 50 L168 40 L120 92" stroke="#56B4E9" stroke-width="3" stroke-dasharray="3 5" fill="none"/>
     <rect x="96" y="90" width="58" height="18" rx="6" fill="#ffd166"/><circle cx="108" cy="110" r="7" fill="#14212c"/><circle cx="142" cy="110" r="7" fill="#14212c"/></svg>`,
-  bolt:`<svg width="230" height="110" viewBox="0 0 230 110"><text x="115" y="70" text-anchor="middle" fill="#ffd166" font-family="Fredoka,sans-serif" font-weight="700" font-size="44">C or D?</text></svg>`
+  bolt:`<svg width="260" height="130" viewBox="0 0 260 130"><rect x="2" y="2" width="114" height="126" rx="10" fill="#173d2e" stroke="#3fd38f" stroke-width="2"/><rect x="144" y="2" width="114" height="126" rx="10" fill="#3c2024" stroke="#ff8f8f" stroke-width="2"/><polyline points="19,28.0 21,25.5 23,23.3 25,21.5 27,20.4 29,20.0 31,20.4 33,21.5 35,23.3 37,25.5 39,28.0 41,30.5 43,32.7 45,34.5 47,35.6 49,36.0 51,35.6 53,34.5 55,32.7 57,30.5 59,28.0 61,25.5 63,23.3 65,21.5 67,20.4 69,20.0 71,20.4 73,21.5 75,23.3 77,25.5 79,28.0 81,30.5 83,32.7 85,34.5 87,35.6 89,36.0 91,35.6 93,34.5 95,32.7 97,30.5 99,28.0" fill="none" stroke="#E69F00" stroke-width="3" /><polyline points="19,28.0 21,25.5 23,23.3 25,21.5 27,20.4 29,20.0 31,20.4 33,21.5 35,23.3 37,25.5 39,28.0 41,30.5 43,32.7 45,34.5 47,35.6 49,36.0 51,35.6 53,34.5 55,32.7 57,30.5 59,28.0 61,25.5 63,23.3 65,21.5 67,20.4 69,20.0 71,20.4 73,21.5 75,23.3 77,25.5 79,28.0 81,30.5 83,32.7 85,34.5 87,35.6 89,36.0 91,35.6 93,34.5 95,32.7 97,30.5 99,28.0" fill="none" stroke="#56B4E9" stroke-width="3" stroke-dasharray="7 4"/><text x="59" y="58" text-anchor="middle" fill="#f2f6f9" font-family="Fredoka,sans-serif" font-weight="700" font-size="16">=</text><polyline points="19,86.0 21,81.1 23,76.6 25,73.1 27,70.8 29,70.0 31,70.8 33,73.1 35,76.6 37,81.1 39,86.0 41,90.9 43,95.4 45,98.9 47,101.2 49,102.0 51,101.2 53,98.9 55,95.4 57,90.9 59,86.0 61,81.1 63,76.6 65,73.1 67,70.8 69,70.0 71,70.8 73,73.1 75,76.6 77,81.1 79,86.0 81,90.9 83,95.4 85,98.9 87,101.2 89,102.0 91,101.2 93,98.9 95,95.4 97,90.9 99,86.0" fill="none" stroke="#ffffff" stroke-width="4" /><text x="59" y="121" text-anchor="middle" fill="#3fd38f" font-family="Fredoka,sans-serif" font-weight="700" font-size="13">BIGGER (C)</text><polyline points="161,28.0 163,25.5 165,23.3 167,21.5 169,20.4 171,20.0 173,20.4 175,21.5 177,23.3 179,25.5 181,28.0 183,30.5 185,32.7 187,34.5 189,35.6 191,36.0 193,35.6 195,34.5 197,32.7 199,30.5 201,28.0 203,25.5 205,23.3 207,21.5 209,20.4 211,20.0 213,20.4 215,21.5 217,23.3 219,25.5 221,28.0 223,30.5 225,32.7 227,34.5 229,35.6 231,36.0 233,35.6 235,34.5 237,32.7 239,30.5 241,28.0" fill="none" stroke="#E69F00" stroke-width="3" /><polyline points="161,28.0 163,30.5 165,32.7 167,34.5 169,35.6 171,36.0 173,35.6 175,34.5 177,32.7 179,30.5 181,28.0 183,25.5 185,23.3 187,21.5 189,20.4 191,20.0 193,20.4 195,21.5 197,23.3 199,25.5 201,28.0 203,30.5 205,32.7 207,34.5 209,35.6 211,36.0 213,35.6 215,34.5 217,32.7 219,30.5 221,28.0 223,25.5 225,23.3 227,21.5 229,20.4 231,20.0 233,20.4 235,21.5 237,23.3 239,25.5 241,28.0" fill="none" stroke="#56B4E9" stroke-width="3" stroke-dasharray="7 4"/><text x="201" y="58" text-anchor="middle" fill="#f2f6f9" font-family="Fredoka,sans-serif" font-weight="700" font-size="16">=</text><line x1="161" y1="86" x2="241" y2="86" stroke="#ffffff" stroke-width="4"/><text x="201" y="121" text-anchor="middle" fill="#ff8f8f" font-family="Fredoka,sans-serif" font-weight="700" font-size="13">FLAT (D)</text><polygon points="136,20 120,66 132,66 124,110 142,56 130,56 140,20" fill="#ffd166" stroke="#14212c" stroke-width="1.5"/></svg>`
 };
 
 /* ---------- missions ---------- */
@@ -242,6 +243,7 @@ function load(i){
    <div class="vocab"><span>crest</span><span>trough</span><span>amplitude</span><span>${m.kind==='con'?'constructive':m.kind==='des'?'destructive':'interference'}</span></div>`;
   $('status').textContent=''; $('status').className='status';
   const scope = document.querySelector('.scope');
+  document.querySelector('.grid').style.gridTemplateColumns = m.quiz ? 'minmax(0,1fr)' : '';
   if (m.quiz){ scope.hidden = true; quiz(m); return; }
   scope.hidden = false; size();
   $('legend').innerHTML = legendHTML(...NAMES[m.id]);
