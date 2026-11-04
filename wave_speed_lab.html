@@ -1,9 +1,5 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Wave Speed Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
 <style>
@@ -98,12 +94,10 @@ canvas{height:340px}
 .myth{display:grid;gap:10px}
 .callout{background:var(--panel2);border-radius:12px;padding:10px 12px;border-left:5px solid var(--waveB)}
 </style>
-</head>
-<body>
 
 <div class="wrap">
   <header>
-    <h1>Wave Speed Lab<small>Unit 4 · 4.03 Frequency and Speed of a Wave · Ms. Welch's Science 7</small></h1>
+    <h1>Wave Speed Lab<small>Unit 4 · 4.12 Explore Sound in a Medium · Ms. Welch's Science 7</small></h1>
     <div class="row" style="align-items:center"><button id="mute" class="ghost" style="font-size:14px;padding:6px 12px">🔊 Sound on</button><nav class="steps" id="steps" aria-label="Missions"></nav></div>
   </header>
   <div class="grid">
@@ -192,8 +186,8 @@ const ROUNDS = [
 
 /* ------------ state ------------ */
 let cur=0, done=new Array(M.length).fill(false), st={};
-try{const s=JSON.parse(localStorage.getItem('kr403c')||'null'); if(s&&Array.isArray(s.done)) done=M.map((_,i)=>!!s.done[i]);}catch(e){}
-const save=()=>{try{localStorage.setItem('kr403c',JSON.stringify({done}));}catch(e){}};
+try{const s=JSON.parse(localStorage.getItem('wsl412c')||'null'); if(s&&Array.isArray(s.done)) done=M.map((_,i)=>!!s.done[i]);}catch(e){}
+const save=()=>{try{localStorage.setItem('wsl412c',JSON.stringify({done}));}catch(e){}};
 const unlocked=i=>i===0||done[i-1];
 function steps(){
   $('steps').innerHTML=M.map((m,i)=>`<button class="step ${done[i]?'done':''}" aria-current="${i===cur}" ${unlocked(i)?'':'disabled'} data-i="${i}" aria-label="Mission ${i+1}: ${m.title}">${m.s}</button>`).join('');
@@ -510,14 +504,14 @@ function load(i){
   ({predict:mPredict,watch:mWatch,trail:mTrail,tramp:mTramp,rope:mRope,medium:mMedium,can:mCan})[m.id](m);
 }
 
-let PICK=null; try{PICK=localStorage.getItem('kr403pick');}catch(e){}
+let PICK=null; try{PICK=localStorage.getItem('wsl412pick');}catch(e){}
 const PNAME={k:'Kiki wins',b:'Bo wins',t:'It\'s a tie'};
 function mPredict(m){
   $('legend').innerHTML=legend('Kiki: short, frequent hops','Bo: long, less frequent hops');
   drawRace(0,false,true);
   $('controls').innerHTML=predButtons([['k','Kiki wins'],['b','Bo wins'],['t','It\'s a tie']])+`<div class="row"><button id="lock" disabled>Lock in my prediction →</button></div>`;
   wirePred(v=>{ PICK=v; $('lock').disabled=false; status('Ready? Lock it in to go to the race.'); });
-  $('lock').onclick=()=>{ try{localStorage.setItem('kr403pick',PICK);}catch(e){} done[cur]=true; save(); steps(); load(cur+1); scrollTo({top:0,behavior:reduce?'auto':'smooth'}); };
+  $('lock').onclick=()=>{ try{localStorage.setItem('wsl412pick',PICK);}catch(e){} done[cur]=true; save(); steps(); load(cur+1); scrollTo({top:0,behavior:reduce?'auto':'smooth'}); };
   status('Look at the hop patterns. Who will cross the finish line first?');
 }
 function mWatch(m){
@@ -642,7 +636,7 @@ function myth(m){
     if(b.dataset.v===m.items[i][1]){ got[i]=true; b.style.borderColor='var(--go)'; b.style.background='#173d2e'; row.querySelectorAll('button').forEach(x=>x.disabled=true); $('mk'+i).textContent='✓'; $('mk'+i).style.color='var(--go)'; }
     else { b.disabled=true; b.style.borderColor='var(--bad)'; $('mk'+i).textContent='Try again'; $('mk'+i).style.color='var(--bad)'; }
     if(got.every(Boolean)){ done[cur]=true; save(); steps();
-      certFlow($('fin'),{title:'Wave Speed Lab',code:CODE,missions:M.length,unit:'Unit 4 · 4.03 Frequency and Speed of a Wave'}); }
+      certFlow($('fin'),{title:'Wave Speed Lab',code:CODE,missions:M.length,unit:'Unit 4 · 4.12 Explore Sound in a Medium'}); }
   }));
 }
 
@@ -697,9 +691,6 @@ function drawCert(name,o){
   return c;
 }
 
-size(); load(Math.max(0, done.lastIndexOf(true)+1<M.length ? done.lastIndexOf(true)+1 : 0));
+size(); load(done.indexOf(false)<0 ? M.length-1 : done.indexOf(false)); /* resume at first unfinished mission; if all done, reopen the last one (code) */
 })();
 </script>
-
-</body>
-</html>
