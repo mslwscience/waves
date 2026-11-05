@@ -1,9 +1,8 @@
 <!doctype html>
-<html lang="en">
-<head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Interference Missions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
 <style>
@@ -85,13 +84,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .vocab span{font-size:13.5px;font-weight:700;border:1.5px solid var(--muted);border-radius:7px;padding:1px 8px;color:var(--fg)}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
 </style>
-</head>
-<body>
 
 <div class="wrap">
   <header>
     <h1>Interference Missions<small>Unit 4 · 4.10 Wave Interference · Ms. Welch's Science 7</small></h1>
-    <nav class="steps" id="steps" aria-label="Missions"></nav>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><nav class="steps" id="steps" aria-label="Missions"></nav><button id="restart" class="ghost" type="button" style="font-size:14px;padding:6px 12px">↺ Start over</button><span class="savenote" style="font-size:13px;color:var(--muted,#5b6577)">✓ Your progress saves in this browser.</span></div>
   </header>
 
   <div class="grid">
@@ -226,7 +223,7 @@ function draw(){
   [[pA,'#E69F00'],[pB,'#56B4E9']].forEach(([v,c])=>{ cx.fillStyle=c; cx.beginPath(); cx.arc(mx, lanes[0]-v*scale, 6, 0, TAU); cx.fill(); });
   cx.fillStyle='#fff'; cx.beginPath(); cx.arc(mx, lanes[1]-(pA+pB)*scale, 7, 0, TAU); cx.fill();
 }
-function loop(){ if(!reduce) t += 0.035; draw(); requestAnimationFrame(loop); }
+function loop(){ t += 0.035; draw(); requestAnimationFrame(loop); }
 
 /* ---------- UI per mission ---------- */
 const legendHTML = (a,b) => `<span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="#E69F00" stroke-width="4"/></svg>${a}</span>
@@ -345,7 +342,7 @@ function quiz(m){
     if (b.dataset.v===m.items[i][1]){ got[i]=true; b.style.borderColor='var(--go)'; b.style.background='#173d2e'; row.querySelectorAll('button').forEach(x=>x.disabled=true); $('mk'+i).textContent='✓'; $('mk'+i).style.color='var(--go)'; }
     else { b.disabled=true; b.style.borderColor='var(--bad)'; $('mk'+i).textContent='Try again'; $('mk'+i).style.color='var(--bad)'; }
     if (got.every(Boolean)){ done[cur]=true; save(); steps();
-      $('fin').innerHTML = `<div class="final"><h3 style="font-size:28px">All missions complete!</h3><p style="margin:0">Type this code on your 4.10 Classkick slide:</p><div class="code">${CODE}</div><p class="note">Constructive: crest + crest, waves add, bigger wave. Destructive: crest + trough, waves cancel, smaller or flat wave.</p></div>`; }
+      certFlow($('fin'),{title:'Interference Missions',code:CODE,missions:M.length,unit:'Unit 4 · 4.10 Wave Interference'}); }
   }));
 }
 
@@ -363,9 +360,67 @@ function hear(){
   }catch(e){ $('status').textContent='Sound is not available on this device.'; }
 }
 
-size(); load(Math.max(0, done.lastIndexOf(true)+1 < M.length ? done.lastIndexOf(true)+1 : 0)); loop();
+/* ---- name + certificate of completion ---- */
+function certFlow(el, o){ // o: {title, code, missions, accent, unit}
+  el.innerHTML=`<div class="final"><h3 style="font-size:28px">All missions complete!</h3>
+   <label for="sname" style="font-weight:700">Type your first name and last initial to get your code and certificate:</label>
+   <div class="row" style="justify-content:center"><input id="sname" maxlength="30" autocomplete="off" placeholder="Example: Maya R."
+     style="font-family:var(--body);font-size:18px;padding:8px 12px;border-radius:10px;border:2px solid var(--line);background:var(--panel2);color:var(--fg);min-width:230px">
+   <button id="getcode" disabled>Get my code</button></div><div id="certout" style="display:flex;flex-direction:column;gap:10px;align-items:center;width:100%"></div></div>`;
+  const inp=el.querySelector('#sname'), btn=el.querySelector('#getcode');
+  inp.oninput=()=>{ btn.disabled=inp.value.trim().length<2; };
+  inp.onkeydown=e=>{ if(e.key==='Enter'&&!btn.disabled) btn.click(); };
+  btn.onclick=()=>{
+    const name=inp.value.trim().replace(/\s+/g,' ').slice(0,30), c=drawCert(name,o);
+    const out=el.querySelector('#certout');
+    out.innerHTML=`<p style="margin:0">Great job, <b>${name.replace(/</g,'&lt;')}</b>! Type this code on your Classkick slide:</p><div class="code">${o.code}</div>
+      <img id="certimg" alt="Certificate of completion for ${name.replace(/"/g,'')}" style="width:100%;max-width:640px;border-radius:12px;border:2px solid var(--line)">
+      <div class="row" style="justify-content:center"><button id="copycert">📋 Copy certificate</button><a id="savecert" class="ghost" style="font-family:var(--display);font-weight:600;font-size:17px;border-radius:12px;border:2px solid var(--line);padding:9px 16px;background:var(--panel2);color:var(--fg);text-decoration:none" download="certificate.png">⬇ Save certificate</a></div>
+      <p class="note" id="certmsg">Copy the certificate, then paste it onto your Classkick slide (Ctrl + V).</p>`;
+    out.querySelector('#certimg').src=c.toDataURL('image/png');
+    out.querySelector('#savecert').href=c.toDataURL('image/png');
+    out.querySelector('#savecert').download=`${o.title.replace(/\W+/g,'_')}_${name.replace(/\W+/g,'_')}.png`;
+    out.querySelector('#copycert').onclick=()=>{ const msg=out.querySelector('#certmsg');
+      try{ c.toBlob(b=>{ navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(()=>{ msg.innerHTML='<b style="color:var(--go)">Copied!</b> Now go to Classkick and press Ctrl + V to paste it.'; })
+        .catch(()=>{ msg.innerHTML='Copy did not work on this computer. <b>Right-click the certificate</b> and choose <b>Copy image</b>, then paste it in Classkick.'; }); }); }
+      catch(e){ msg.innerHTML='Copy did not work on this computer. <b>Right-click the certificate</b> and choose <b>Copy image</b>, then paste it in Classkick.'; } };
+  };
+}
+function drawCert(name,o){
+  const W=1000,H=600,c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
+  const F=(w,s,f)=>`${w} ${s}px ${f==='b'?"'Atkinson Hyperlegible',Verdana,sans-serif":"Fredoka,'Trebuchet MS',sans-serif"}`;
+  g.fillStyle='#0d1b26'; g.fillRect(0,0,W,H);
+  g.strokeStyle='#ffd166'; g.lineWidth=8; g.strokeRect(22,22,W-44,H-44); g.lineWidth=2; g.strokeRect(36,36,W-72,H-72);
+  const wave=(y,amp,lam,col,dash)=>{ g.strokeStyle=col; g.lineWidth=4; g.setLineDash(dash||[]); g.beginPath(); for(let x=60;x<=W-60;x+=3){ const yy=y-amp*Math.sin(2*Math.PI*(x-60)/lam); x===60?g.moveTo(x,yy):g.lineTo(x,yy);} g.stroke(); g.setLineDash([]); };
+  wave(H-92,14,60,'#E69F00'); wave(H-92,14,240,'#56B4E9',[12,7]);
+  g.textAlign='center';
+  g.fillStyle='#ffd166'; g.font=F(700,50); g.fillText('Certificate of Completion',W/2,118);
+  g.fillStyle='#f2f6f9'; g.font=F(600,32); g.fillText(o.title,W/2,170);
+  g.fillStyle='#b9c9d6'; g.font=F(400,22,'b'); g.fillText('proudly awarded to',W/2,232);
+  let fs=60; g.font=F(700,fs); while(g.measureText(name).width>W-200&&fs>28){ fs-=4; g.font=F(700,fs); }
+  g.fillStyle='#ffffff'; g.fillText(name,W/2,305); g.strokeStyle='#ffd166'; g.lineWidth=2; g.beginPath(); g.moveTo(W/2-300,322); g.lineTo(W/2+300,322); g.stroke();
+  g.fillStyle='#f2f6f9'; g.font=F(400,22,'b'); g.fillText(`for completing all ${o.missions} missions and every Science Check`,W/2,366);
+  g.fillStyle='#b9c9d6'; g.font=F(400,18,'b'); g.fillText(o.unit,W/2,396);
+  const d=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  g.textAlign='left'; g.fillStyle='#f2f6f9'; g.font=F(400,18,'b'); g.fillText('Date: '+d,70,H-140);
+  g.textAlign='right'; g.fillText("Ms. Welch's Science 7",W-70,H-140);
+  g.textAlign='center'; g.fillStyle='#14212c'; g.strokeStyle='#ffd166'; g.lineWidth=2; g.setLineDash([8,5]);
+  g.fillRect(W/2-150,H-176,300,52); g.strokeRect(W/2-150,H-176,300,52); g.setLineDash([]);
+  g.fillStyle='#ffd166'; g.font=F(700,28); g.fillText(o.code,W/2,H-140);
+  return c;
+}
+
+size(); load(done.indexOf(false)<0 ? M.length-1 : done.indexOf(false)); loop();
 })();
 </script>
 
-</body>
-</html>
+<script>
+(function(){
+  const b=document.getElementById('restart'); if(!b) return; let armed=false,tm;
+  b.onclick=()=>{
+    if(!armed){ armed=true; b.textContent='Click again to erase your progress'; tm=setTimeout(()=>{armed=false;b.textContent='\u21BA Start over';},3000); return; }
+    clearTimeout(tm); try{ localStorage.removeItem('im410'); }catch(e){}
+    location.reload();
+  };
+})();
+</script>

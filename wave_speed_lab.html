@@ -1,3 +1,6 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Wave Speed Lab</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -98,7 +101,7 @@ canvas{height:340px}
 <div class="wrap">
   <header>
     <h1>Wave Speed Lab<small>Unit 4 · 4.12 Explore Sound in a Medium · Ms. Welch's Science 7</small></h1>
-    <div class="row" style="align-items:center"><button id="mute" class="ghost" style="font-size:14px;padding:6px 12px">🔊 Sound on</button><nav class="steps" id="steps" aria-label="Missions"></nav></div>
+    <div class="row" style="align-items:center"><button id="mute" class="ghost" style="font-size:14px;padding:6px 12px">🔊 Sound on</button><nav class="steps" id="steps" aria-label="Missions"></nav><button id="restart" class="ghost" type="button" style="font-size:14px;padding:6px 12px">↺ Start over</button><span class="savenote" style="font-size:13px;color:var(--muted,#5b6577)">✓ Your progress saves in this browser.</span></div>
   </header>
   <div class="grid">
     <section class="brief" id="brief" aria-live="polite"></section>
@@ -692,5 +695,16 @@ function drawCert(name,o){
 }
 
 size(); load(done.indexOf(false)<0 ? M.length-1 : done.indexOf(false)); /* resume at first unfinished mission; if all done, reopen the last one (code) */
+})();
+</script>
+
+<script>
+(function(){
+  const b=document.getElementById('restart'); if(!b) return; let armed=false,tm;
+  b.onclick=()=>{
+    if(!armed){ armed=true; b.textContent='Click again to erase your progress'; tm=setTimeout(()=>{armed=false;b.textContent='\u21BA Start over';},3000); return; }
+    clearTimeout(tm); try{ localStorage.removeItem('wsl412c');localStorage.removeItem('wsl412pick'); }catch(e){}
+    location.reload();
+  };
 })();
 </script>
