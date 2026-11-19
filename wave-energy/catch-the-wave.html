@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catch the Wave: Make Power from Ocean Waves</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F8FA; --card:#FFFFFF; --ink:#12304A; --muted:#47627A;
+  --sea:#1F7A8C; --sea-deep:#135363; --sea-light:#CFE8EC; --sky:#E2F1F5; --sand:#E9D6A8;
+  --power:#F5B700; --power-ink:#5A4300; --good:#2E7D4F; --good-bg:#DFF2E6;
+  --bad:#B23A48; --bad-bg:#F8E1E4; --line:#C5DAE1; --house:#8A6F5A;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D1C27; --card:#13283A; --ink:#E7F1F4; --muted:#A9BFCB;
+    --sea:#2F93A6; --sea-deep:#1B5C6B; --sea-light:#1C3D4D; --sky:#132C3D; --sand:#7A6A45;
+    --power:#FFC933; --power-ink:#FFE08A; --good:#6FD39A; --good-bg:#16382A;
+    --bad:#FF8A98; --bad-bg:#3E1C24; --line:#29475A; --house:#B39780;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D1C27; --card:#13283A; --ink:#E7F1F4; --muted:#A9BFCB;
+  --sea:#2F93A6; --sea-deep:#1B5C6B; --sea-light:#1C3D4D; --sky:#132C3D; --sand:#7A6A45;
+  --power:#FFC933; --power-ink:#FFE08A; --good:#6FD39A; --good-bg:#16382A;
+  --bad:#FF8A98; --bad-bg:#3E1C24; --line:#29475A; --house:#B39780;
+  color-scheme: dark;
+}
+:root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+*,*::before,*::after{ box-sizing:inherit; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Atkinson Hyperlegible", Verdana, "Segoe UI", system-ui, sans-serif;
+  font-size:1.2rem; line-height:1.55;
+}
+.wrap{ max-width:980px; margin:0 auto; padding:1rem 1rem 3rem; }
+header{ padding:1.25rem 0 .5rem; }
+h1{ font-size:clamp(2.2rem,6vw,3.4rem); line-height:1.05; margin:0; letter-spacing:-.01em; }
+.tag{ color:var(--muted); margin:.4rem 0 0; font-size:1.15rem; }
+.wave-rule{ display:block; width:100%; height:22px; margin-top:.75rem; }
+.wave-rule path{ fill:none; stroke:var(--sea); stroke-width:4; stroke-linecap:round; }
+
+nav.steps{ display:flex; flex-wrap:wrap; gap:.5rem; margin:1rem 0 1.25rem; }
+nav.steps button{
+  font:inherit; font-size:1.05rem; font-weight:700; color:var(--ink);
+  background:var(--card); border:2px solid var(--line); border-radius:999px;
+  padding:.45rem 1rem .45rem .5rem; cursor:pointer; display:flex; align-items:center; gap:.5rem;
+}
+nav.steps button .n{
+  display:inline-grid; place-items:center; width:1.8rem; height:1.8rem; border-radius:50%;
+  background:var(--sea-light); color:var(--ink); font-size:1rem;
+}
+nav.steps button[aria-current="step"]{ border-color:var(--sea); background:var(--sea); color:#fff; }
+nav.steps button[aria-current="step"] .n{ background:#fff; color:var(--sea-deep); }
+nav.steps button.done .n{ background:var(--good); color:#fff; }
+
+section.step{ display:none; }
+section.step.active{ display:block; }
+h2{ font-size:1.9rem; margin:.25rem 0 .5rem; line-height:1.2; }
+h3{ font-size:1.35rem; margin:1.5rem 0 .5rem; }
+p{ margin:.5rem 0; max-width:62ch; }
+.say{
+  font:inherit; font-size:1rem; font-weight:700; color:var(--sea-deep);
+  background:var(--sea-light); border:0; border-radius:10px; padding:.35rem .8rem; cursor:pointer; margin:.25rem 0 .5rem;
+}
+:root[data-theme="dark"] .say{ color:var(--ink); }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .say{ color:var(--ink); } }
+
+.panel{ background:var(--card); border:2px solid var(--line); border-radius:16px; padding:1rem 1.1rem; margin:1rem 0; }
+.diagram svg{ width:100%; height:auto; display:block; }
+.diagram .water{ fill:var(--sea-light); }
+.diagram .surf{ fill:none; stroke:var(--sea); stroke-width:5; }
+.diagram .mark{ stroke:var(--ink); stroke-width:2.5; fill:none; }
+.diagram .still{ stroke:var(--muted); stroke-width:2; stroke-dasharray:6 6; }
+.diagram text{ fill:var(--ink); font-family:inherit; font-size:22px; font-weight:700; }
+.diagram .dot{ fill:var(--power); stroke:var(--ink); stroke-width:2; }
+
+.vocab{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.75rem; margin:1rem 0; }
+.vocab div{ border-left:6px solid var(--sea); background:var(--card); padding:.6rem .9rem; border-radius:0 12px 12px 0; }
+.vocab b{ display:block; font-size:1.3rem; }
+
+/* Sim */
+.sim{ background:var(--card); border:2px solid var(--line); border-radius:18px; overflow:hidden; margin:1rem 0; }
+.sim canvas{ display:block; width:100%; height:300px; background:var(--sky); }
+.sim .controls{ padding:1rem 1.1rem; display:grid; gap:1rem; grid-template-columns:1fr 1fr; }
+@media (max-width:640px){ .sim .controls{ grid-template-columns:1fr; } .sim canvas{ height:240px; } }
+.ctl label{ display:flex; justify-content:space-between; font-weight:700; gap:.5rem; }
+.ctl .val{ color:var(--sea-deep); }
+:root[data-theme="dark"] .ctl .val{ color:var(--sea); }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .ctl .val{ color:#7FD0DE; } }
+.ctl small{ color:var(--muted); display:block; font-size:.95rem; }
+input[type=range]{ width:100%; height:2.2rem; accent-color:var(--sea); }
+.readout{ grid-column:1/-1; display:flex; flex-wrap:wrap; gap:1rem; align-items:center; }
+.big{ background:var(--paper); border-radius:14px; padding:.6rem 1rem; min-width:10rem; }
+.big span{ display:block; color:var(--muted); font-size:1rem; }
+.big strong{ font-size:2rem; line-height:1.1; }
+.meter{ flex:1 1 220px; }
+.meter .bar{ height:22px; background:var(--paper); border:2px solid var(--line); border-radius:999px; overflow:hidden; }
+.meter .fill{ height:100%; width:0; background:var(--power); transition:width .25s; }
+.meter span{ font-size:1rem; color:var(--muted); }
+.simbar{ display:flex; gap:.5rem; flex-wrap:wrap; padding:0 1.1rem 1rem; }
+.btn{
+  font:inherit; font-weight:700; font-size:1.05rem; cursor:pointer;
+  border:2px solid var(--sea); background:var(--card); color:var(--ink);
+  border-radius:12px; padding:.55rem 1rem;
+}
+.btn.main{ background:var(--sea); color:#fff; }
+.btn:disabled{ opacity:.45; cursor:not-allowed; }
+button:focus-visible, input:focus-visible, textarea:focus-visible{ outline:4px solid var(--power); outline-offset:2px; }
+.math{ display:none; padding:0 1.1rem 1rem; color:var(--muted); font-size:1.05rem; }
+.math.show{ display:block; }
+
+.challenges{ list-style:none; padding:0; margin:.5rem 0; display:grid; gap:.5rem; }
+.challenges li{ display:flex; gap:.75rem; align-items:center; background:var(--card); border:2px solid var(--line); border-radius:12px; padding:.6rem .9rem; }
+.challenges .box{ width:1.7rem; height:1.7rem; flex:none; border-radius:8px; border:3px solid var(--line); display:grid; place-items:center; font-weight:700; }
+.challenges li.won{ border-color:var(--good); background:var(--good-bg); }
+.challenges li.won .box{ background:var(--good); border-color:var(--good); color:#fff; }
+
+.q{ background:var(--card); border:2px solid var(--line); border-radius:14px; padding:.9rem 1rem; margin:.75rem 0; }
+.q p{ font-weight:700; margin-top:0; }
+.choices{ display:flex; flex-wrap:wrap; gap:.5rem; }
+.choices button{ font:inherit; font-size:1.05rem; cursor:pointer; border:2px solid var(--line); background:var(--paper); color:var(--ink); border-radius:12px; padding:.5rem .9rem; }
+.choices button.right{ border-color:var(--good); background:var(--good-bg); }
+.choices button.wrong{ border-color:var(--bad); background:var(--bad-bg); }
+.fb{ margin:.5rem 0 0; font-weight:700; min-height:1.2em; }
+.fb.right{ color:var(--good); } .fb.wrong{ color:var(--bad); }
+
+.sites{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:.6rem; margin:.75rem 0; }
+.sites button{ font:inherit; text-align:left; cursor:pointer; border:2px solid var(--line); background:var(--card); color:var(--ink); border-radius:14px; padding:.7rem .9rem; }
+.sites button b{ display:block; font-size:1.15rem; }
+.sites button span{ color:var(--muted); font-size:1rem; }
+.sites button.on{ border-color:var(--sea); box-shadow:inset 0 0 0 2px var(--sea); }
+.sites button.tested b::after{ content:" ✓"; color:var(--good); }
+.tablewrap{ overflow-x:auto; }
+table{ border-collapse:collapse; width:100%; min-width:560px; font-size:1.05rem; background:var(--card); }
+th,td{ border:2px solid var(--line); padding:.45rem .6rem; text-align:left; }
+th{ background:var(--sea-light); }
+td.num{ font-variant-numeric:tabular-nums; }
+textarea{ width:100%; min-height:6rem; font:inherit; color:var(--ink); background:var(--paper); border:2px solid var(--line); border-radius:12px; padding:.6rem; }
+.starter{ background:var(--sea-light); border-radius:12px; padding:.6rem .9rem; font-weight:700; }
+.navrow{ display:flex; justify-content:space-between; gap:.5rem; margin-top:1.5rem; }
+.score{ font-size:1.5rem; font-weight:700; }
+.note{ color:var(--muted); font-size:.95rem; }
+.labq{ font-weight:700; font-size:1.25rem; background:var(--sea-light); border-radius:12px; padding:.6rem .9rem; max-width:none; }
+.labbar{ display:flex; flex-wrap:wrap; gap:.35rem; margin:.75rem 0; }
+.labbar span{ border:2px solid var(--line); border-radius:999px; padding:.2rem .7rem; font-size:.95rem; background:var(--card); color:var(--muted); }
+.labbar span.now{ border-color:var(--sea); background:var(--sea); color:#fff; font-weight:700; }
+.labbar span.done{ border-color:var(--good); color:var(--good); font-weight:700; }
+.coach{ display:flex; gap:.75rem; align-items:flex-start; background:var(--sea-light); border-radius:14px; padding:.7rem 1rem; margin:.75rem 0; }
+.coach .face{ font-size:1.8rem; line-height:1; flex:none; }
+.coach p{ margin:.15rem 0; }
+.coach.good{ background:var(--good-bg); }
+.coach.fix{ background:#FFF1C2; color:#4F3B00; }
+.const{ padding:0; margin:.4rem 0; }
+.const li{ list-style:none; margin:.35rem 0; font-size:1.1rem; }
+table.datatbl{ width:auto; min-width:0; }
+.datatbl td, .datatbl th{ text-align:center; padding:.45rem .9rem; }
+.datatbl tr.target td{ background:#FFF1C2; color:#4F3B00; font-weight:700; }
+.labsplit{ display:grid; grid-template-columns:auto 1fr; gap:1rem; align-items:start; }
+@media (max-width:720px){ .labsplit{ grid-template-columns:1fr; } }
+.plotwrap{ max-width:640px; }
+.plotwrap svg{ width:100%; height:auto; display:block; touch-action:manipulation; }
+.plotwrap svg.live{ cursor:crosshair; }
+.target-tag{ font-size:1.25rem; font-weight:700; background:var(--power); color:#2A1F00; display:inline-block; border-radius:10px; padding:.25rem .8rem; }
+.frame{ font-size:1.15rem; line-height:2.3; max-width:none; }
+.frame select, .frame input{ font:inherit; font-size:1.1rem; padding:.1rem .35rem; border:2px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); }
+.frame input{ width:5.5rem; }
+.frame .ok{ border-color:var(--good); background:var(--good-bg); }
+.frame .no{ border-color:var(--bad); background:var(--bad-bg); }
+.cerpart{ background:var(--card); border:2px solid var(--line); border-radius:16px; padding:.8rem 1rem; margin:.8rem 0; }
+.cerpart h3{ display:flex; align-items:center; gap:.5rem; margin:.1rem 0 .3rem; }
+.helpbtn{ border:0; background:var(--sea); color:#fff; width:1.9rem; height:1.9rem; border-radius:50%; font-weight:700; font-size:1.05rem; cursor:pointer; }
+.helpbox{ background:var(--paper); border:2px solid var(--sea); border-radius:12px; padding:.6rem .9rem; margin:.5rem 0; }
+.helpbox p{ margin:.25rem 0; }
+#printArea{ display:none; }
+@media print{ body > *:not(#printArea){ display:none !important; } #printArea{ display:block; color:#000; background:#fff; font-size:13pt; } #printArea table{ min-width:0; width:auto; } }
+</style>
+</head>
+<body>
+<!-- ===== WTK: shared tools (reading help, save, start over, Canvas submit) ===== -->
+<style>
+.wtk-bar{ display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; max-width:1060px; margin:0 auto; padding:.6rem 1rem 0; }
+.wtk-bar button, .wtk-panel button{ font:inherit; font-size:1rem; font-weight:700; cursor:pointer; border:2px solid var(--line); background:var(--card); color:var(--ink); border-radius:12px; padding:.35rem .75rem; }
+.wtk-bar button[aria-pressed="true"], .wtk-panel button[aria-pressed="true"]{ background:var(--sea); border-color:var(--sea); color:#fff; }
+.wtk-bar .wtk-save{ border-color:var(--good); }
+.wtk-bar .wtk-reset.armed{ background:var(--bad); border-color:var(--bad); color:#fff; }
+.wtk-bar .wtk-sp{ flex:1 1 auto; }
+.wtk-bar a.wtk-home{ font-weight:700; font-size:1rem; text-decoration:none; border:2px solid var(--line); background:var(--card); color:var(--ink); border-radius:12px; padding:.35rem .75rem; }
+.wtk-bar a.wtk-home[hidden]{ display:none; }
+.wtk-panel{ max-width:1060px; margin:.5rem auto 0; padding:.8rem 1rem; background:var(--card); border:2px solid var(--sea); border-radius:16px; display:grid; gap:.5rem; }
+.wtk-panel[hidden]{ display:none; }
+.wtk-panel .wtk-row{ display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+.wtk-panel p{ margin:.1rem 0; font-size:.95rem; color:var(--muted); }
+.wtk-toast{ position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); transform:translateX(-50%); background:var(--ink); color:var(--paper); padding:.55rem 1rem; border-radius:12px; font-weight:700; z-index:60; opacity:0; pointer-events:none; transition:opacity .25s; max-width:90vw; text-align:center; }
+.wtk-toast.on{ opacity:1; }
+.wtk-modal{ position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:55; display:flex; align-items:flex-start; justify-content:center; padding:calc(env(safe-area-inset-top,0px) + 2rem) 1rem 1rem; overflow:auto; }
+.wtk-modal[hidden]{ display:none; }
+.wtk-modal .box{ background:var(--card); color:var(--ink); border-radius:18px; max-width:720px; width:100%; padding:1rem 1.2rem; border:3px solid var(--sea); }
+.wtk-words{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.5rem; margin:.6rem 0; }
+.wtk-words div{ border-left:6px solid var(--sea); background:var(--paper); border-radius:0 12px 12px 0; padding:.45rem .7rem; }
+.wtk-words b{ display:block; font-size:1.1rem; }
+.wtk-words button{ border:0; background:none; cursor:pointer; font-size:1.1rem; float:right; }
+.wtk-said{ outline:4px solid var(--power) !important; outline-offset:3px; border-radius:6px; }
+html.wtk-tap body{ cursor:help; }
+html.wtk-easy body{ letter-spacing:.04em; word-spacing:.16em; line-height:1.85; }
+html.wtk-easy p, html.wtk-easy li{ max-width:58ch; }
+html.wtk-calm *, html.wtk-calm *::before, html.wtk-calm *::after{ animation:none !important; transition:none !important; }
+html.wtk-fewer [data-extra]{ display:none !important; }
+:root.wtk-hc.wtk-hc{ --paper:#FFFFFF; --card:#FFFFFF; --ink:#000000; --muted:#1A1A1A; --line:#000000; --sea:#00506B; --sea-deep:#002F3F; --sea-light:#DDF3FA; --sky:#EAF7FB; --power:#FFC400; --good:#006B2E; --good-bg:#DDF5E4; --bad:#A80000; --bad-bg:#FFE3E3; color-scheme:light; }
+:root.wtk-hc.wtk-hc body{ background:#FFFFFF; color:#000000; }
+:root.wtk-hc.wtk-hc button, :root.wtk-hc.wtk-hc .panel, :root.wtk-hc.wtk-hc .card{ border-width:3px; }
+.wtk-submit{ background:var(--card); border:3px solid var(--good); border-radius:16px; padding:.9rem 1.1rem; margin:1rem 0; }
+.wtk-submit h3{ margin:.1rem 0 .5rem; }
+.wtk-submit label{ font-weight:700; }
+.wtk-submit input[type=text]{ font:inherit; font-size:1.1rem; padding:.35rem .6rem; border:2px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); width:min(100%,22rem); }
+.wtk-submit .wtk-btns{ display:flex; flex-wrap:wrap; gap:.5rem; margin:.7rem 0; }
+.wtk-submit .wtk-btns button{ font:inherit; font-weight:700; font-size:1.05rem; cursor:pointer; border-radius:12px; padding:.55rem 1rem; border:3px solid var(--sea-deep); background:var(--card); color:var(--ink); }
+.wtk-submit .wtk-btns button.main{ background:var(--power); border-color:#8A6500; color:#2A1F00; }
+.wtk-submit ol{ margin:.4rem 0; padding-left:1.4rem; }
+.wtk-submit textarea{ width:100%; min-height:10rem; font:inherit; font-size:1rem; border:2px solid var(--line); border-radius:12px; padding:.6rem; background:var(--paper); color:var(--ink); }
+.wtk-cert{ background:var(--card); border:4px double #C99500; border-radius:18px; padding:1rem 1.2rem; margin:1rem 0; }
+.wtk-cert.locked{ border:3px dashed var(--line); }
+.wtk-cert h3{ margin:.1rem 0 .4rem; }
+.wtk-cert .big{ font-family:"Bungee","Atkinson Hyperlegible",sans-serif; font-size:clamp(1.4rem,5vw,2rem); letter-spacing:.04em; color:#8A6500; background:#FFF1C2; border-radius:12px; padding:.3rem .8rem; display:inline-block; }
+.wtk-cert .chk{ font-weight:700; font-size:1.2rem; background:var(--paper); border:2px solid var(--line); border-radius:10px; padding:.15rem .6rem; letter-spacing:.12em; }
+.wtk-cert ul{ margin:.3rem 0; padding-left:1.3rem; }
+.wtk-cert input[type=text]{ font:inherit; font-size:1.1rem; padding:.3rem .6rem; border:2px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); width:min(100%,20rem); }
+.wtk-cert ol{ margin:.4rem 0; padding-left:1.4rem; }
+@media print{ .wtk-cert{ display:none; } }
+@media print{ .wtk-bar, .wtk-panel, .wtk-toast, .wtk-modal{ display:none !important; } }
+</style>
+<div class="wtk-bar" role="toolbar" aria-label="Reading help and saving">
+  <button type="button" data-wtk="tap" aria-pressed="false" title="Tap any sentence to hear it read out loud">🔊 Tap to hear</button>
+  <button type="button" data-wtk="size" title="Make the words bigger">Aa Bigger text</button>
+  <button type="button" data-wtk="more" aria-expanded="false">♿ Reading help</button>
+  <button type="button" data-wtk="words">📖 Word help</button>
+  <a class="wtk-home" href="play/" hidden>🏠 All activities</a>
+  <span class="wtk-sp"></span>
+  <button type="button" data-wtk="save" class="wtk-save">💾 Save</button>
+  <button type="button" data-wtk="reset" class="wtk-reset">↺ Start over</button>
+</div>
+<div class="wtk-panel" id="wtkPanel" hidden>
+  <div class="wtk-row"><b>Text size:</b> <button type="button" data-wtk="smaller">A−</button> <button type="button" data-wtk="bigger">A+</button> <span id="wtkSizeTxt"></span></div>
+  <div class="wtk-row">
+    <button type="button" data-wtk="easy" aria-pressed="false">↔ Easy-read spacing</button>
+    <button type="button" data-wtk="hc" aria-pressed="false">🔆 High contrast</button>
+    <button type="button" data-wtk="calm" aria-pressed="false">🌙 Calm mode (no shaking, sounds, or confetti)</button>
+    <button type="button" data-wtk="slow" aria-pressed="false">🐢 Slower read-aloud</button>
+    <button type="button" data-wtk="fewer" aria-pressed="false">✌ Fewer answer choices</button>
+  </div>
+  <p>These settings stay on for this computer. Nothing has a timer, so take all the time you need.</p>
+</div>
+<div class="wtk-modal" id="wtkWords" hidden role="dialog" aria-modal="true" aria-labelledby="wtkWordsTitle">
+  <div class="box">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem"><h2 id="wtkWordsTitle" style="margin:0">📖 Word help</h2><button type="button" data-wtk="closewords" class="btn" style="font:inherit;font-weight:700;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:.35rem .8rem;cursor:pointer">Close</button></div>
+    <p style="margin:.4rem 0 0">Tap 🔊 to hear a word.</p>
+    <div class="wtk-words" id="wtkWordList"></div>
+  </div>
+</div>
+<div class="wtk-toast" id="wtkToast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+  const root = document.documentElement;
+  const SIZES = [100,115,130,150];
+  let S = { size:0, easy:false, hc:false, calm:false, tap:false, slow:false, fewer:false };
+  try{ Object.assign(S, JSON.parse(localStorage.getItem('wtk-settings')||'{}')); }catch(e){}
+  const WORDS = [
+    ['🌊','wave','A movement that carries energy from one place to another.'],
+    ['⛰️','crest','The top of a wave.'],
+    ['🕳️','trough','The bottom of a wave.'],
+    ['📏','wave height','From the bottom (trough) to the top (crest). Wave height = crest − trough.'],
+    ['↕️','amplitude','How far the water moves up from still water. Taller wave = bigger amplitude = more energy.'],
+    ['➖','still water (rest position)','Where the water is with no waves. On our graphs it is 0.'],
+    ['⚡','energy','The ability to make something move or change.'],
+    ['🔌','power','How fast energy is made or used. We measure it in kilowatts (kW).'],
+    ['🏠','kilowatt (kW)','A unit of power. One home uses about 1.2 kW on average.'],
+    ['🔋','kilowatt-hour (kWh)','A unit of energy. It is power that piles up over time.'],
+    ['🛟','buoy','A floating machine in the water. NOAA buoys measure waves.'],
+    ['⚙️','generator','A machine that turns motion into electricity.'],
+    ['♻️','renewable','Will not run out. The wind keeps making waves.'],
+    ['🔒','constant','Something you keep the same in a fair test.'],
+    ['🔀','variable','Something you change or measure in a test.'],
+    ['➖','negative number','A number less than zero. On a water graph it is below the 0 line.'],
+    ['✅','feasible','Possible to really do.'],
+    ['🗣️','claim','One sentence that answers the question.'],
+    ['📊','evidence','Data (numbers and facts) that support your claim.'],
+    ['🧠','reasoning','The science idea that explains why your evidence supports your claim.'],
+    ['🔁','conservation of energy','Energy cannot be made or destroyed. It can only move or change form.'],
+  ];
+  const $ = s => document.querySelector(s);
+  let app = null, resetArmed = 0;
+  function persist(){ try{ localStorage.setItem('wtk-settings', JSON.stringify(S)); }catch(e){} }
+  function apply(){
+    root.style.fontSize = SIZES[S.size] + '%';
+    root.classList.toggle('wtk-easy', !!S.easy); root.classList.toggle('wtk-hc', !!S.hc);
+    root.classList.toggle('wtk-calm', !!S.calm); root.classList.toggle('wtk-tap', !!S.tap);
+    root.classList.toggle('wtk-fewer', !!S.fewer);
+    document.querySelectorAll('[data-wtk]').forEach(b=>{ const k=b.dataset.wtk; if(k in S && typeof S[k]==='boolean') b.setAttribute('aria-pressed', S[k]); });
+    const st = $('#wtkSizeTxt'); if(st) st.textContent = 'Size ' + (S.size+1) + ' of 4';
+    persist(); window.dispatchEvent(new CustomEvent('wtk-change'));
+  }
+  function toast(msg){ const t=$('#wtkToast'); if(!t) return; t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'), 2600); }
+  const W = window.WTK = {
+    calm: ()=>!!S.calm, fewer: ()=>!!S.fewer, rate: ()=> S.slow ? 0.7 : 0.9, toast,
+    speak(text){ if(!('speechSynthesis' in window) || !text) return; try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(String(text).replace(/\u2212/g,' minus ').replace(/×/g,' times ')); u.rate=W.rate(); speechSynthesis.speak(u); }catch(e){} },
+    register(o){
+      app = o;
+      let loaded = false;
+      try{ const raw = localStorage.getItem(o.key); if(raw){ o.set(JSON.parse(raw)); loaded = true; } }catch(e){}
+      if(loaded) setTimeout(()=>toast('👋 Welcome back! Your saved work is loaded.'), 400);
+      setInterval(()=>W.save(true), 15000);
+      window.addEventListener('pagehide', ()=>W.save(true));
+      document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') W.save(true); });
+      return loaded;
+    },
+    save(quiet){
+      if(!app) return;
+      try{ localStorage.setItem(app.key, JSON.stringify(app.get())); if(!quiet) toast('💾 Saved on this computer at ' + new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})); }
+      catch(e){ if(!quiet) toast('Saving is blocked in this browser. Use Copy for Canvas to keep your work.'); }
+    },
+    name(v){ try{ if(v!==undefined) localStorage.setItem('wtk-name', v); return localStorage.getItem('wtk-name') || ''; }catch(e){ return v||''; } },
+    async copyRich(html, text){
+      try{ if(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){ await navigator.clipboard.write([new ClipboardItem({'text/html': new Blob([html],{type:'text/html'}), 'text/plain': new Blob([text],{type:'text/plain'})})]); return true; } }catch(e){}
+      try{ await navigator.clipboard.writeText(text); return true; }catch(e){ return false; }
+    },
+    download(text, filename){
+      try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'})); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500); return true; }catch(e){ return false; }
+    },
+    print(html){ const pa=document.getElementById('printArea'); if(!pa) return false; pa.innerHTML = html; try{ window.print(); return true; }catch(e){ return false; } },
+    esc: s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'),
+    /* Name check: 3 letters made from the student's name + the activity. Ms. Welch checks it in her planner. */
+    nameCheck(name, key){
+      const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789'; const n=String(name||'').toLowerCase().replace(/[^a-z]/g,''); if(!n) return '---';
+      let h=2166136261; const str=n+'|'+key+'|wel2027'; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+      let out=''; for(let i=0;i<3;i++){ out+=A[h%A.length]; h=Math.floor(h/A.length); } return out;
+    },
+    /* Certificate with the fixed unlock code + name check. o: { key, title, lesson, enc, unlocked, steps:[[text,done]], details:[...] } */
+    cert(container, o){
+      if(!container) return;
+      if(!o.unlocked){
+        container.innerHTML = `<div class="wtk-cert locked"><h3>🔒 Unlock code: ${o.title}</h3><p>Finish these to unlock your code for Classkick:</p><ul>${(o.steps||[]).map(([t,d])=>`<li>${d?'✅':'⬜'} ${t}</li>`).join('')}</ul></div>`;
+        return;
+      }
+      const code = atob(o.enc).split('').reverse().join('');
+      const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+      container.innerHTML = `<div class="wtk-cert" aria-live="polite">
+        <h3>🏅 Certificate of Completion</h3>
+        <p><b>${o.title}</b> · Lesson ${o.lesson} · ${today}</p>
+        <p><label for="cert-${o.key}"><b>Name:</b></label> <input type="text" id="cert-${o.key}" autocomplete="name" value="${W.esc(W.name())}"></p>
+        ${o.details && o.details.length ? `<ul>${o.details.map(d=>`<li>${d}</li>`).join('')}</ul>` : ''}
+        <p>Unlock code: <span class="big">${code}</span></p>
+        <p>Name check: <span class="chk" data-chk>${W.nameCheck(W.name(), o.key)}</span></p>
+        <p><b>Turn it in on Classkick:</b></p>
+        <ol><li>Type the <b>unlock code</b> in the Classkick box.</li><li>Take a screenshot of this certificate with your name on it. On a Chromebook press <b>Ctrl + Shift + Show windows</b> (⧉), then drag over the certificate. On Windows press <b>Windows + Shift + S</b>.</li><li>Paste the screenshot into Classkick.</li></ol>
+      </div>`;
+      const inp = container.querySelector('input'), chk = container.querySelector('[data-chk]');
+      inp.addEventListener('input', ()=>{ W.name(inp.value); chk.textContent = W.nameCheck(inp.value, o.key); const other=document.getElementById('wtkName'); if(other && other!==inp) other.value = inp.value; });
+    },
+    /* Renders the "Turn in your work" panel. opts: { buildText(name), buildHtml(name), buildPrint(name)?, filename } */
+    submitPanel(container, opts){
+      const name = W.name();
+      container.innerHTML = `<div class="wtk-submit">
+        <h3>📤 Turn in your work</h3>
+        <label for="wtkName">Your name:</label> <input type="text" id="wtkName" autocomplete="name" value="${W.esc(name)}">
+        <div class="wtk-btns">
+          <button type="button" class="main" data-sub="copy">📋 Copy for Canvas</button>
+          <button type="button" data-sub="print">🖨️ Print or save as PDF</button>
+          <button type="button" data-sub="dl">⬇️ Download as a text file</button>
+        </div>
+        <p class="note" data-sub="msg" role="status" aria-live="polite"></p>
+        <p><b>How to turn it in on Canvas:</b></p>
+        <ol><li>Press <b>📋 Copy for Canvas</b>.</li><li>In Canvas, open the assignment and press <b>Start Assignment</b>.</li><li>Choose <b>Text Entry</b>. Click inside the big box.</li><li>Press <b>Ctrl + V</b> (or Command + V on a Mac) to paste.</li><li>Press <b>Submit Assignment</b>.</li></ol>
+        <p><b>If Copy does not work:</b> press <b>Select all</b>, then press Ctrl + C, then paste in Canvas.</p>
+        <textarea readonly aria-label="Your work as text" data-sub="text"></textarea>
+        <div class="wtk-btns"><button type="button" data-sub="select">Select all</button></div>
+      </div>`;
+      const q = s => container.querySelector(`[data-sub="${s}"]`);
+      const nameIn = container.querySelector('#wtkName');
+      const refresh = ()=>{ q('text').value = opts.buildText(nameIn.value.trim()); };
+      nameIn.addEventListener('input', ()=>{ W.name(nameIn.value); refresh(); });
+      refresh();
+      const needName = ()=>{ if(!nameIn.value.trim()){ q('msg').textContent='Type your name first.'; nameIn.focus(); return true; } return false; };
+      q('copy').addEventListener('click', async()=>{ if(needName()) return; refresh(); const ok = await W.copyRich(opts.buildHtml(nameIn.value.trim()), q('text').value); q('msg').textContent = ok ? '✅ Copied! Now paste it into Canvas (Ctrl + V).' : 'Copy is blocked here. Press Select all, then Ctrl + C.'; });
+      q('print').addEventListener('click', ()=>{ if(needName()) return; const ok = W.print((opts.buildPrint||opts.buildHtml)(nameIn.value.trim())); if(!ok) q('msg').textContent='Printing is blocked here. Use Copy for Canvas instead.'; else q('msg').textContent='In the print window, choose “Save as PDF” to make a PDF.'; });
+      q('dl').addEventListener('click', ()=>{ if(needName()) return; refresh(); const ok = W.download(q('text').value, opts.filename); q('msg').textContent = ok ? 'If nothing downloaded, use Copy for Canvas instead.' : 'Downloading is blocked here. Use Copy for Canvas instead.'; });
+      q('select').addEventListener('click', ()=>{ refresh(); const t=q('text'); t.focus(); t.select(); });
+    }
+  };
+  // toolbar
+  document.addEventListener('click', e=>{
+    const b = e.target.closest('[data-wtk]'); if(!b) return;
+    const k = b.dataset.wtk;
+    if(k==='size'){ S.size = (S.size+1) % SIZES.length; apply(); toast('Text size ' + (S.size+1) + ' of 4'); return; }
+    if(k==='bigger'){ S.size = Math.min(3, S.size+1); apply(); return; }
+    if(k==='smaller'){ S.size = Math.max(0, S.size-1); apply(); return; }
+    if(k==='more'){ const p=$('#wtkPanel'); p.hidden=!p.hidden; b.setAttribute('aria-expanded', !p.hidden); return; }
+    if(k==='words'){ $('#wtkWords').hidden=false; $('[data-wtk="closewords"]').focus(); return; }
+    if(k==='closewords'){ $('#wtkWords').hidden=true; return; }
+    if(k==='save'){ W.save(false); return; }
+    if(k==='reset'){
+      if(!resetArmed){ resetArmed = 1; b.classList.add('armed'); b.textContent='Tap again to erase ALL my work'; setTimeout(()=>{ resetArmed=0; b.classList.remove('armed'); b.textContent='↺ Start over'; }, 4000); return; }
+      try{ (app && app.keys ? app.keys : (app?[app.key]:[])).forEach(x=>localStorage.removeItem(x)); }catch(e){}
+      if(app && app.onReset) app.onReset();
+      history.replaceState(null,'',location.pathname); location.reload(); return;
+    }
+    if(k in S && typeof S[k]==='boolean'){ S[k] = !S[k]; apply(); if(k==='tap' && S.tap) W.speak('Tap to hear is on. Tap any sentence to hear it.'); }
+  });
+  $('#wtkWords').addEventListener('click', e=>{ if(e.target.id==='wtkWords') e.target.hidden=true; });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('#wtkWords').hidden=true; });
+  $('#wtkWordList').innerHTML = WORDS.map((w,i)=>`<div><button type="button" data-say-word="${i}" aria-label="Hear ${w[1]}">🔊</button><b>${w[0]} ${w[1]}</b>${w[2]}</div>`).join('');
+  $('#wtkWordList').addEventListener('click', e=>{ const b=e.target.closest('[data-say-word]'); if(b){ const w=WORDS[+b.dataset.sayWord]; W.speak(w[1]+'. '+w[2]); } });
+  // tap to hear
+  document.addEventListener('click', e=>{
+    if(!S.tap || !e.isTrusted || e.target.closest('.wtk-bar,.wtk-panel,[data-say-word],select,input,textarea')) return;
+    const el = e.target.closest('p,li,h1,h2,h3,td,th,label,button,.cstat,.chip,.opt,.bigq,small,.target-tag,.coach');
+    if(!el) return;
+    let t = el.innerText || el.getAttribute('aria-label') || '';
+    t = t.trim(); if(!t) return;
+    W.speak(t.slice(0,600)); el.classList.add('wtk-said'); setTimeout(()=>el.classList.remove('wtk-said'), 900);
+  }, true);
+  apply();
+  { const hl=document.querySelector('.wtk-home'); if(hl && (/github\.io$/.test(location.hostname) || location.protocol==='file:')) hl.hidden=false; }
+})();
+</script>
+<!-- ===== end WTK ===== -->
+
+<div class="wrap">
+  <header>
+    <h1>Catch the Wave</h1>
+    <p class="tag">Can ocean waves make electricity? Let’s find out.</p>
+    <svg class="wave-rule" viewBox="0 0 600 22" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 11 Q 25 0 50 11 T 100 11 T 150 11 T 200 11 T 250 11 T 300 11 T 350 11 T 400 11 T 450 11 T 500 11 T 550 11 T 600 11"/>
+    </svg>
+  </header>
+
+  <nav class="steps" aria-label="Steps">
+    <button data-go="0" aria-current="step"><span class="n">1</span>Learn</button>
+    <button data-go="1"><span class="n">2</span>Make power</button>
+    <button data-go="2"><span class="n">3</span>Pick a spot</button>
+    <button data-go="3"><span class="n">4</span>Check</button>
+    <button data-go="4"><span class="n">5</span>Wave Lab</button>
+  </nav>
+
+  <!-- STEP 1 -->
+  <section class="step active" id="s0" data-say="Waves carry energy. Wind pushes on the ocean. That push makes waves. Waves carry energy to the beach. Can we catch that energy and make electricity? Crest: the top of a wave. Trough: the bottom of a wave. Wave height: from the bottom to the top. Amplitude: from still water up to the crest. Wave height is 2 times the amplitude. Did you know? The water does not ride to the beach. It goes up and down in a little circle. Only the energy moves forward.">
+    <h2>Waves carry energy</h2>
+    <button class="say" type="button">🔊 Read to me</button>
+    <p>Wind pushes on the ocean. That push makes waves.</p>
+    <p>Waves carry <b>energy</b> to the beach. Can we catch that energy and make electricity?</p>
+
+    <div class="panel diagram">
+      <svg viewBox="0 0 720 300" role="img" aria-label="A wave. The crest is the top. The trough is the bottom. Wave height goes from the trough to the crest.">
+        <path class="water" d="M0 150 C 60 70, 120 70, 180 150 S 300 230, 360 150 S 480 70, 540 150 S 660 230, 720 150 L720 300 L0 300 Z"/>
+        <path class="surf" d="M0 150 C 60 70, 120 70, 180 150 S 300 230, 360 150 S 480 70, 540 150 S 660 230, 720 150"/>
+        <line class="still" x1="0" y1="150" x2="720" y2="150"/>
+        <!-- crest -->
+        <line class="mark" x1="450" y1="88" x2="450" y2="44"/>
+        <text x="410" y="34">Crest</text>
+        <!-- trough -->
+        <line class="mark" x1="270" y1="212" x2="270" y2="262"/>
+        <text x="225" y="288">Trough</text>
+        <!-- height -->
+        <line class="mark" x1="600" y1="89" x2="600" y2="211"/>
+        <line class="mark" x1="585" y1="89" x2="615" y2="89"/>
+        <line class="mark" x1="585" y1="211" x2="615" y2="211"/>
+        <text x="618" y="120">Wave</text>
+        <text x="618" y="146">height</text>
+      </svg>
+    </div>
+
+    <div class="vocab">
+      <div><b>Crest</b>The top of a wave.</div>
+      <div><b>Trough</b>The bottom of a wave.</div>
+      <div><b>Wave height</b>From the bottom to the top.</div>
+      <div><b>Amplitude</b>From still water up to the crest. Wave height is 2 times the amplitude.</div>
+    </div>
+
+    <h3>Did you know?</h3>
+    <p>The water does not ride to the beach. It goes up and down in a little circle. Only the <b>energy</b> moves forward. Watch the yellow dot on the next page.</p>
+
+    <div class="navrow"><span></span><button class="btn main" data-go="1">Next: Make power</button></div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step" id="s1" data-say="Make power. A float bobs up and down on the waves. The bobbing turns a generator. The generator makes electricity for homes. Move the sliders. Watch the power change. Try the challenges.">
+    <h2>Make power</h2>
+    <button class="say" type="button">🔊 Read to me</button>
+    <p>A <b>float</b> bobs up and down on the waves. The bobbing turns a <b>generator</b>. The generator makes electricity for homes.</p>
+    <p>Move the sliders. Watch the power change.</p>
+    <div class="slot" id="slot1"></div>
+
+    <h3>Challenges</h3>
+    <ul class="challenges" id="challenges">
+      <li data-c="100"><span class="box"></span>Power 100 homes.</li>
+      <li data-c="1000"><span class="box"></span>Power 1,000 homes.</li>
+      <li data-c="small"><span class="box"></span>Make the waves so weak that they power fewer than 5 homes.</li>
+    </ul>
+
+    <h3>What did you notice?</h3>
+    <div class="q" data-answer="0">
+      <p>Taller waves make ______ power.</p>
+      <div class="choices"><button>more</button><button>less</button></div>
+      <div class="fb" aria-live="polite"></div>
+    </div>
+    <div class="q" data-answer="1">
+      <p>Shorter waves make ______ power.</p>
+      <div class="choices"><button>more</button><button>less</button></div>
+      <div class="fb" aria-live="polite"></div>
+    </div>
+
+    <div class="navrow"><button class="btn" data-go="0">Back</button><button class="btn main" data-go="2">Next: Pick a spot</button></div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step" id="s2" data-say="Pick the best spot. Engineers want to build a wave power machine. Where should they build it? Tap a place to test its waves. Test at least three places. Then pick the best spot.">
+    <h2>Pick the best spot</h2>
+    <button class="say" type="button">🔊 Read to me</button>
+    <p>Engineers want to build a wave power machine. Where should they build it?</p>
+    <p>Tap a place to test its waves. Test at least 3 places.</p>
+
+    <div class="sites" id="sites"></div>
+    <div class="slot" id="slot2"></div>
+
+    <h3>Your data</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Place</th><th>Wave height</th><th>Power</th><th>Homes powered</th></tr></thead>
+        <tbody id="dataRows"><tr><td colspan="5">Tap a place above to test it.</td></tr></tbody>
+      </table>
+    </div>
+    <p class="note">Sample data based on typical waves at each place.</p>
+
+    <div class="q" id="pickQ">
+      <p>Which place makes the most power?</p>
+      <p class="note" id="pickLock" style="font-weight:400">Test at least 3 places first.</p>
+      <div class="choices" id="pickChoices"></div>
+      <div class="fb" aria-live="polite"></div>
+    </div>
+
+    <h3>Explain your choice</h3>
+    <p class="starter">I would build the wave power machine at ______ because the waves are ______ and ______.</p>
+    <label for="why" class="note">Type your answer here:</label>
+    <textarea id="why"></textarea>
+    <div style="margin-top:.5rem"><button class="btn" id="copyBtn" type="button">Copy my answer</button> <span class="note" id="copyMsg" aria-live="polite"></span></div>
+
+    <div class="navrow"><button class="btn" data-go="1">Back</button><button class="btn main" data-go="3">Next: Check</button></div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="step" id="s3" data-say="Quick check. Answer each question. You can try again if you get one wrong.">
+    <h2>Quick check</h2>
+    <button class="say" type="button">🔊 Read to me</button>
+    <p>Answer each question. You can try again.</p>
+    <div id="quiz"></div>
+    <p class="score" id="score" aria-live="polite"></p>
+    <div class="navrow"><button class="btn" data-go="2">Back</button><button class="btn main" data-go="4">Next: Wave Lab</button></div>
+  </section>
+
+  <!-- STEP 5: WAVE LAB -->
+  <section class="step" id="s4" data-say="">
+    <h2>Wave Lab: Do taller waves carry more power?</h2>
+    <button class="say" type="button">🔊 Read to me</button>
+    <p class="labq">Question: Does making waves taller change how much power they carry? If so, how?</p>
+    <div class="labbar" id="labBar"></div>
+    <div id="labBody"></div>
+    <div class="slot" id="slot3"></div>
+    <div class="navrow"><button class="btn" id="labBack" type="button">Back</button><button class="btn main" id="labNext" type="button">Next</button></div>
+  </section>
+</div>
+
+<div id="printArea"></div>
+<!-- Shared simulator (moved into step 2 or step 3) -->
+<div id="sim" class="sim">
+  <canvas id="cv" role="img" aria-label="Ocean waves move toward the beach. A float bobs on the waves and turns a generator on the sea floor. A wire carries electricity to houses on the beach."></canvas>
+  <div class="controls">
+    <div class="ctl">
+      <label for="hIn">Wave height <span class="val" id="hVal">1.5 m</span></label>
+      <input id="hIn" type="range" min="0.2" max="4" step="0.1" value="1.5">
+      <small>Short waves on the left. Tall waves on the right. (Time between waves always stays the same: 8 seconds.)</small>
+    </div>
+    <div class="ctl" hidden>
+      <label for="tIn">Time between waves <span class="val" id="tVal">8 seconds</span></label>
+      <input id="tIn" type="range" min="3" max="14" step="1" value="8">
+      <small>Waves close together on the left. Far apart on the right.</small>
+    </div>
+    <div class="readout">
+      <div class="big"><span>Power</span><strong id="kwOut">180 kW</strong></div>
+      <div class="big"><span>Homes powered</span><strong id="homesOut">150</strong></div>
+      <div class="meter"><span>Power meter</span><div class="bar"><div class="fill" id="fill"></div></div></div>
+    </div>
+  </div>
+  <div class="simbar">
+    <button class="btn" id="pauseBtn" type="button">Pause waves</button>
+    <button class="btn" id="mathBtn" type="button" aria-expanded="false">About this sim</button>
+  </div>
+  <div class="math" id="math">
+    <p>Taller waves have a bigger <b>amplitude</b>, so they carry more <b>energy</b>. The machine can only catch energy the waves bring.</p>
+    <p>One home uses about 1.2 kW of power on average.</p>
+    <p class="note">Only the wave height changes in this sim. Time between waves stays at 8 seconds, so every test is fair. Waves in the picture are sped up. Power numbers are modeled on a real wave power plant in Scotland.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------- Read aloud ----------
+  const canSpeak = 'speechSynthesis' in window;
+  function speak(text){
+    if(!canSpeak) return;
+    try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = window.WTK ? WTK.rate() : 0.9; speechSynthesis.speak(u); }catch(e){}
+  }
+  document.querySelectorAll('.say').forEach(b=>{
+    if(!canSpeak){ b.style.display='none'; return; }
+    b.addEventListener('click',()=>speak(b.closest('section').dataset.say));
+  });
+
+  // ---------- Steps ----------
+  const sections = [...document.querySelectorAll('section.step')];
+  const navBtns = [...document.querySelectorAll('nav.steps button')];
+  const sim = document.getElementById('sim');
+  let curStep = 0;
+  function go(i){
+    curStep = i;
+    sections.forEach((s,k)=>s.classList.toggle('active',k===i));
+    navBtns.forEach((b,k)=>{ if(k===i) b.setAttribute('aria-current','step'); else b.removeAttribute('aria-current'); });
+    if(i===1) document.getElementById('slot1').appendChild(sim);
+    if(i===2) document.getElementById('slot2').appendChild(sim);
+    if(i===4){ document.getElementById('slot3').appendChild(sim); renderLab(); }
+    if(canSpeak) speechSynthesis.cancel();
+    window.scrollTo({top:0});
+    if(window.WTK) WTK.save(true);
+  }
+  document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.go)));
+
+  // ---------- Model ----------
+  const hIn = document.getElementById('hIn'), tIn = document.getElementById('tIn');
+  const MAXKW = 10*4*4*14;
+  let H = +hIn.value, T = +tIn.value;
+  const kw = (h,t)=>10*h*h*t;
+  const homes = k=>Math.round(k/1.2);
+  const fmt = n=>Math.round(n).toLocaleString('en-US');
+
+  function update(){
+    H = +hIn.value; T = +tIn.value;
+    document.getElementById('hVal').textContent = H.toFixed(1)+' m';
+    document.getElementById('tVal').textContent = T+' seconds';
+    const k = kw(H,T), hm = homes(k);
+    document.getElementById('kwOut').textContent = fmt(k)+' kW';
+    document.getElementById('homesOut').textContent = fmt(hm);
+    document.getElementById('fill').style.width = Math.min(100, k/MAXKW*100)+'%';
+    checkChallenges(hm);
+  }
+  hIn.addEventListener('input',()=>{ clearSite(); update(); });
+  tIn.addEventListener('input',()=>{ clearSite(); update(); });
+
+  // ---------- Challenges ----------
+  const chDone = {};
+  function checkChallenges(hm){
+    document.querySelectorAll('#challenges li').forEach(li=>{
+      const c = li.dataset.c;
+      const ok = c==='small' ? hm<5 : hm>=+c;
+      if(ok && !chDone[c]){ chDone[c]=true; li.classList.add('won'); li.querySelector('.box').textContent='✓'; }
+    });
+  }
+
+  // ---------- Simple questions ----------
+  const qLog = [], quizLog = []; let replaying = false;
+  function wireQ(q, onRight, qi){
+    const right = +q.dataset.answer;
+    const fb = q.querySelector('.fb');
+    q.querySelectorAll('.choices button').forEach((b,i)=>{
+      b.addEventListener('click',()=>{
+        if(qi!=null && !replaying) qLog.push([qi,i]);
+        q.querySelectorAll('.choices button').forEach(x=>x.classList.remove('right','wrong'));
+        if(i===right){ b.classList.add('right'); fb.className='fb right'; fb.textContent = q.dataset.yes || 'Yes! Nice work.'; if(onRight) onRight(); }
+        else { b.classList.add('wrong'); fb.className='fb wrong'; fb.textContent = q.dataset.no || 'Not quite. Try the sliders and look again.'; }
+      });
+    });
+  }
+  document.querySelectorAll('#s1 .q').forEach((q,qi)=>wireQ(q,null,qi));
+
+  // ---------- Sites ----------
+  const sites = [
+    {id:'erie', name:'Lake Erie, Ohio', where:'Great Lakes', h:0.6, t:4},
+    {id:'me',   name:'Maine coast', where:'Atlantic Ocean', h:1.4, t:8},
+    {id:'hi',   name:'Hawaii, north shore', where:'Pacific Ocean', h:2.0, t:12},
+    {id:'nc',   name:'North Carolina coast', where:'Atlantic Ocean', h:1.2, t:8},
+    {id:'or',   name:'Oregon coast', where:'Pacific Ocean', h:2.5, t:11},
+    {id:'ca',   name:'Southern California', where:'Pacific Ocean', h:1.3, t:12},
+  ];
+  const tested = new Map();
+  const siteBox = document.getElementById('sites');
+  sites.forEach(s=>{
+    const b = document.createElement('button');
+    b.type='button'; b.dataset.id=s.id;
+    b.innerHTML = `<b>${s.name}</b><span>${s.where}</span>`;
+    b.addEventListener('click',()=>testSite(s,b));
+    siteBox.appendChild(b);
+  });
+  function clearSite(){ siteBox.querySelectorAll('button').forEach(x=>x.classList.remove('on')); }
+  function testSite(s,b){
+    hIn.value = s.h; tIn.value = 8; update();
+    clearSite(); b.classList.add('on'); b.classList.add('tested');
+    tested.set(s.id, s);
+    renderTable(); renderPick();
+  }
+  function renderTable(){
+    const rows = sites.filter(s=>tested.has(s.id)).map(s=>{
+      const k = kw(s.h,8);
+      return `<tr><td>${s.name}</td><td class="num">${s.h.toFixed(1)} m</td><td class="num">${fmt(k)} kW</td><td class="num">${fmt(homes(k))}</td></tr>`;
+    });
+    document.getElementById('dataRows').innerHTML = rows.join('');
+  }
+  const pickQ = document.getElementById('pickQ');
+  function renderPick(){
+    const box = document.getElementById('pickChoices');
+    const lock = document.getElementById('pickLock');
+    if(tested.size<3){ lock.style.display='block'; box.innerHTML=''; return; }
+    lock.style.display='none';
+    const fb = pickQ.querySelector('.fb');
+    box.innerHTML='';
+    sites.filter(s=>tested.has(s.id)).forEach(s=>{
+      const b = document.createElement('button'); b.textContent = s.name;
+      b.addEventListener('click',()=>{
+        box.querySelectorAll('button').forEach(x=>x.classList.remove('right','wrong'));
+        const best = [...tested.values()].reduce((a,c)=>c.h>a.h?c:a);
+        if(s.id===best.id && s.id==='or'){ b.classList.add('right'); fb.className='fb right'; fb.textContent='Yes! Oregon has the tallest waves. Taller waves carry more energy, so they make the most power.'; }
+        else if(s.id===best.id){ b.classList.add('right'); fb.className='fb right'; fb.textContent='Yes, that is the best place you tested. But you have not tested every place yet. Is there a better one?'; }
+        else { b.classList.add('wrong'); fb.className='fb wrong'; fb.textContent='Look at your table. Which place has the biggest number in the Power column?'; }
+      });
+      box.appendChild(b);
+    });
+  }
+  document.getElementById('copyBtn').addEventListener('click',async()=>{
+    const ta = document.getElementById('why'), msg = document.getElementById('copyMsg');
+    try{ await navigator.clipboard.writeText(ta.value); msg.textContent='Copied!'; }
+    catch(e){ ta.select(); msg.textContent='Press Ctrl + C to copy.'; }
+  });
+
+  // ---------- Quiz ----------
+  const quiz = [
+    {q:'What do waves carry to the beach?', c:['Energy','Sand','Fish'], a:0, yes:'Yes! Waves carry energy.', no:'Not quite. Waves carry something we can turn into electricity.'},
+    {q:'Which wave makes more power?', c:['A tall wave','A short wave'], a:0, yes:'Yes! Tall waves make much more power.', no:'Not quite. Go back to the sim and try both.'},
+    {q:'What does the float do?', c:['It stops the waves','It bobs up and down to turn a generator','It cleans the water'], a:1, yes:'Yes! The bobbing turns the generator.', no:'Not quite. Watch the float in the sim.'},
+    {q:'Why did Lake Erie make so little power?', c:['The water is too cold','Lakes have no wind','The waves are small (short)'], a:2, yes:'Yes! Short waves have a small amplitude, so they carry only a little energy.', no:'Not quite. Look at the wave height and time for Lake Erie.'},
+    {q:'Wave energy is renewable. What does that mean?', c:['It will not run out','It is very cheap','It only works at night'], a:0, yes:'Yes! The wind keeps making waves, so it will not run out.', no:'Not quite. Renewable means we can keep using it.'},
+  ];
+  const quizBox = document.getElementById('quiz');
+  const firstTry = {}; const solved = {};
+  quiz.forEach((item,qi)=>{
+    const d = document.createElement('div'); d.className='q';
+    d.innerHTML = `<p>${qi+1}. ${item.q}</p><div class="choices">${item.c.map((c,j)=>`<button type="button"${(j!==item.a && j!==(item.a===0?1:0))?' data-extra="1"':''}>${c}</button>`).join('')}</div><div class="fb" aria-live="polite"></div>`;
+    const fb = d.querySelector('.fb');
+    d.querySelectorAll('.choices button').forEach((b,i)=>b.addEventListener('click',()=>{
+      if(!replaying) quizLog.push([qi,i]);
+      d.querySelectorAll('.choices button').forEach(x=>x.classList.remove('right','wrong'));
+      if(!(qi in firstTry)) firstTry[qi] = (i===item.a);
+      if(i===item.a){ b.classList.add('right'); fb.className='fb right'; fb.textContent=item.yes; solved[qi]=true; }
+      else { b.classList.add('wrong'); fb.className='fb wrong'; fb.textContent=item.no; }
+      showScore();
+    }));
+    quizBox.appendChild(d);
+  });
+  function showScore(){
+    if(Object.keys(solved).length<quiz.length) return;
+    const n = Object.values(firstTry).filter(Boolean).length;
+    document.getElementById('score').textContent = `You got ${n} out of ${quiz.length} on the first try. Great job finishing!`;
+    navBtns[3].classList.add('done');
+  }
+
+  // ---------- Canvas sim ----------
+  const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  let C = {};
+  function readColors(){
+    const s = getComputedStyle(document.documentElement);
+    ['sea','sea-deep','sea-light','sky','sand','power','ink','muted','house','card'].forEach(k=>C[k]=s.getPropertyValue('--'+k).trim());
+  }
+  readColors();
+  try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readColors); }catch(e){}
+
+  let paused = false, simT = 0, last = null, rotor = 0, prevBuoy = null;
+  const SPEED = 2; // animation runs 2x faster than real life
+  document.getElementById('pauseBtn').addEventListener('click',e=>{
+    paused = !paused; e.target.textContent = paused ? 'Play waves' : 'Pause waves';
+  });
+  const mathBtn = document.getElementById('mathBtn');
+  mathBtn.addEventListener('click',()=>{
+    const m = document.getElementById('math'); const on = m.classList.toggle('show');
+    mathBtn.textContent = on ? 'Hide' : 'About this sim';
+    mathBtn.setAttribute('aria-expanded', on);
+  });
+
+  function frame(ts){
+    requestAnimationFrame(frame);
+    if(!cv.isConnected || cv.clientWidth < 50) { last = ts; return; }
+    const dpr = window.devicePixelRatio || 1;
+    const w = cv.clientWidth, h = cv.clientHeight;
+    if(cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){ cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); }
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const dt = last==null ? 0 : Math.min(0.05,(ts-last)/1000); last = ts;
+    if(!paused) simT += dt*SPEED;
+
+    const pxPerM = h*0.075;
+    const A = (H/2)*pxPerM;
+    const mid = h*0.42;
+    const lambda = Math.max(110, w*0.12 + T*w*0.035);
+    const k = 2*Math.PI/lambda, om = 2*Math.PI/T;
+    const shoreX = w*0.80;
+    const floorY = h - 26;
+    const surf = x => mid - A*Math.cos(k*x - om*simT);
+
+    // sky
+    ctx.fillStyle = C.sky; ctx.fillRect(0,0,w,h);
+
+    // land / beach on right
+    ctx.fillStyle = C.sand;
+    ctx.beginPath(); ctx.moveTo(shoreX-30, h); ctx.lineTo(shoreX+20, mid+8); ctx.lineTo(w, mid-6); ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
+
+    // water
+    ctx.fillStyle = C.sea;
+    ctx.beginPath(); ctx.moveTo(0,h);
+    const endX = shoreX+10;
+    for(let x=0;x<=endX;x+=4){
+      const fade = x > shoreX-60 ? Math.max(0,(endX-x)/70) : 1;
+      ctx.lineTo(x, mid - (mid - surf(x))*fade);
+    }
+    ctx.lineTo(endX, mid); ctx.lineTo(shoreX-30, h); ctx.closePath(); ctx.fill();
+
+    // sea floor
+    ctx.fillStyle = C['sea-deep'];
+    ctx.fillRect(0, floorY, shoreX-20, h-floorY);
+
+    // wire from generator to houses
+    const bx = w*0.52;
+    const genY = floorY - 16;
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.setLineDash([6,5]);
+    ctx.beginPath(); ctx.moveTo(bx, genY); ctx.lineTo(shoreX-34, floorY-2); ctx.lineTo(shoreX+24, mid+4); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // buoy
+    const by = surf(bx);
+    let vel = prevBuoy==null ? 0 : (by - prevBuoy);
+    prevBuoy = by;
+    if(!paused) rotor += Math.abs(vel)*0.12 + 0.002*(kw(H,T)/MAXKW)*60;
+    // rod
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(bx, by+10); ctx.lineTo(bx, genY-14); ctx.stroke();
+    // float body
+    ctx.fillStyle = C.power; ctx.strokeStyle = C.ink; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.ellipse(bx, by, 22, 12, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = C.ink; ctx.font = 'bold 14px "Atkinson Hyperlegible", Verdana, sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Float', bx, by-18);
+
+    // generator
+    ctx.fillStyle = C.card; ctx.strokeStyle = C.ink; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(bx, genY, 16, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2.5;
+    for(let i=0;i<3;i++){
+      const a = rotor + i*2*Math.PI/3;
+      ctx.beginPath(); ctx.moveTo(bx,genY); ctx.lineTo(bx+Math.cos(a)*13, genY+Math.sin(a)*13); ctx.stroke();
+    }
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 13px "Atkinson Hyperlegible", Verdana, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Generator', bx+22, genY+5);
+
+    // water dot (moves in a circle)
+    const x0 = w*0.2;
+    const th = k*x0 - om*simT;
+    ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.5; ctx.setLineDash([3,4]);
+    ctx.beginPath(); ctx.arc(x0, mid, Math.max(2,A), 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    const dx = x0 - A*Math.sin(th), dy = mid - A*Math.cos(th);
+    ctx.fillStyle = C.power; ctx.strokeStyle = C.ink; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(dx, dy, 7, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.textAlign='center';
+    ctx.font = 'bold 13px "Atkinson Hyperlegible", Verdana, sans-serif';
+    ctx.fillText('Water dot', x0, Math.min(floorY-8, mid + A + 28));
+
+    // energy arrow
+    ctx.fillStyle = C.ink; ctx.strokeStyle = C.ink; ctx.lineWidth = 3;
+    ctx.font = 'bold 15px "Atkinson Hyperlegible", Verdana, sans-serif'; ctx.textAlign='left';
+    ctx.fillText('Energy moves this way', 14, 24);
+    ctx.beginPath(); ctx.moveTo(14, 36); ctx.lineTo(176, 36); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(184,36); ctx.lineTo(172,29); ctx.lineTo(172,43); ctx.closePath(); ctx.fill();
+
+    // houses
+    const hm = homes(kw(H,T));
+    const lit = hm>=1000?4 : hm>=300?3 : hm>=100?2 : hm>=5?1 : 0;
+    const nH = 4, hw = Math.min(26, (w - shoreX - 24)/nH - 4);
+    for(let i=0;i<nH;i++){
+      const hx = shoreX + 26 + i*(hw+5);
+      const gy = (mid+8) - (hx - (shoreX+20)) * (14/(w-shoreX-20));
+      const top = gy - hw*0.9;
+      const on = i < lit;
+      if(on){ ctx.fillStyle = 'rgba(255,201,51,.35)'; ctx.beginPath(); ctx.arc(hx+hw/2, top+hw*0.3, hw*0.95, 0, Math.PI*2); ctx.fill(); }
+      ctx.fillStyle = C.house; ctx.fillRect(hx, top, hw, hw*0.9);
+      ctx.beginPath(); ctx.moveTo(hx-3, top); ctx.lineTo(hx+hw/2, top-hw*0.55); ctx.lineTo(hx+hw+3, top); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = on ? C.power : C['sea-deep'];
+      ctx.fillRect(hx+hw*0.3, top+hw*0.2, hw*0.4, hw*0.35);
+    }
+  }
+  // ---------- Wave Lab (fair test + graph + CER) ----------
+  const LAB_T = 8, LAB_H = [1,2,3,4];
+  const LAB_STEPS = ['Set constants','Collect data','Make the graph','Read the graph','Build the CER','Final report'];
+  const lab = { cc:[false,false], changeAns:null, step:0, data:{}, plot:{}, connected:false, iq:{}, iqWrong:{}, msg:null, plotMsg:null,
+    cer:{ c:['',''], e:['','','',''], r:['','','',''], own:'', cOk:false, eOk:false, rOk:false, cMsg:null, eMsg:null, rMsg:null, cBad:[], eBad:[], rBad:[], help:{} }, final:null };
+  const labCoach = (kind, html) => `<div class="coach ${kind||''}"><span class="face" aria-hidden="true">${kind==='good'?'🎉':kind==='fix'?'🤔':'🧑‍🔬'}</span><div><p><b>Coach:</b> ${html}</p></div></div>`;
+  const constOk = () => +tIn.value===LAB_T;
+  const labKW = h => kw(h, LAB_T);
+  const labOneDec = n => Math.round(n*10)/10;
+  const near = (a,b) => Math.abs(a-b) < 1e-6;
+  function IQs(){ const d=lab.data; return [
+    {q:`When the wave height <b>doubled</b> from 1 m to 2 m, the power went from ${fmt(d[1])} kW to ${fmt(d[2])} kW. How many times bigger did the power get?`, c:['2 times','4 times','8 times'], a:1,
+      why:[`Check: 2 × ${fmt(d[1])} = ${fmt(d[1]*2)}. Is that ${fmt(d[2])}?`, '', `Too big. Try ${fmt(d[1])} × 4.`]},
+    {q:`The height doubled again, from 2 m to 4 m. The power went from ${fmt(d[2])} kW to ${fmt(d[4])} kW. How many times bigger?`, c:['2 times','4 times','8 times'], a:1,
+      why:[`Check: 2 × ${fmt(d[2])} = ${fmt(d[2]*2)}. Is that ${fmt(d[4])}?`, '', `Too big. Try ${fmt(d[2])} × 4.`]},
+    {q:'What shape is your graph?', c:['A straight line','A curve that bends upward','A flat line'], a:1,
+      why:['Look again. A straight line goes up the same amount every step. Does yours?', '', 'A flat line would mean the power never changes.']},
+    {q:'Use your graph. About how much power would a 2.5 m wave make?', c:['About 250 kW','About 500 kW','About 1,000 kW'], a:1,
+      why:['Too low. Find 2.5 m on the bottom axis. Go up to the curve, then across.', '', 'Too high. That is more than a 3 m wave makes!']},
+  ]; }
+  function labCanNext(){
+    if(lab.step===0) return lab.cc[0] && lab.cc[1] && lab.changeAns===0;
+    if(lab.step===1) return LAB_H.every(h=>lab.data[h]!=null);
+    if(lab.step===2) return lab.connected;
+    if(lab.step===3) return IQs().every((q,i)=>lab.iq[i]===q.a);
+    if(lab.step===4) return lab.cer.cOk && lab.cer.eOk && lab.cer.rOk;
+    return false;
+  }
+  function dataTable(){
+    const target = lab.step===1 ? LAB_H.find(h=>near(h,+hIn.value)) : (lab.step===2 ? plotTarget() : null);
+    return `<table class="datatbl"><thead><tr><th>Wave height (m)</th><th>Power (kW)</th></tr></thead><tbody>${LAB_H.map(h=>`<tr class="${target===h?'target':''}"><td>${h.toFixed(1)}</td><td>${lab.data[h]!=null?fmt(lab.data[h])+(lab.step===2&&lab.plot[h]&&lab.plot[h].ok?' ✓':''):'—'}</td></tr>`).join('')}</tbody></table>`;
+  }
+  // graph geometry
+  const G = { W:560, H:400, L:76, R:20, T:20, B:62, XM:4.5, YM:1400 };
+  G.pw = G.W-G.L-G.R; G.ph = G.H-G.T-G.B;
+  const GX = x => G.L + x/G.XM*G.pw, GY = y => G.T + G.ph - y/G.YM*G.ph;
+  function plotTarget(){ return LAB_H.find(h=>!(lab.plot[h] && lab.plot[h].ok)); }
+  function plotSVG(live){
+    const ff='font-family="Atkinson Hyperlegible, Verdana, sans-serif"';
+    let s=`<svg viewBox="0 0 ${G.W} ${G.H}" class="${live?'live':''}" id="plotSvg" role="img" aria-label="Graph of wave height in meters versus power in kilowatts">`;
+    s+=`<rect x="${G.L}" y="${G.T}" width="${G.pw}" height="${G.ph}" fill="var(--card)"/>`;
+    for(let y=0;y<=G.YM;y+=100){ s+=`<line x1="${G.L}" x2="${G.L+G.pw}" y1="${GY(y)}" y2="${GY(y)}" stroke="var(--line)" stroke-width="${y%200===0?1.5:0.8}"/>`; if(y%200===0) s+=`<text x="${G.L-8}" y="${GY(y)+5}" text-anchor="end" font-size="15" fill="var(--ink)" ${ff}>${fmt(y)}</text>`; }
+    for(let x=0;x<=G.XM+1e-9;x+=0.5){ s+=`<line x1="${GX(x)}" x2="${GX(x)}" y1="${G.T}" y2="${G.T+G.ph}" stroke="var(--line)" stroke-width="${x%1===0?1.5:0.8}"/>`; if(x%1===0) s+=`<text x="${GX(x)}" y="${G.T+G.ph+22}" text-anchor="middle" font-size="15" fill="var(--ink)" ${ff}>${x}</text>`; }
+    s+=`<line x1="${G.L}" x2="${G.L}" y1="${G.T}" y2="${G.T+G.ph}" stroke="var(--ink)" stroke-width="2.5"/><line x1="${G.L}" x2="${G.L+G.pw}" y1="${G.T+G.ph}" y2="${G.T+G.ph}" stroke="var(--ink)" stroke-width="2.5"/>`;
+    s+=`<text x="${G.L+G.pw/2}" y="${G.H-8}" text-anchor="middle" font-size="16" font-weight="700" fill="var(--ink)" ${ff}>Wave height (m)</text>`;
+    s+=`<text transform="translate(18 ${G.T+G.ph/2}) rotate(-90)" text-anchor="middle" font-size="16" font-weight="700" fill="var(--ink)" ${ff}>Power (kW)</text>`;
+    if(lab.connected){ let d=''; for(let x=0;x<=4.2001;x+=0.05){ d += (d?' L':'M') + GX(x).toFixed(1)+' '+GY(labKW(x)).toFixed(1); } s+=`<path d="${d}" fill="none" stroke="var(--sea)" stroke-width="3.5"/>`; }
+    s+=`<circle cx="${GX(0)}" cy="${GY(0)}" r="6" fill="var(--muted)"/>`;
+    LAB_H.forEach(h=>{ const p=lab.plot[h]; if(!p) return; const cx=GX(p.x), cy=GY(p.y);
+      if(p.ok) s+=`<circle cx="${cx}" cy="${cy}" r="8" fill="var(--good)" stroke="var(--ink)" stroke-width="2"/>`;
+      else s+=`<path d="M${cx-8} ${cy-8} L${cx+8} ${cy+8} M${cx+8} ${cy-8} L${cx-8} ${cy+8}" stroke="var(--bad)" stroke-width="4"/>`; });
+    if(live) s+=`<rect id="plotHit" x="${G.L-10}" y="${G.T-10}" width="${G.pw+20}" height="${G.ph+20}" fill="transparent"/>`;
+    return s+'</svg>';
+  }
+  function sel(key, i, opts, val, bad){ return `<select data-k="${key}" data-i="${i}" class="${bad===true?'no':bad===false?'ok':''}" aria-label="Choose a word"><option value="">choose…</option>${opts.map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('')}</select>`; }
+  function inp(key, i, val, bad){ return `<input data-k="${key}" data-i="${i}" inputmode="numeric" class="${bad===true?'no':bad===false?'ok':''}" value="${val}" aria-label="Type a number">`; }
+  const HELP = {
+    c:{def:'A claim is one sentence that answers the question. It does not give the evidence or the reasoning.', ex:'Metal spoons heat up faster than wooden spoons.', fmt:'Making waves taller makes the power ___. When the height doubles, the power becomes about ___ times bigger.'},
+    e:{def:'Evidence is the data that supports your claim. Use numbers and units from your data table or graph.', ex:'In our test, the metal spoon reached 40 °C after 2 minutes. The wooden spoon was only 25 °C after 2 minutes.', fmt:'When the wave height doubled from ___ m to ___ m, the power went from ___ kW to ___ kW.'},
+    r:{def:'Reasoning uses science ideas to explain <b>why</b> your evidence supports your claim.', ex:'Metal is a good conductor. Its particles pass thermal energy quickly to each other. Wood is an insulator, so energy moves through it slowly. That is why the metal spoon heated up faster.', fmt:'Taller waves carry ___ energy. When the height doubles, the energy becomes about ___ times bigger…'}
+  };
+  const helpBox = k => lab.cer.help[k] ? `<div class="helpbox"><p><b>What it is:</b> ${HELP[k].def}</p><p><b>Example</b> (from a different topic): ${HELP[k].ex}</p><p><b>Sentence frame:</b> ${HELP[k].fmt}</p></div>` : '';
+  const OPT = { c0:['go up','go down','stay the same'], c1:['2','4','8'], r0:['more','less'], r1:['2','4','8'], r2:['curves upward','is a straight line'], r3:['catch','create'] };
+  const ANS = { c:['go up','4'], r:['more','4','curves upward','catch'] };
+  function claimText(){ return `Making waves taller makes the power ${lab.cer.c[0]}. When the height doubles, the power becomes about ${lab.cer.c[1]} times bigger.`; }
+  function evText(){ const d=lab.data; return `When the wave height doubled from 1 m to 2 m, the power went from ${fmt(d[1])} kW to ${fmt(d[2])} kW. When the height doubled again from 2 m to 4 m, the power went from ${fmt(d[2])} kW to ${fmt(d[4])} kW.`; }
+  function rsText(){ const r=lab.cer.r; return `Taller waves carry ${r[0]} energy. When the height doubles, the energy becomes about ${r[1]} times bigger. That is why my graph ${r[2]}. A wave machine cannot make new energy. It can only ${r[3]} the energy the wave carries.` + (lab.cer.own.trim()? ' '+lab.cer.own.trim() : ''); }
+  function renderLab(){
+    const sec=document.getElementById('s4');
+    document.getElementById('labBar').innerHTML = LAB_STEPS.map((s,i)=>`<span class="${i===lab.step?'now':i<lab.step?'done':''}">${i<lab.step?'✓ ':''}${s}</span>`).join('');
+    document.getElementById('slot3').style.display = lab.step<=1 ? 'block' : 'none';
+    const body=document.getElementById('labBody'); let html='', say='';
+    if(lab.step===0){
+      const ok = lab.cc[0] && lab.cc[1] && lab.changeAns===0;
+      const ch = ['Wave height','Time between waves','Machine size'];
+      html = labCoach(ok?'good':(lab.changeAns!=null && lab.changeAns!==0 ? 'fix' : ''), ok ? 'Your fair test is set up. Press <b>Next</b> to collect data.' : (lab.changeAns!=null && lab.changeAns!==0 ? 'Look at the question again. We want to know if <b>taller</b> waves carry more power. So what do we change?' : 'In a fair test, we change only <b>one</b> thing. Everything else stays the same. The things that stay the same are called <b>constants</b>.'))
+        + `<div class="panel"><p><b>1. Which ONE thing do we change?</b></p><div class="choices" id="labChange">${ch.map((c,i)=>`<button type="button" data-i="${i}" class="${lab.changeAns===i?(i===0?'right':'wrong'):''}">${c}</button>`).join('')}</div>
+            <p style="margin-top:1rem"><b>We measure:</b> power (kW)</p>
+            <p><b>2. Check each constant (it stays the same):</b></p>
+            <ul class="const"><li><label><input type="checkbox" data-cc="0" ${lab.cc[0]?'checked':''}> Time between waves stays at <b>8 seconds</b> (locked in this sim)</label></li><li><label><input type="checkbox" data-cc="1" ${lab.cc[1]?'checked':''}> Machine size stays at <b>20 meters wide</b></label></li></ul></div>`;
+      say = 'In a fair test, we change only one thing. Everything else stays the same. Question 1: Which one thing do we change? Wave height, time between waves, or machine size? Then check each constant. Time between waves stays at 8 seconds. Machine size stays at 20 meters wide.';
+    }
+    if(lab.step===1){
+      const h=+hIn.value;
+      html = (lab.msg || labCoach('', 'Move the <b>wave height</b> slider to each height in the table. Then press <b>Record</b>.'))
+        + `<div class="labsplit"><div>${dataTable()}</div><div class="panel" style="margin:0"><p>The sim shows: <b>${h.toFixed(1)} m</b> tall, <b>${fmt(kw(h,8))} kW</b></p><button class="btn main" id="labRec" type="button">Record</button></div></div>`;
+      say = 'Move the wave height slider to each height in the table. Then press Record.';
+    }
+    if(lab.step===2){
+      const t=plotTarget();
+      html = (lab.plotMsg || labCoach('', 'Now make a graph of your data. Find the wave height on the <b>bottom</b>. Go up to the power on the <b>left</b>. Tap that spot. The gray dot at 0 is already there: no waves means no power.'))
+        + (t!=null ? `<p><span class="target-tag">Plot this point: ${t.toFixed(1)} m, ${fmt(lab.data[t])} kW</span></p>` : (lab.connected ? '' : `<p><button class="btn main" id="labConnect" type="button">Connect the dots</button></p>`))
+        + `<div class="labsplit"><div>${dataTable()}</div><div class="plotwrap">${plotSVG(t!=null)}</div></div>`
+        + (t!=null ? `<div class="panel" id="plotAlt"><p><b>Can't tap the graph?</b> Plot with these boxes instead.</p><p class="frame">Wave height: <select id="altX" aria-label="Wave height in meters"><option value="">choose…</option>${[0.5,1,1.5,2,2.5,3,3.5,4,4.5].map(v=>`<option value="${v}">${v} m</option>`).join('')}</select> &nbsp; Power: <input id="altY" inputmode="numeric" aria-label="Power in kilowatts"> kW &nbsp; <button class="btn" id="altPlot" type="button">Plot point</button></p></div>` : '');
+      say = t!=null ? `Plot this point: ${t} meters, ${lab.data[t]} kilowatts. Find the wave height on the bottom. Go up to the power on the left. Tap that spot.` : 'All points are plotted. Connect the dots.';
+    }
+    if(lab.step===3){
+      const Q=IQs();
+      html = labCoach('', 'Scientists read graphs to find patterns. Use your table and graph to answer each question.')
+        + `<div class="labsplit"><div>${dataTable()}</div><div class="plotwrap">${plotSVG(false)}</div></div>`
+        + Q.map((q,i)=>{ const pick=lab.iq[i]; const ok = pick===q.a; return `<div class="q" data-q="${i}"><p>${i+1}. ${q.q}</p><div class="choices">${q.c.map((c,j)=>`<button type="button" data-j="${j}"${(j!==q.a && j!==(q.a===0?1:0))?' data-extra="1"':''} class="${pick===j?(ok?'right':'wrong'):''}">${c}</button>`).join('')}</div><div class="fb ${pick==null?'':ok?'right':'wrong'}" aria-live="polite">${pick==null?'':ok?'Yes!':q.why[pick]}</div></div>`; }).join('');
+      say = 'Scientists read graphs to find patterns. ' + Q.map((q,i)=>(i+1)+'. '+q.q.replace(/<[^>]+>/g,'')+' '+q.c.join(', or ')).join(' ');
+    }
+    if(lab.step===4){
+      const C=lab.cer, d=lab.data;
+      const st = (arr,i) => arr.length ? arr.includes(i) : undefined;
+      html = labCoach('', 'Build your CER one part at a time. Press <b>?</b> for help, an example, and a sentence frame. Press <b>Check</b> after each part.')
+        + `<div class="labsplit"><div>${dataTable()}</div><div class="plotwrap">${plotSVG(false)}</div></div>`
+        + `<div class="cerpart"><h3>Claim <button class="helpbtn" data-h="c" type="button" aria-label="Help with the claim">?</button></h3>${helpBox('c')}
+            <p class="frame">Making waves taller makes the power ${sel('c',0,OPT.c0,C.c[0],C.cMsg?st(C.cBad,0):undefined)}. When the height doubles, the power becomes about ${sel('c',1,OPT.c1,C.c[1],C.cMsg?st(C.cBad,1):undefined)} times bigger.</p>
+            <button class="btn" data-check="c" type="button">Check my claim</button>${C.cMsg?labCoach(C.cOk?'good':'fix',C.cMsg):''}</div>`
+        + `<div class="cerpart"><h3>Evidence <button class="helpbtn" data-h="e" type="button" aria-label="Help with the evidence">?</button></h3>${helpBox('e')}
+            <p class="frame">When the wave height doubled from 1 m to 2 m, the power went from ${inp('e',0,C.e[0],C.eMsg?st(C.eBad,0):undefined)} kW to ${inp('e',1,C.e[1],C.eMsg?st(C.eBad,1):undefined)} kW. When the height doubled again from 2 m to 4 m, the power went from ${inp('e',2,C.e[2],C.eMsg?st(C.eBad,2):undefined)} kW to ${inp('e',3,C.e[3],C.eMsg?st(C.eBad,3):undefined)} kW.</p>
+            <button class="btn" data-check="e" type="button">Check my evidence</button>${C.eMsg?labCoach(C.eOk?'good':'fix',C.eMsg):''}</div>`
+        + `<div class="cerpart"><h3>Reasoning <button class="helpbtn" data-h="r" type="button" aria-label="Help with the reasoning">?</button></h3>${helpBox('r')}
+            <p class="frame">Taller waves carry ${sel('r',0,OPT.r0,C.r[0],C.rMsg?st(C.rBad,0):undefined)} energy. When the height doubles, the energy becomes about ${sel('r',1,OPT.r1,C.r[1],C.rMsg?st(C.rBad,1):undefined)} times bigger. That is why my graph ${sel('r',2,OPT.r2,C.r[2],C.rMsg?st(C.rBad,2):undefined)}. A wave machine cannot make new energy. It can only ${sel('r',3,OPT.r3,C.r[3],C.rMsg?st(C.rBad,3):undefined)} the energy the wave carries.</p>
+            <label class="note" for="labOwn">Add your own words (optional):</label><textarea id="labOwn" style="min-height:4rem">${C.own}</textarea>
+            <button class="btn" data-check="r" type="button" style="margin-top:.5rem">Check my reasoning</button>${C.rMsg?labCoach(C.rOk?'good':'fix',C.rMsg):''}</div>`;
+      say = 'Build your C E R one part at a time. Press the question mark for help, an example, and a sentence frame. Press Check after each part.';
+    }
+    if(lab.step===5){
+      if(!lab.final) lab.final = { c:claimText(), e:evText(), r:rsText() };
+      html = labCoach('good', 'You built a full CER from your own data and graph! Read it out loud. Change any words to make it sound like you.')
+        + `<div class="panel"><p><b>Question:</b> Does making waves taller change how much power they carry? If so, how?</p>
+            <label for="fC"><b>Claim</b></label><textarea id="fC" style="min-height:4rem">${lab.final.c}</textarea>
+            <label for="fE"><b>Evidence</b></label><textarea id="fE">${lab.final.e}</textarea>
+            <label for="fR"><b>Reasoning</b></label><textarea id="fR" style="min-height:8rem">${lab.final.r}</textarea></div>`
+        + `<div class="labsplit"><div>${dataTable()}</div><div class="plotwrap">${plotSVG(false)}</div></div>`
+        + `<div id="labCert"></div><div id="labSubmit"></div>`;
+      say = 'You built a full C E R from your own data and graph. Read it out loud. Change any words to make it sound like you.';
+    }
+    body.innerHTML = html; sec.dataset.say = say;
+    const nx=document.getElementById('labNext'); nx.style.visibility = lab.step===5 ? 'hidden' : 'visible'; nx.disabled = !labCanNext();
+    wireLab();
+  }
+  function wireLab(){
+    const body=document.getElementById('labBody');
+    if(lab.step===0){
+      body.querySelectorAll('#labChange button').forEach(b=>b.addEventListener('click',()=>{ lab.changeAns=+b.dataset.i; renderLab(); }));
+      body.querySelectorAll('input[data-cc]').forEach(c=>c.addEventListener('change',()=>{ lab.cc[+c.dataset.cc]=c.checked; renderLab(); }));
+    }
+    if(lab.step===1){
+      document.getElementById('labRec').addEventListener('click',()=>{
+        const h=+hIn.value;
+        if(!constOk()) lab.msg = labCoach('fix','Your time between waves changed! Set it back to <b>8 seconds</b> first. That keeps the test fair.');
+        else { const t=LAB_H.find(x=>near(x,h));
+          if(t==null) lab.msg = labCoach('fix', `You are at ${h.toFixed(1)} m. Set the height to exactly <b>1.0, 2.0, 3.0, or 4.0 m</b>.`);
+          else { lab.data[t]=labKW(t); const left=LAB_H.filter(x=>lab.data[x]==null);
+            lab.msg = left.length ? labCoach('good', `Saved ${t.toFixed(1)} m = ${fmt(lab.data[t])} kW! Next, set the height to ${left[0].toFixed(1)} m.`) : labCoach('good','All 4 saved! Press <b>Next</b> to make your graph.'); } }
+        renderLab();
+      });
+    }
+    if(lab.step===2){
+      const svg=document.getElementById('plotSvg');
+      const tryPlot=(x,y)=>{
+        const t=plotTarget(); if(t==null) return;
+        const want=lab.data[t];
+        if(!near(x,t)){ lab.plot[t]={x,y,ok:false}; lab.plotMsg=labCoach('fix', `You tapped at ${x} m. First find <b>${t.toFixed(1)} m</b> on the <b>bottom</b> axis (wave height).`); }
+        else if(Math.abs(y-want)>60){ const lo=Math.floor(want/200)*200; lab.plot[t]={x,y,ok:false}; lab.plotMsg=labCoach('fix', `Good, ${t.toFixed(1)} m is right! Now go <b>${y<want?'higher':'lower'}</b>. ${fmt(want)} kW is between ${fmt(lo)} and ${fmt(lo+200)} on the left axis.`); }
+        else { lab.plot[t]={x:t,y:want,ok:true}; const nt=plotTarget(); lab.plotMsg = nt!=null ? labCoach('good', `Nice! Next point: ${nt.toFixed(1)} m, ${fmt(lab.data[nt])} kW.`) : labCoach('good','All 4 points plotted! Press <b>Connect the dots</b> to see the pattern.'); }
+        renderLab();
+      };
+      if(svg && svg.classList.contains('live')) svg.addEventListener('click',e=>{
+        const pt=svg.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY; const p=pt.matrixTransform(svg.getScreenCTM().inverse());
+        tryPlot(Math.round(((p.x-G.L)/G.pw*G.XM)*2)/2, Math.max(0,Math.round(((G.T+G.ph-p.y)/G.ph*G.YM)/20)*20));
+      });
+      const ap=document.getElementById('altPlot');
+      if(ap) ap.addEventListener('click',()=>{ const x=parseFloat(document.getElementById('altX').value), y=parseFloat(String(document.getElementById('altY').value).replace(/[,\s]/g,'')); if(isNaN(x)||isNaN(y)){ lab.plotMsg=labCoach('fix','Pick a wave height and type a power number first.'); renderLab(); return; } tryPlot(x,y); });
+      const cb=document.getElementById('labConnect');
+      if(cb) cb.addEventListener('click',()=>{ lab.connected=true; lab.plotMsg=labCoach('good','Look at that shape! It is not a straight line. It <b>curves upward</b>. Press <b>Next</b> to read your graph.'); renderLab(); });
+    }
+    if(lab.step===3){
+      body.querySelectorAll('.q').forEach(qd=>{ const i=+qd.dataset.q; qd.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ lab.iq[i]=+b.dataset.j; renderLab(); })); });
+    }
+    if(lab.step===4){
+      body.querySelectorAll('[data-h]').forEach(b=>b.addEventListener('click',()=>{ const k=b.dataset.h; lab.cer.help[k]=!lab.cer.help[k]; renderLab(); }));
+      body.querySelectorAll('select[data-k], input[data-k]').forEach(el=>el.addEventListener(el.tagName==='SELECT'?'change':'input',()=>{ lab.cer[el.dataset.k][+el.dataset.i]=el.value; }));
+      const own=document.getElementById('labOwn'); own.addEventListener('input',()=>{ lab.cer.own=own.value; });
+      body.querySelectorAll('[data-check]').forEach(b=>b.addEventListener('click',()=>{
+        const k=b.dataset.check, C=lab.cer, d=lab.data;
+        if(k==='c'){ C.cBad=[0,1].filter(i=>C.c[i]!==ANS.c[i]); C.cOk=!C.cBad.length;
+          C.cMsg = C.cOk ? 'Yes! Your claim answers both parts: <b>does</b> it change, and <b>how</b>.' : (C.c[0] && C.c[0]!=='go up' ? 'Look at your graph. As the height gets bigger, does the power line go up or down?' : 'Look at question 1 on Read the graph. When the height doubled, how many times bigger did the power get?'); }
+        if(k==='e'){ const want=[d[1],d[2],d[2],d[4]]; C.eBad=[0,1,2,3].filter(i=>+String(C.e[i]).replace(/[,\s]/g,'')!==want[i] || C.e[i]===''); C.eOk=!C.eBad.length;
+          C.eMsg = C.eOk ? 'Great evidence! You used real numbers and units from your data table.' : 'Check the red boxes. Find each wave height in your data table, then copy the power next to it.'; }
+        if(k==='r'){ C.rBad=[0,1,2,3].filter(i=>C.r[i]!==ANS.r[i]); C.rOk=!C.rBad.length;
+          C.rMsg = C.rOk ? 'Excellent reasoning! You explained the science: taller waves carry <b>much</b> more energy, and a machine can only catch energy. It cannot create it.' :
+            C.rBad.includes(3) ? 'Remember: energy cannot be created or destroyed. Can a machine <b>create</b> energy, or only <b>catch</b> it?' :
+            C.rBad.includes(2) ? 'Look at the shape of your graph. Is it straight, or does it bend?' : 'Check the red boxes. Use your Read the graph answers to help.'; }
+        lab.final=null; renderLab();
+      }));
+    }
+    if(lab.step===5){
+      ['C','E','R'].forEach(k=>document.getElementById('f'+k).addEventListener('input',e=>{ lab.final[k.toLowerCase()]=e.target.value; }));
+      const Qtxt='Does making waves taller change how much power they carry? If so, how?';
+      const today=()=>new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+      const E=WTK.esc;
+      const tableHTML=()=>`<table style="border-collapse:collapse;margin:6px 0"><tr><th style="border:1px solid #444;padding:4px 12px;background:#e6f2f5">Wave height (m)</th><th style="border:1px solid #444;padding:4px 12px;background:#e6f2f5">Power (kW)</th></tr>${LAB_H.map(h=>`<tr><td style="border:1px solid #444;padding:4px 12px;text-align:center">${h.toFixed(1)}</td><td style="border:1px solid #444;padding:4px 12px;text-align:center">${fmt(lab.data[h])}</td></tr>`).join('')}</table>`;
+      const head=n=>`<h2>Wave Lab: Do taller waves carry more power?</h2><p><b>Name:</b> ${E(n)}<br><b>Date:</b> ${today()}</p><p><b>Question:</b> ${Qtxt}</p><p><b>My data</b> (I changed the wave height. Constants: time between waves 8 seconds, machine 20 m wide.)</p>${tableHTML()}`;
+      const cerHTML=()=>`<p><b>CLAIM:</b> ${E(lab.final.c)}</p><p><b>EVIDENCE:</b> ${E(lab.final.e)}</p><p><b>REASONING:</b> ${E(lab.final.r)}</p>`;
+      WTK.cert(document.getElementById('labCert'), { key:'wavelab', title:'Wave Lab: Do taller waves carry more power?', lesson:'4.02', enc:'MjA0LUVESVQtTExFV1M=', unlocked: lab.cer.cOk && lab.cer.eOk && lab.cer.rOk,
+        details:['Ran a fair test with 4 wave heights', 'Plotted the graph and read it', 'Wrote a claim, evidence and reasoning that passed every coach check'] });
+      WTK.submitPanel(document.getElementById('labSubmit'), {
+        filename:'Wave_Lab_CER.txt',
+        buildText:n=>`Wave Lab: Do taller waves carry more power?\nName: ${n}\nDate: ${today()}\n\nQuestion: ${Qtxt}\n\nMy data (I changed the wave height. Constants: time between waves 8 seconds, machine 20 m wide.)\nWave height (m) | Power (kW)\n${LAB_H.map(h=>`${h.toFixed(1)} | ${fmt(lab.data[h])}`).join('\n')}\n\nCLAIM: ${lab.final.c}\n\nEVIDENCE: ${lab.final.e}\n\nREASONING: ${lab.final.r}`,
+        buildHtml:n=>head(n)+cerHTML(),
+        buildPrint:n=>head(n)+`<div style="max-width:520px">${plotSVG(false)}</div>`+cerHTML()
+      });
+    }
+  }
+  document.getElementById('labBack').addEventListener('click',()=>{ if(lab.step>0){ lab.step--; renderLab(); window.scrollTo({top:0}); } else go(3); });
+  document.getElementById('labNext').addEventListener('click',()=>{ if(!labCanNext()) return; lab.step++; lab.msg=null; renderLab(); window.scrollTo({top:0}); });
+  const labLive = ()=>{ if(document.getElementById('s4').classList.contains('active') && lab.step<=1) renderLab(); };
+  hIn.addEventListener('input', labLive); tIn.addEventListener('input', labLive);
+
+  // ---------- Save / restore (this browser only) ----------
+  let savedStep = 0;
+  if(window.WTK){
+    WTK.register({ key:'ctw-save-v1', keys:['ctw-save-v1'],
+      get:()=>({ step:curStep, h:+hIn.value, ch:Object.keys(chDone), q:qLog.slice(), quiz:quizLog.slice(), sites:[...tested.keys()], why:document.getElementById('why').value, lab }),
+      set:(st)=>{
+        replaying = true;
+        try{
+          (st.sites||[]).forEach(id=>{ const s=sites.find(x=>x.id===id); const b=siteBox.querySelector(`[data-id="${id}"]`); if(s && b) testSite(s,b); });
+          clearSite();
+          if(st.h!=null) hIn.value = st.h;
+          (st.ch||[]).forEach(c=>{ chDone[c]=true; const li=document.querySelector(`#challenges li[data-c="${c}"]`); if(li){ li.classList.add('won'); li.querySelector('.box').textContent='\u2713'; } });
+          const qEls=[...document.querySelectorAll('#s1 .q')]; (st.q||[]).forEach(([qi,i])=>{ const b=qEls[qi] && qEls[qi].querySelectorAll('.choices button')[i]; if(b) b.click(); });
+          const quizEls=[...quizBox.children]; (st.quiz||[]).forEach(([qi,i])=>{ const b=quizEls[qi] && quizEls[qi].querySelectorAll('.choices button')[i]; if(b) b.click(); });
+          qLog.push(...(st.q||[])); quizLog.push(...(st.quiz||[]));
+          if(st.why) document.getElementById('why').value = st.why;
+          if(st.lab) Object.assign(lab, st.lab);
+          savedStep = st.step || 0;
+        } finally { replaying = false; }
+      }
+    });
+  }
+  update();
+  sim.remove(); // detach only after every element inside it has been looked up and filled in
+  const hashMap = { learn:0, power:1, spot:2, check:3, lab:4 };
+  { const hs = hashMap[(location.hash||'').slice(1)]; go(hs!=null ? hs : savedStep); }
+  window.addEventListener('hashchange', ()=>{ const hs = hashMap[(location.hash||'').slice(1)]; if(hs!=null) go(hs); });
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
