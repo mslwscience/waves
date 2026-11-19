@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wave Energy Lab: Pick Your Activity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bungee&display=swap" rel="stylesheet">
+<style>
+:root{ --paper:#EAF4F6; --card:#FFFFFF; --ink:#102A43; --muted:#46607A; --sea:#1F7A8C; --sea-deep:#0F4C5C; --sea-light:#CDE7EC; --sky:#DCEFF4; --power:#F5B700; --line:#BFD6DE; --good:#2E7D4F; --good-bg:#DDF2E4; --bad:#C0392B; --bad-bg:#FBE3E0; color-scheme:light; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --paper:#0B1A25; --card:#132A3B; --ink:#E8F2F6; --muted:#A6BDCA; --sea:#2C8FA2; --sea-deep:#7FD0DE; --sea-light:#1B3B4B; --sky:#14303F; --power:#FFC933; --line:#2A4A5D; --good:#6FD39A; --good-bg:#15372A; --bad:#FF7F73; --bad-bg:#3D1C1C; color-scheme:dark; } }
+:root[data-theme="dark"]{ --paper:#0B1A25; --card:#132A3B; --ink:#E8F2F6; --muted:#A6BDCA; --sea:#2C8FA2; --sea-deep:#7FD0DE; --sea-light:#1B3B4B; --sky:#14303F; --power:#FFC933; --line:#2A4A5D; --good:#6FD39A; --good-bg:#15372A; --bad:#FF7F73; --bad-bg:#3D1C1C; color-scheme:dark; }
+:root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+*,*::before,*::after{ box-sizing:inherit; }
+body{ margin:0; background:var(--paper); color:var(--ink); font-family:"Atkinson Hyperlegible", Verdana, "Segoe UI", system-ui, sans-serif; font-size:1.2rem; line-height:1.5; }
+.wrap{ max-width:960px; margin:0 auto; padding:.8rem 1rem 3rem; }
+h1{ font-family:"Bungee","Atkinson Hyperlegible",sans-serif; font-weight:400; font-size:clamp(2rem,7vw,3rem); line-height:1; margin:.6rem 0 .4rem; color:var(--sea-deep); }
+.say{ border:0; background:var(--sea-light); color:var(--ink); border-radius:10px; padding:.35rem .8rem; cursor:pointer; font:inherit; font-weight:700; font-size:1rem; }
+.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:.9rem; margin:1rem 0; }
+.go{ display:flex; gap:.9rem; align-items:center; text-decoration:none; color:var(--ink); background:var(--card); border:3px solid var(--line); border-radius:18px; padding:1rem 1.1rem; box-shadow:0 4px 0 var(--line); }
+.go:hover{ border-color:var(--sea); }
+.go:focus-visible{ outline:4px solid var(--power); outline-offset:3px; }
+.go .em{ font-size:2.6rem; line-height:1; flex:none; }
+.go b{ display:block; font-size:1.3rem; }
+.go span.d{ color:var(--muted); font-size:1.02rem; }
+.go.first{ border-color:var(--power); box-shadow:0 4px 0 #C99500; }
+.note{ color:var(--muted); font-size:1rem; }
+h2{ font-size:1.4rem; margin:1.6rem 0 .3rem; }
+</style>
+</head>
+<body>
+<!-- ===== WTK: shared tools (reading help, save, start over, Canvas submit) ===== -->
+<style>
+.wtk-bar .wtk-save, .wtk-bar .wtk-reset, .wtk-bar .wtk-home{ display:none !important; }
+.wtk-bar{ display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; max-width:1060px; margin:0 auto; padding:.6rem 1rem 0; }
+.wtk-bar button, .wtk-panel button{ font:inherit; font-size:1rem; font-weight:700; cursor:pointer; border:2px solid var(--line); background:var(--card); color:var(--ink); border-radius:12px; padding:.35rem .75rem; }
+.wtk-bar button[aria-pressed="true"], .wtk-panel button[aria-pressed="true"]{ background:var(--sea); border-color:var(--sea); color:#fff; }
+.wtk-bar .wtk-save{ border-color:var(--good); }
+.wtk-bar .wtk-reset.armed{ background:var(--bad); border-color:var(--bad); color:#fff; }
+.wtk-bar .wtk-sp{ flex:1 1 auto; }
+.wtk-bar a.wtk-home{ font-weight:700; font-size:1rem; text-decoration:none; border:2px solid var(--line); background:var(--card); color:var(--ink); border-radius:12px; padding:.35rem .75rem; }
+.wtk-bar a.wtk-home[hidden]{ display:none; }
+.wtk-panel{ max-width:1060px; margin:.5rem auto 0; padding:.8rem 1rem; background:var(--card); border:2px solid var(--sea); border-radius:16px; display:grid; gap:.5rem; }
+.wtk-panel[hidden]{ display:none; }
+.wtk-panel .wtk-row{ display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+.wtk-panel p{ margin:.1rem 0; font-size:.95rem; color:var(--muted); }
+.wtk-toast{ position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); transform:translateX(-50%); background:var(--ink); color:var(--paper); padding:.55rem 1rem; border-radius:12px; font-weight:700; z-index:60; opacity:0; pointer-events:none; transition:opacity .25s; max-width:90vw; text-align:center; }
+.wtk-toast.on{ opacity:1; }
+.wtk-modal{ position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:55; display:flex; align-items:flex-start; justify-content:center; padding:calc(env(safe-area-inset-top,0px) + 2rem) 1rem 1rem; overflow:auto; }
+.wtk-modal[hidden]{ display:none; }
+.wtk-modal .box{ background:var(--card); color:var(--ink); border-radius:18px; max-width:720px; width:100%; padding:1rem 1.2rem; border:3px solid var(--sea); }
+.wtk-words{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.5rem; margin:.6rem 0; }
+.wtk-words div{ border-left:6px solid var(--sea); background:var(--paper); border-radius:0 12px 12px 0; padding:.45rem .7rem; }
+.wtk-words b{ display:block; font-size:1.1rem; }
+.wtk-words button{ border:0; background:none; cursor:pointer; font-size:1.1rem; float:right; }
+.wtk-said{ outline:4px solid var(--power) !important; outline-offset:3px; border-radius:6px; }
+html.wtk-tap body{ cursor:help; }
+html.wtk-easy body{ letter-spacing:.04em; word-spacing:.16em; line-height:1.85; }
+html.wtk-easy p, html.wtk-easy li{ max-width:58ch; }
+html.wtk-calm *, html.wtk-calm *::before, html.wtk-calm *::after{ animation:none !important; transition:none !important; }
+html.wtk-fewer [data-extra]{ display:none !important; }
+:root.wtk-hc.wtk-hc{ --paper:#FFFFFF; --card:#FFFFFF; --ink:#000000; --muted:#1A1A1A; --line:#000000; --sea:#00506B; --sea-deep:#002F3F; --sea-light:#DDF3FA; --sky:#EAF7FB; --power:#FFC400; --good:#006B2E; --good-bg:#DDF5E4; --bad:#A80000; --bad-bg:#FFE3E3; color-scheme:light; }
+:root.wtk-hc.wtk-hc body{ background:#FFFFFF; color:#000000; }
+:root.wtk-hc.wtk-hc button, :root.wtk-hc.wtk-hc .panel, :root.wtk-hc.wtk-hc .card{ border-width:3px; }
+.wtk-submit{ background:var(--card); border:3px solid var(--good); border-radius:16px; padding:.9rem 1.1rem; margin:1rem 0; }
+.wtk-submit h3{ margin:.1rem 0 .5rem; }
+.wtk-submit label{ font-weight:700; }
+.wtk-submit input[type=text]{ font:inherit; font-size:1.1rem; padding:.35rem .6rem; border:2px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); width:min(100%,22rem); }
+.wtk-submit .wtk-btns{ display:flex; flex-wrap:wrap; gap:.5rem; margin:.7rem 0; }
+.wtk-submit .wtk-btns button{ font:inherit; font-weight:700; font-size:1.05rem; cursor:pointer; border-radius:12px; padding:.55rem 1rem; border:3px solid var(--sea-deep); background:var(--card); color:var(--ink); }
+.wtk-submit .wtk-btns button.main{ background:var(--power); border-color:#8A6500; color:#2A1F00; }
+.wtk-submit ol{ margin:.4rem 0; padding-left:1.4rem; }
+.wtk-submit textarea{ width:100%; min-height:10rem; font:inherit; font-size:1rem; border:2px solid var(--line); border-radius:12px; padding:.6rem; background:var(--paper); color:var(--ink); }
+.wtk-cert{ background:var(--card); border:4px double #C99500; border-radius:18px; padding:1rem 1.2rem; margin:1rem 0; }
+.wtk-cert.locked{ border:3px dashed var(--line); }
+.wtk-cert h3{ margin:.1rem 0 .4rem; }
+.wtk-cert .big{ font-family:"Bungee","Atkinson Hyperlegible",sans-serif; font-size:clamp(1.4rem,5vw,2rem); letter-spacing:.04em; color:#8A6500; background:#FFF1C2; border-radius:12px; padding:.3rem .8rem; display:inline-block; }
+.wtk-cert .chk{ font-weight:700; font-size:1.2rem; background:var(--paper); border:2px solid var(--line); border-radius:10px; padding:.15rem .6rem; letter-spacing:.12em; }
+.wtk-cert ul{ margin:.3rem 0; padding-left:1.3rem; }
+.wtk-cert input[type=text]{ font:inherit; font-size:1.1rem; padding:.3rem .6rem; border:2px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); width:min(100%,20rem); }
+.wtk-cert ol{ margin:.4rem 0; padding-left:1.4rem; }
+@media print{ .wtk-cert{ display:none; } }
+@media print{ .wtk-bar, .wtk-panel, .wtk-toast, .wtk-modal{ display:none !important; } }
+</style>
+<div class="wtk-bar" role="toolbar" aria-label="Reading help and saving">
+  <button type="button" data-wtk="tap" aria-pressed="false" title="Tap any sentence to hear it read out loud">🔊 Tap to hear</button>
+  <button type="button" data-wtk="size" title="Make the words bigger">Aa Bigger text</button>
+  <button type="button" data-wtk="more" aria-expanded="false">♿ Reading help</button>
+  <button type="button" data-wtk="words">📖 Word help</button>
+  <a class="wtk-home" href="play/" hidden>🏠 All activities</a>
+  <span class="wtk-sp"></span>
+  <button type="button" data-wtk="save" class="wtk-save">💾 Save</button>
+  <button type="button" data-wtk="reset" class="wtk-reset">↺ Start over</button>
+</div>
+<div class="wtk-panel" id="wtkPanel" hidden>
+  <div class="wtk-row"><b>Text size:</b> <button type="button" data-wtk="smaller">A−</button> <button type="button" data-wtk="bigger">A+</button> <span id="wtkSizeTxt"></span></div>
+  <div class="wtk-row">
+    <button type="button" data-wtk="easy" aria-pressed="false">↔ Easy-read spacing</button>
+    <button type="button" data-wtk="hc" aria-pressed="false">🔆 High contrast</button>
+    <button type="button" data-wtk="calm" aria-pressed="false">🌙 Calm mode (no shaking, sounds, or confetti)</button>
+    <button type="button" data-wtk="slow" aria-pressed="false">🐢 Slower read-aloud</button>
+    <button type="button" data-wtk="fewer" aria-pressed="false">✌ Fewer answer choices</button>
+  </div>
+  <p>These settings stay on for this computer. Nothing has a timer, so take all the time you need.</p>
+</div>
+<div class="wtk-modal" id="wtkWords" hidden role="dialog" aria-modal="true" aria-labelledby="wtkWordsTitle">
+  <div class="box">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem"><h2 id="wtkWordsTitle" style="margin:0">📖 Word help</h2><button type="button" data-wtk="closewords" class="btn" style="font:inherit;font-weight:700;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:.35rem .8rem;cursor:pointer">Close</button></div>
+    <p style="margin:.4rem 0 0">Tap 🔊 to hear a word.</p>
+    <div class="wtk-words" id="wtkWordList"></div>
+  </div>
+</div>
+<div class="wtk-toast" id="wtkToast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+  const root = document.documentElement;
+  const SIZES = [100,115,130,150];
+  let S = { size:0, easy:false, hc:false, calm:false, tap:false, slow:false, fewer:false };
+  try{ Object.assign(S, JSON.parse(localStorage.getItem('wtk-settings')||'{}')); }catch(e){}
+  const WORDS = [
+    ['🌊','wave','A movement that carries energy from one place to another.'],
+    ['⛰️','crest','The top of a wave.'],
+    ['🕳️','trough','The bottom of a wave.'],
+    ['📏','wave height','From the bottom (trough) to the top (crest). Wave height = crest − trough.'],
+    ['↕️','amplitude','How far the water moves up from still water. Taller wave = bigger amplitude = more energy.'],
+    ['➖','still water (rest position)','Where the water is with no waves. On our graphs it is 0.'],
+    ['⚡','energy','The ability to make something move or change.'],
+    ['🔌','power','How fast energy is made or used. We measure it in kilowatts (kW).'],
+    ['🏠','kilowatt (kW)','A unit of power. One home uses about 1.2 kW on average.'],
+    ['🔋','kilowatt-hour (kWh)','A unit of energy. It is power that piles up over time.'],
+    ['🛟','buoy','A floating machine in the water. NOAA buoys measure waves.'],
+    ['⚙️','generator','A machine that turns motion into electricity.'],
+    ['♻️','renewable','Will not run out. The wind keeps making waves.'],
+    ['🔒','constant','Something you keep the same in a fair test.'],
+    ['🔀','variable','Something you change or measure in a test.'],
+    ['➖','negative number','A number less than zero. On a water graph it is below the 0 line.'],
+    ['✅','feasible','Possible to really do.'],
+    ['🗣️','claim','One sentence that answers the question.'],
+    ['📊','evidence','Data (numbers and facts) that support your claim.'],
+    ['🧠','reasoning','The science idea that explains why your evidence supports your claim.'],
+    ['🔁','conservation of energy','Energy cannot be made or destroyed. It can only move or change form.'],
+  ];
+  const $ = s => document.querySelector(s);
+  let app = null, resetArmed = 0;
+  function persist(){ try{ localStorage.setItem('wtk-settings', JSON.stringify(S)); }catch(e){} }
+  function apply(){
+    root.style.fontSize = SIZES[S.size] + '%';
+    root.classList.toggle('wtk-easy', !!S.easy); root.classList.toggle('wtk-hc', !!S.hc);
+    root.classList.toggle('wtk-calm', !!S.calm); root.classList.toggle('wtk-tap', !!S.tap);
+    root.classList.toggle('wtk-fewer', !!S.fewer);
+    document.querySelectorAll('[data-wtk]').forEach(b=>{ const k=b.dataset.wtk; if(k in S && typeof S[k]==='boolean') b.setAttribute('aria-pressed', S[k]); });
+    const st = $('#wtkSizeTxt'); if(st) st.textContent = 'Size ' + (S.size+1) + ' of 4';
+    persist(); window.dispatchEvent(new CustomEvent('wtk-change'));
+  }
+  function toast(msg){ const t=$('#wtkToast'); if(!t) return; t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'), 2600); }
+  const W = window.WTK = {
+    calm: ()=>!!S.calm, fewer: ()=>!!S.fewer, rate: ()=> S.slow ? 0.7 : 0.9, toast,
+    speak(text){ if(!('speechSynthesis' in window) || !text) return; try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(String(text).replace(/\u2212/g,' minus ').replace(/×/g,' times ')); u.rate=W.rate(); speechSynthesis.speak(u); }catch(e){} },
+    register(o){
+      app = o;
+      let loaded = false;
+      try{ const raw = localStorage.getItem(o.key); if(raw){ o.set(JSON.parse(raw)); loaded = true; } }catch(e){}
+      if(loaded) setTimeout(()=>toast('👋 Welcome back! Your saved work is loaded.'), 400);
+      setInterval(()=>W.save(true), 15000);
+      window.addEventListener('pagehide', ()=>W.save(true));
+      document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') W.save(true); });
+      return loaded;
+    },
+    save(quiet){
+      if(!app) return;
+      try{ localStorage.setItem(app.key, JSON.stringify(app.get())); if(!quiet) toast('💾 Saved on this computer at ' + new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})); }
+      catch(e){ if(!quiet) toast('Saving is blocked in this browser. Use Copy for Canvas to keep your work.'); }
+    },
+    name(v){ try{ if(v!==undefined) localStorage.setItem('wtk-name', v); return localStorage.getItem('wtk-name') || ''; }catch(e){ return v||''; } },
+    async copyRich(html, text){
+      try{ if(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){ await navigator.clipboard.write([new ClipboardItem({'text/html': new Blob([html],{type:'text/html'}), 'text/plain': new Blob([text],{type:'text/plain'})})]); return true; } }catch(e){}
+      try{ await navigator.clipboard.writeText(text); return true; }catch(e){ return false; }
+    },
+    download(text, filename){
+      try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'})); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500); return true; }catch(e){ return false; }
+    },
+    print(html){ const pa=document.getElementById('printArea'); if(!pa) return false; pa.innerHTML = html; try{ window.print(); return true; }catch(e){ return false; } },
+    esc: s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'),
+    /* Name check: 3 letters made from the student's name + the activity. Ms. Welch checks it in her planner. */
+    nameCheck(name, key){
+      const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789'; const n=String(name||'').toLowerCase().replace(/[^a-z]/g,''); if(!n) return '---';
+      let h=2166136261; const str=n+'|'+key+'|wel2027'; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+      let out=''; for(let i=0;i<3;i++){ out+=A[h%A.length]; h=Math.floor(h/A.length); } return out;
+    },
+    /* Certificate with the fixed unlock code + name check. o: { key, title, lesson, enc, unlocked, steps:[[text,done]], details:[...] } */
+    cert(container, o){
+      if(!container) return;
+      if(!o.unlocked){
+        container.innerHTML = `<div class="wtk-cert locked"><h3>🔒 Unlock code: ${o.title}</h3><p>Finish these to unlock your code for Classkick:</p><ul>${(o.steps||[]).map(([t,d])=>`<li>${d?'✅':'⬜'} ${t}</li>`).join('')}</ul></div>`;
+        return;
+      }
+      const code = atob(o.enc).split('').reverse().join('');
+      const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+      container.innerHTML = `<div class="wtk-cert" aria-live="polite">
+        <h3>🏅 Certificate of Completion</h3>
+        <p><b>${o.title}</b> · Lesson ${o.lesson} · ${today}</p>
+        <p><label for="cert-${o.key}"><b>Name:</b></label> <input type="text" id="cert-${o.key}" autocomplete="name" value="${W.esc(W.name())}"></p>
+        ${o.details && o.details.length ? `<ul>${o.details.map(d=>`<li>${d}</li>`).join('')}</ul>` : ''}
+        <p>Unlock code: <span class="big">${code}</span></p>
+        <p>Name check: <span class="chk" data-chk>${W.nameCheck(W.name(), o.key)}</span></p>
+        <p><b>Turn it in on Classkick:</b></p>
+        <ol><li>Type the <b>unlock code</b> in the Classkick box.</li><li>Take a screenshot of this certificate with your name on it. On a Chromebook press <b>Ctrl + Shift + Show windows</b> (⧉), then drag over the certificate. On Windows press <b>Windows + Shift + S</b>.</li><li>Paste the screenshot into Classkick.</li></ol>
+      </div>`;
+      const inp = container.querySelector('input'), chk = container.querySelector('[data-chk]');
+      inp.addEventListener('input', ()=>{ W.name(inp.value); chk.textContent = W.nameCheck(inp.value, o.key); const other=document.getElementById('wtkName'); if(other && other!==inp) other.value = inp.value; });
+    },
+    /* Renders the "Turn in your work" panel. opts: { buildText(name), buildHtml(name), buildPrint(name)?, filename } */
+    submitPanel(container, opts){
+      const name = W.name();
+      container.innerHTML = `<div class="wtk-submit">
+        <h3>📤 Turn in your work</h3>
+        <label for="wtkName">Your name:</label> <input type="text" id="wtkName" autocomplete="name" value="${W.esc(name)}">
+        <div class="wtk-btns">
+          <button type="button" class="main" data-sub="copy">📋 Copy for Canvas</button>
+          <button type="button" data-sub="print">🖨️ Print or save as PDF</button>
+          <button type="button" data-sub="dl">⬇️ Download as a text file</button>
+        </div>
+        <p class="note" data-sub="msg" role="status" aria-live="polite"></p>
+        <p><b>How to turn it in on Canvas:</b></p>
+        <ol><li>Press <b>📋 Copy for Canvas</b>.</li><li>In Canvas, open the assignment and press <b>Start Assignment</b>.</li><li>Choose <b>Text Entry</b>. Click inside the big box.</li><li>Press <b>Ctrl + V</b> (or Command + V on a Mac) to paste.</li><li>Press <b>Submit Assignment</b>.</li></ol>
+        <p><b>If Copy does not work:</b> press <b>Select all</b>, then press Ctrl + C, then paste in Canvas.</p>
+        <textarea readonly aria-label="Your work as text" data-sub="text"></textarea>
+        <div class="wtk-btns"><button type="button" data-sub="select">Select all</button></div>
+      </div>`;
+      const q = s => container.querySelector(`[data-sub="${s}"]`);
+      const nameIn = container.querySelector('#wtkName');
+      const refresh = ()=>{ q('text').value = opts.buildText(nameIn.value.trim()); };
+      nameIn.addEventListener('input', ()=>{ W.name(nameIn.value); refresh(); });
+      refresh();
+      const needName = ()=>{ if(!nameIn.value.trim()){ q('msg').textContent='Type your name first.'; nameIn.focus(); return true; } return false; };
+      q('copy').addEventListener('click', async()=>{ if(needName()) return; refresh(); const ok = await W.copyRich(opts.buildHtml(nameIn.value.trim()), q('text').value); q('msg').textContent = ok ? '✅ Copied! Now paste it into Canvas (Ctrl + V).' : 'Copy is blocked here. Press Select all, then Ctrl + C.'; });
+      q('print').addEventListener('click', ()=>{ if(needName()) return; const ok = W.print((opts.buildPrint||opts.buildHtml)(nameIn.value.trim())); if(!ok) q('msg').textContent='Printing is blocked here. Use Copy for Canvas instead.'; else q('msg').textContent='In the print window, choose “Save as PDF” to make a PDF.'; });
+      q('dl').addEventListener('click', ()=>{ if(needName()) return; refresh(); const ok = W.download(q('text').value, opts.filename); q('msg').textContent = ok ? 'If nothing downloaded, use Copy for Canvas instead.' : 'Downloading is blocked here. Use Copy for Canvas instead.'; });
+      q('select').addEventListener('click', ()=>{ refresh(); const t=q('text'); t.focus(); t.select(); });
+    }
+  };
+  // toolbar
+  document.addEventListener('click', e=>{
+    const b = e.target.closest('[data-wtk]'); if(!b) return;
+    const k = b.dataset.wtk;
+    if(k==='size'){ S.size = (S.size+1) % SIZES.length; apply(); toast('Text size ' + (S.size+1) + ' of 4'); return; }
+    if(k==='bigger'){ S.size = Math.min(3, S.size+1); apply(); return; }
+    if(k==='smaller'){ S.size = Math.max(0, S.size-1); apply(); return; }
+    if(k==='more'){ const p=$('#wtkPanel'); p.hidden=!p.hidden; b.setAttribute('aria-expanded', !p.hidden); return; }
+    if(k==='words'){ $('#wtkWords').hidden=false; $('[data-wtk="closewords"]').focus(); return; }
+    if(k==='closewords'){ $('#wtkWords').hidden=true; return; }
+    if(k==='save'){ W.save(false); return; }
+    if(k==='reset'){
+      if(!resetArmed){ resetArmed = 1; b.classList.add('armed'); b.textContent='Tap again to erase ALL my work'; setTimeout(()=>{ resetArmed=0; b.classList.remove('armed'); b.textContent='↺ Start over'; }, 4000); return; }
+      try{ (app && app.keys ? app.keys : (app?[app.key]:[])).forEach(x=>localStorage.removeItem(x)); }catch(e){}
+      if(app && app.onReset) app.onReset();
+      history.replaceState(null,'',location.pathname); location.reload(); return;
+    }
+    if(k in S && typeof S[k]==='boolean'){ S[k] = !S[k]; apply(); if(k==='tap' && S.tap) W.speak('Tap to hear is on. Tap any sentence to hear it.'); }
+  });
+  $('#wtkWords').addEventListener('click', e=>{ if(e.target.id==='wtkWords') e.target.hidden=true; });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('#wtkWords').hidden=true; });
+  $('#wtkWordList').innerHTML = WORDS.map((w,i)=>`<div><button type="button" data-say-word="${i}" aria-label="Hear ${w[1]}">🔊</button><b>${w[0]} ${w[1]}</b>${w[2]}</div>`).join('');
+  $('#wtkWordList').addEventListener('click', e=>{ const b=e.target.closest('[data-say-word]'); if(b){ const w=WORDS[+b.dataset.sayWord]; W.speak(w[1]+'. '+w[2]); } });
+  // tap to hear
+  document.addEventListener('click', e=>{
+    if(!S.tap || !e.isTrusted || e.target.closest('.wtk-bar,.wtk-panel,[data-say-word],select,input,textarea')) return;
+    const el = e.target.closest('p,li,h1,h2,h3,td,th,label,button,.cstat,.chip,.opt,.bigq,small,.target-tag,.coach');
+    if(!el) return;
+    let t = el.innerText || el.getAttribute('aria-label') || '';
+    t = t.trim(); if(!t) return;
+    W.speak(t.slice(0,600)); el.classList.add('wtk-said'); setTimeout(()=>el.classList.remove('wtk-said'), 900);
+  }, true);
+  apply();
+  { const hl=document.querySelector('.wtk-home'); if(hl && (/github\.io$/.test(location.hostname) || location.protocol==='file:')) hl.hidden=false; }
+})();
+</script>
+<!-- ===== end WTK ===== -->
+
+<div class="wrap">
+  <h1>Wave Energy Lab</h1>
+  <p style="margin:.2rem 0 .5rem">Tap the activity your teacher gave you.</p>
+  <button class="say" type="button" id="sayAll">🔊 Read to me</button>
+
+  <h2>🌊 Waves and energy</h2>
+  <div class="grid">
+    <a class="go first" href="../catch-the-wave.html"><span class="em">🌊</span><span><b>Catch the Wave</b><span class="d">Start here. Make power with waves.</span></span></a>
+    <a class="go" href="../catch-the-wave.html#lab"><span class="em">🧪</span><span><b>Wave Lab</b><span class="d">Test it, graph it, write a CER.</span></span></a>
+    <a class="go" href="../wave-power-engineer.html#training"><span class="em">🎯</span><span><b>Buoy Training</b><span class="d">Wave graphs and negative numbers.</span></span></a>
+    <a class="go" href="../wave-power-engineer.html#play"><span class="em">⚡</span><span><b>Wave Power Engineer</b><span class="d">Build a machine. Survive a storm.</span></span></a>
+    <a class="go" href="../wave-power-engineer.html#report"><span class="em">📝</span><span><b>Could we power Ohio?</b><span class="d">Write your CER.</span></span></a>
+  </div>
+
+  <h2>🔊 Sound waves</h2>
+  <div class="grid">
+    <a class="go" href="../sound-relay.html"><span class="em">🔊</span><span><b>Sound Relay</b><span class="d">Get sound through walls, water and space.</span></span></a>
+    <a class="go" href="../sound-relay.html#report"><span class="em">🧑‍🚀</span><span><b>Can astronauts hear in space?</b><span class="d">Write your CER.</span></span></a>
+  </div>
+
+  <h2>🌎 Earthquake waves</h2>
+  <div class="grid">
+    <a class="go" href="../quake-detective.html"><span class="em">🕵️</span><span><b>Quake Detective</b><span class="d">Read seismograms. Find a real Ohio earthquake.</span></span></a>
+    <a class="go" href="../quake-detective.html#report"><span class="em">📝</span><span><b>Why does the P-wave arrive first?</b><span class="d">Write your CER.</span></span></a>
+  </div>
+
+  <p class="note">💾 Your work saves on this computer. When you finish a report, press <b>📋 Copy for Canvas</b> and paste it into your assignment.</p>
+</div>
+<script>
+document.getElementById('sayAll').addEventListener('click', ()=>{
+  const t = 'Wave Energy Lab. Tap the activity your teacher gave you. ' + [...document.querySelectorAll('.go')].map(a=>a.innerText.replace(/\s+/g,' ')).join('. ');
+  if(window.WTK) WTK.speak(t);
+});
+</script>
+</body>
+</html>

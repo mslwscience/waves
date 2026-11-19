@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wave Power Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bungee&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EAF4F6; --card:#FFFFFF; --ink:#102A43; --muted:#46607A;
+  --sea:#1F7A8C; --sea-deep:#0F4C5C; --sea-light:#CDE7EC; --sky:#DCEFF4; --sand:#E7D3A1;
+  --power:#F5B700; --power-ink:#4F3B00; --good:#2E7D4F; --good-bg:#DDF2E4;
+  --bad:#C0392B; --bad-bg:#FBE3E0; --line:#BFD6DE; --house:#8A6F5A; --storm:#5B6B7A;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0B1A25; --card:#132A3B; --ink:#E8F2F6; --muted:#A6BDCA;
+    --sea:#2C8FA2; --sea-deep:#164E5E; --sea-light:#1B3B4B; --sky:#14303F; --sand:#7A6943;
+    --power:#FFC933; --power-ink:#FFE38F; --good:#6FD39A; --good-bg:#15372A;
+    --bad:#FF7F73; --bad-bg:#3D1C1C; --line:#2A4A5D; --house:#B39780; --storm:#2B3946;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0B1A25; --card:#132A3B; --ink:#E8F2F6; --muted:#A6BDCA;
+  --sea:#2C8FA2; --sea-deep:#164E5E; --sea-light:#1B3B4B; --sky:#14303F; --sand:#7A6943;
+  --power:#FFC933; --power-ink:#FFE38F; --good:#6FD39A; --good-bg:#15372A;
+  --bad:#FF7F73; --bad-bg:#3D1C1C; --line:#2A4A5D; --house:#B39780; --storm:#2B3946;
+  color-scheme: dark;
+}
+:root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+*,*::before,*::after{ box-sizing:inherit; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+body{ margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Atkinson Hyperlegible", Verdana, "Segoe UI", system-ui, sans-serif;
+  font-size:1.15rem; line-height:1.5; }
+.wrap{ max-width:1060px; margin:0 auto; padding:.75rem 1rem 3rem; }
+button{ font:inherit; color:inherit; }
+button:focus-visible, textarea:focus-visible{ outline:4px solid var(--power); outline-offset:2px; }
+
+/* HUD */
+.hud{ display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; padding:.5rem 0 .75rem; }
+.hud h1{ font-family:"Bungee", "Atkinson Hyperlegible", sans-serif; font-weight:400; font-size:clamp(1.5rem,4.5vw,2.3rem); margin:0; line-height:1; letter-spacing:.01em; color:var(--sea-deep); flex:1 1 auto; }
+:root[data-theme="dark"] .hud h1{ color:var(--power); }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .hud h1{ color:var(--power); } }
+.coins{ display:flex; align-items:center; gap:.4rem; background:var(--power); color:#2A1F00; font-weight:700; font-size:1.25rem; border-radius:999px; padding:.3rem .9rem .3rem .45rem; }
+.coins .c{ width:1.7rem; height:1.7rem; border-radius:50%; background:#FFE48A; border:3px solid #C99500; display:grid; place-items:center; font-size:.9rem; }
+.coins.bump{ animation:bump .45s; }
+@keyframes bump{ 40%{ transform:scale(1.18); } }
+.iconbtn{ border:2px solid var(--line); background:var(--card); border-radius:12px; padding:.35rem .7rem; cursor:pointer; font-weight:700; font-size:1rem; }
+
+/* Engineering process strip */
+.process{ display:grid; grid-template-columns:repeat(5,1fr); gap:.4rem; margin:.25rem 0 1rem; }
+.process div{ background:var(--card); border:2px solid var(--line); border-radius:12px; padding:.4rem .6rem; font-size:.95rem; color:var(--muted); display:flex; gap:.45rem; align-items:center; }
+.process b{ display:inline-grid; place-items:center; width:1.6rem; height:1.6rem; border-radius:50%; background:var(--sea-light); color:var(--ink); flex:none; }
+.process div.now{ border-color:var(--sea); color:var(--ink); font-weight:700; background:var(--sea-light); }
+.process div.now b{ background:var(--sea); color:#fff; }
+@media (max-width:560px){ .process span{ display:none; } .process div{ justify-content:center; } }
+
+.screen{ display:none; }
+.screen.on{ display:block; animation:enter .35s ease-out; }
+@keyframes enter{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .screen.on{ animation:none; } .coins.bump{ animation:none; } }
+h2{ font-size:1.8rem; margin:.2rem 0 .4rem; line-height:1.2; }
+h3{ font-size:1.3rem; margin:1.25rem 0 .5rem; }
+p{ margin:.45rem 0; max-width:64ch; }
+.say{ border:0; background:var(--sea-light); border-radius:10px; padding:.3rem .75rem; cursor:pointer; font-weight:700; font-size:.95rem; margin:.15rem 0 .4rem; }
+.panel{ background:var(--card); border:2px solid var(--line); border-radius:16px; padding:1rem 1.1rem; margin:.75rem 0; }
+.btn{ border:3px solid var(--sea-deep); background:var(--card); border-radius:14px; padding:.6rem 1.1rem; font-weight:700; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 0 var(--sea-deep); transition:transform .08s, box-shadow .08s; }
+.btn:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--sea-deep); }
+.btn.go{ background:var(--power); color:#2A1F00; border-color:#8A6500; box-shadow:0 4px 0 #8A6500; font-size:1.25rem; padding:.75rem 1.4rem; }
+.btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+.row{ display:flex; flex-wrap:wrap; gap:.75rem; align-items:center; }
+.note{ color:var(--muted); font-size:.95rem; }
+
+/* Intro */
+.hero{ display:grid; grid-template-columns:1.2fr 1fr; gap:1rem; align-items:center; }
+@media (max-width:760px){ .hero{ grid-template-columns:1fr; } }
+.hero .big{ font-size:1.35rem; }
+.feats{ display:grid; gap:.6rem; margin:1rem 0; }
+.feats div{ display:flex; gap:.75rem; align-items:center; background:var(--card); border-radius:14px; padding:.6rem .9rem; border:2px solid var(--line); }
+.feats .e{ font-size:1.8rem; }
+.hero svg{ width:100%; height:auto; display:block; }
+
+/* Data / chart */
+.datastatus{ display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; background:var(--card); border:2px dashed var(--line); border-radius:12px; padding:.5rem .8rem; }
+.dot{ width:.8rem; height:.8rem; border-radius:50%; background:var(--muted); flex:none; }
+.dot.live{ background:#2ECC71; box-shadow:0 0 0 4px rgba(46,204,113,.25); }
+.tabs{ display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.6rem; }
+.tabs button{ border:2px solid var(--line); background:var(--paper); border-radius:999px; padding:.3rem .9rem; cursor:pointer; font-weight:700; font-size:1rem; }
+.tabs button[aria-pressed="true"]{ background:var(--sea); border-color:var(--sea); color:#fff; }
+.bars{ display:grid; gap:.3rem; }
+.bar{ display:grid; grid-template-columns:minmax(120px,30%) 1fr 4.5rem; gap:.5rem; align-items:center; font-size:.98rem; }
+.bar .track{ height:20px; background:var(--paper); border-radius:6px; overflow:hidden; }
+.bar .fill{ height:100%; background:var(--sea); border-radius:6px; transition:width .5s; }
+.bar .fill.off{ background:repeating-linear-gradient(45deg,var(--sea),var(--sea) 8px,var(--power) 8px,var(--power) 16px); }
+.bar .v{ text-align:right; font-weight:700; font-variant-numeric:tabular-nums; }
+
+.detective .q{ margin:.6rem 0; }
+.detective .q p{ font-weight:700; margin:0 0 .35rem; }
+.choices{ display:flex; flex-wrap:wrap; gap:.45rem; }
+.choices button{ border:2px solid var(--line); background:var(--paper); border-radius:12px; padding:.4rem .8rem; cursor:pointer; font-size:1rem; }
+.choices button.right{ border-color:var(--good); background:var(--good-bg); }
+.choices button.wrong{ border-color:var(--bad); background:var(--bad-bg); }
+.fb{ font-weight:700; min-height:1.3em; margin-top:.25rem; font-size:1rem; }
+.fb.right{ color:var(--good); } .fb.wrong{ color:var(--bad); }
+
+.cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:.75rem; }
+.card{ text-align:left; background:var(--card); border:3px solid var(--line); border-radius:16px; padding:.8rem .9rem; cursor:pointer; display:flex; flex-direction:column; gap:.3rem; transition:transform .12s, border-color .12s; position:relative; }
+.card:hover{ transform:translateY(-3px); border-color:var(--sea); }
+.card .name{ font-size:1.2rem; font-weight:700; line-height:1.2; padding-right:4.5rem; }
+.card .where{ color:var(--muted); font-size:.95rem; }
+.card .cstat{ display:flex; justify-content:space-between; gap:.5rem; font-size:1rem; border-bottom:1px dashed var(--line); padding:.1rem 0; }
+.card .cstat b{ font-variant-numeric:tabular-nums; white-space:nowrap; }
+.card .tag{ position:absolute; top:.7rem; right:.7rem; font-size:.85rem; font-weight:700; border-radius:999px; padding:.1rem .55rem; }
+.tag.easy{ background:var(--good-bg); color:var(--good); }
+.tag.medium{ background:#FFF1C2; color:#7A5600; }
+.tag.expert{ background:var(--bad-bg); color:var(--bad); }
+.card .stars{ color:var(--power); font-size:1.1rem; letter-spacing:.1em; min-height:1.2em; }
+.card .buoyid{ font-size:.85rem; color:var(--muted); }
+
+/* Design lab */
+.lab{ display:grid; grid-template-columns:1.4fr 1fr; gap:1rem; align-items:start; }
+@media (max-width:820px){ .lab{ grid-template-columns:1fr; } }
+.sitebox{ display:flex; flex-wrap:wrap; gap:.6rem; }
+.chip{ background:var(--card); border:2px solid var(--line); border-radius:12px; padding:.4rem .75rem; font-size:1rem; }
+.chip b{ font-size:1.15rem; }
+.chip.warn{ border-color:var(--bad); background:var(--bad-bg); }
+.group{ margin:1rem 0; }
+.group h3{ margin:.2rem 0 .5rem; }
+.opts{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:.6rem; }
+.opt{ text-align:left; background:var(--card); border:3px solid var(--line); border-radius:14px; padding:.65rem .8rem; cursor:pointer; display:flex; flex-direction:column; gap:.2rem; }
+.opt[aria-pressed="true"]{ border-color:var(--sea); background:var(--sea-light); box-shadow:inset 0 0 0 2px var(--sea); }
+.opt .t{ font-weight:700; font-size:1.1rem; display:flex; gap:.4rem; align-items:center; }
+.opt .d{ font-size:.95rem; color:var(--muted); }
+.opt .p{ font-weight:700; color:var(--sea-deep); }
+:root[data-theme="dark"] .opt .p{ color:var(--power); }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .opt .p{ color:var(--power); } }
+.preview{ position:sticky; top:calc(env(safe-area-inset-top,0px) + .5rem); }
+.gauge{ margin:.5rem 0 .8rem; }
+.gauge .lbl{ display:flex; justify-content:space-between; font-weight:700; }
+.gauge .track{ height:16px; border-radius:999px; background:var(--paper); border:2px solid var(--line); overflow:hidden; }
+.gauge .fill{ height:100%; background:var(--sea); transition:width .3s, background .3s; }
+.gauge .fill.over{ background:var(--bad); }
+.check{ display:flex; gap:.5rem; align-items:flex-start; margin:.35rem 0; font-size:1rem; }
+.check .i{ flex:none; width:1.5rem; text-align:center; }
+.machine-svg{ width:100%; height:auto; display:block; background:var(--sky); border-radius:12px; margin-bottom:.5rem; }
+
+/* Test */
+.stage{ position:relative; border-radius:18px; overflow:hidden; border:3px solid var(--line); background:var(--sky); }
+.stage canvas{ display:block; width:100%; height:330px; }
+@media (max-width:640px){ .stage canvas{ height:250px; } }
+.stage.shake{ animation:shake .5s; }
+@keyframes shake{ 10%,90%{ transform:translateX(-2px);} 20%,80%{ transform:translateX(4px);} 30%,50%,70%{ transform:translateX(-8px);} 40%,60%{ transform:translateX(8px);} }
+@media (prefers-reduced-motion: reduce){ .stage.shake{ animation:none; } }
+.flash{ position:absolute; inset:0; background:rgba(192,57,43,.35); opacity:0; pointer-events:none; transition:opacity .4s; }
+.flash.on{ opacity:1; transition:none; }
+.banner{ position:absolute; left:50%; top:16px; transform:translateX(-50%); background:var(--bad); color:#fff; font-weight:700; border-radius:12px; padding:.4rem .9rem; display:none; font-size:1.1rem; }
+.hudrow{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.6rem; margin:.75rem 0; }
+.stat{ background:var(--card); border:2px solid var(--line); border-radius:14px; padding:.5rem .8rem; }
+.stat span{ display:block; color:var(--muted); font-size:.95rem; }
+.stat strong{ font-size:1.7rem; line-height:1.1; font-variant-numeric:tabular-nums; }
+.chartbox{ background:var(--card); border:2px solid var(--line); border-radius:14px; padding:.5rem; }
+.chartbox canvas{ display:block; width:100%; height:170px; }
+
+/* Results */
+.starrow{ display:grid; grid-template-columns:repeat(3,1fr); gap:.6rem; margin:1rem 0; }
+.starbox{ background:var(--card); border:3px solid var(--line); border-radius:16px; padding:.75rem; text-align:center; }
+.starbox .s{ font-size:3rem; line-height:1; filter:grayscale(1); opacity:.35; transform:scale(.6); transition:all .35s cubic-bezier(.3,1.6,.5,1); }
+.starbox.won{ border-color:var(--power); }
+.starbox.won .s{ filter:none; opacity:1; transform:scale(1); }
+.starbox p{ margin:.35rem auto 0; font-size:1rem; font-weight:700; }
+.tips{ border-left:6px solid var(--power); }
+.tablewrap{ overflow-x:auto; }
+table{ border-collapse:collapse; width:100%; min-width:640px; font-size:1rem; background:var(--card); }
+th,td{ border:2px solid var(--line); padding:.4rem .55rem; text-align:left; }
+th{ background:var(--sea-light); }
+textarea{ width:100%; min-height:5.5rem; font:inherit; color:var(--ink); background:var(--paper); border:2px solid var(--line); border-radius:12px; padding:.6rem; }
+.starter{ background:var(--sea-light); border-radius:12px; padding:.55rem .85rem; font-weight:700; }
+.report .stat span:last-child{ font-size:.9rem; }
+.ohio-big{ font-family:"Bungee", "Atkinson Hyperlegible", sans-serif; font-size:clamp(1.8rem,6vw,2.6rem); color:var(--sea-deep); margin:.3rem 0; line-height:1.1; }
+:root[data-theme="dark"] .ohio-big{ color:var(--power); }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .ohio-big{ color:var(--power); } }
+#confetti{ position:fixed; inset:0; pointer-events:none; z-index:50; width:100%; height:100%; }
+.cerbar{ display:flex; flex-wrap:wrap; gap:.35rem; margin:.5rem 0 1rem; }
+.cerbar span{ border:2px solid var(--line); border-radius:999px; padding:.2rem .7rem; font-size:.95rem; background:var(--card); color:var(--muted); }
+.cerbar span.now{ border-color:var(--sea); background:var(--sea); color:#fff; font-weight:700; }
+.cerbar span.done{ border-color:var(--good); color:var(--good); font-weight:700; }
+.coach{ display:flex; gap:.75rem; align-items:flex-start; background:var(--sea-light); border-radius:16px; padding:.75rem 1rem; margin:.75rem 0; }
+.coach .face{ font-size:2rem; line-height:1; flex:none; }
+.coach p{ margin:.2rem 0; }
+.coach.good{ background:var(--good-bg); }
+.coach.fix{ background:#FFF1C2; color:#4F3B00; }
+.bigq{ font-size:1.5rem; font-weight:700; line-height:1.3; margin:.75rem 0; }
+.pick{ display:grid; gap:.5rem; }
+.pick button{ text-align:left; border:3px solid var(--line); background:var(--card); border-radius:14px; padding:.6rem .85rem; cursor:pointer; font-size:1.05rem; display:flex; gap:.6rem; align-items:flex-start; }
+.pick button .box{ flex:none; width:1.6rem; height:1.6rem; border:3px solid var(--line); border-radius:8px; display:grid; place-items:center; font-weight:700; }
+.pick button[aria-pressed="true"]{ border-color:var(--sea); background:var(--sea-light); }
+.pick button[aria-pressed="true"] .box{ background:var(--sea); border-color:var(--sea); color:#fff; }
+.cmp td:first-child{ font-weight:700; }
+.need{ list-style:none; padding:0; margin:.4rem 0; }
+.need li{ margin:.3rem 0; font-size:1.1rem; }
+.final label{ font-weight:700; display:block; margin-top:.75rem; }
+.checks label{ display:flex; gap:.5rem; align-items:center; font-weight:400; margin:.35rem 0; }
+.checks input{ width:1.3rem; height:1.3rem; }
+#printArea{ display:none; }
+.tipsbox{ border-left:6px solid var(--power); }
+.tipsbox p{ margin:.25rem 0; }
+.trainwrap{ display:grid; grid-template-columns:1fr auto; gap:1rem; align-items:start; }
+@media (max-width:720px){ .trainwrap{ grid-template-columns:1fr; } }
+.graphbox svg{ width:100%; height:auto; display:block; }
+#trainNL svg{ width:200px; max-width:100%; height:auto; display:block; margin:0 auto; }
+.choices.big button{ font-size:1.3rem; font-weight:700; padding:.6rem 1.1rem; min-width:6rem; }
+.work{ font-size:1.3rem; font-weight:700; margin:.4rem 0; }
+.tabs .star{ color:var(--power); }
+@media print{ body > *:not(#printArea){ display:none !important; } #printArea{ display:block; color:#000; background:#fff; font-size:14pt; } }
+</style>
+</head>
+<body>
+<!-- ===== WTK: shared tools (reading help, save, start over, Canvas submit) ===== -->
+<style>
+.wtk-bar{ display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; max-width:1060px; margin:0 auto; padding:.6rem 1rem 0; }
+.wtk-bar button, .wtk-panel button{ font:inherit; font-size:1rem; font-weight:700; cursor:pointer; border:2px solid var(--line); background:var(--card); color:var(--ink); border-radius:12px; padding:.35rem .75rem; }
+.wtk-bar button[aria-pressed="true"], .wtk-panel button[aria-pressed="true"]{ background:var(--sea); border-color:var(--sea); color:#fff; }
+.wtk-bar .wtk-save{ border-color:var(--good); }
+.wtk-bar .wtk-reset.armed{ background:var(--bad); border-color:var(--bad); color:#fff; }
+.wtk-bar .wtk-sp{ flex:1 1 auto; }
+.wtk-bar a.wtk-home{ font-weight:700; font-size:1rem; text-decoration:none; border:2px solid var(--line); background:var(--card); color:var(--ink); border-radius:12px; padding:.35rem .75rem; }
+.wtk-bar a.wtk-home[hidden]{ display:none; }
+.wtk-panel{ max-width:1060px; margin:.5rem auto 0; padding:.8rem 1rem; background:var(--card); border:2px solid var(--sea); border-radius:16px; display:grid; gap:.5rem; }
+.wtk-panel[hidden]{ display:none; }
+.wtk-panel .wtk-row{ display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+.wtk-panel p{ margin:.1rem 0; font-size:.95rem; color:var(--muted); }
+.wtk-toast{ position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); transform:translateX(-50%); background:var(--ink); color:var(--paper); padding:.55rem 1rem; border-radius:12px; font-weight:700; z-index:60; opacity:0; pointer-events:none; transition:opacity .25s; max-width:90vw; text-align:center; }
+.wtk-toast.on{ opacity:1; }
+.wtk-modal{ position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:55; display:flex; align-items:flex-start; justify-content:center; padding:calc(env(safe-area-inset-top,0px) + 2rem) 1rem 1rem; overflow:auto; }
+.wtk-modal[hidden]{ display:none; }
+.wtk-modal .box{ background:var(--card); color:var(--ink); border-radius:18px; max-width:720px; width:100%; padding:1rem 1.2rem; border:3px solid var(--sea); }
+.wtk-words{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.5rem; margin:.6rem 0; }
+.wtk-words div{ border-left:6px solid var(--sea); background:var(--paper); border-radius:0 12px 12px 0; padding:.45rem .7rem; }
+.wtk-words b{ display:block; font-size:1.1rem; }
+.wtk-words button{ border:0; background:none; cursor:pointer; font-size:1.1rem; float:right; }
+.wtk-said{ outline:4px solid var(--power) !important; outline-offset:3px; border-radius:6px; }
+html.wtk-tap body{ cursor:help; }
+html.wtk-easy body{ letter-spacing:.04em; word-spacing:.16em; line-height:1.85; }
+html.wtk-easy p, html.wtk-easy li{ max-width:58ch; }
+html.wtk-calm *, html.wtk-calm *::before, html.wtk-calm *::after{ animation:none !important; transition:none !important; }
+html.wtk-fewer [data-extra]{ display:none !important; }
+:root.wtk-hc.wtk-hc{ --paper:#FFFFFF; --card:#FFFFFF; --ink:#000000; --muted:#1A1A1A; --line:#000000; --sea:#00506B; --sea-deep:#002F3F; --sea-light:#DDF3FA; --sky:#EAF7FB; --power:#FFC400; --good:#006B2E; --good-bg:#DDF5E4; --bad:#A80000; --bad-bg:#FFE3E3; color-scheme:light; }
+:root.wtk-hc.wtk-hc body{ background:#FFFFFF; color:#000000; }
+:root.wtk-hc.wtk-hc button, :root.wtk-hc.wtk-hc .panel, :root.wtk-hc.wtk-hc .card{ border-width:3px; }
+.wtk-submit{ background:var(--card); border:3px solid var(--good); border-radius:16px; padding:.9rem 1.1rem; margin:1rem 0; }
+.wtk-submit h3{ margin:.1rem 0 .5rem; }
+.wtk-submit label{ font-weight:700; }
+.wtk-submit input[type=text]{ font:inherit; font-size:1.1rem; padding:.35rem .6rem; border:2px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); width:min(100%,22rem); }
+.wtk-submit .wtk-btns{ display:flex; flex-wrap:wrap; gap:.5rem; margin:.7rem 0; }
+.wtk-submit .wtk-btns button{ font:inherit; font-weight:700; font-size:1.05rem; cursor:pointer; border-radius:12px; padding:.55rem 1rem; border:3px solid var(--sea-deep); background:var(--card); color:var(--ink); }
+.wtk-submit .wtk-btns button.main{ background:var(--power); border-color:#8A6500; color:#2A1F00; }
+.wtk-submit ol{ margin:.4rem 0; padding-left:1.4rem; }
+.wtk-submit textarea{ width:100%; min-height:10rem; font:inherit; font-size:1rem; border:2px solid var(--line); border-radius:12px; padding:.6rem; background:var(--paper); color:var(--ink); }
+.wtk-cert{ background:var(--card); border:4px double #C99500; border-radius:18px; padding:1rem 1.2rem; margin:1rem 0; }
+.wtk-cert.locked{ border:3px dashed var(--line); }
+.wtk-cert h3{ margin:.1rem 0 .4rem; }
+.wtk-cert .big{ font-family:"Bungee","Atkinson Hyperlegible",sans-serif; font-size:clamp(1.4rem,5vw,2rem); letter-spacing:.04em; color:#8A6500; background:#FFF1C2; border-radius:12px; padding:.3rem .8rem; display:inline-block; }
+.wtk-cert .chk{ font-weight:700; font-size:1.2rem; background:var(--paper); border:2px solid var(--line); border-radius:10px; padding:.15rem .6rem; letter-spacing:.12em; }
+.wtk-cert ul{ margin:.3rem 0; padding-left:1.3rem; }
+.wtk-cert input[type=text]{ font:inherit; font-size:1.1rem; padding:.3rem .6rem; border:2px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); width:min(100%,20rem); }
+.wtk-cert ol{ margin:.4rem 0; padding-left:1.4rem; }
+@media print{ .wtk-cert{ display:none; } }
+@media print{ .wtk-bar, .wtk-panel, .wtk-toast, .wtk-modal{ display:none !important; } }
+</style>
+<div class="wtk-bar" role="toolbar" aria-label="Reading help and saving">
+  <button type="button" data-wtk="tap" aria-pressed="false" title="Tap any sentence to hear it read out loud">🔊 Tap to hear</button>
+  <button type="button" data-wtk="size" title="Make the words bigger">Aa Bigger text</button>
+  <button type="button" data-wtk="more" aria-expanded="false">♿ Reading help</button>
+  <button type="button" data-wtk="words">📖 Word help</button>
+  <a class="wtk-home" href="play/" hidden>🏠 All activities</a>
+  <span class="wtk-sp"></span>
+  <button type="button" data-wtk="save" class="wtk-save">💾 Save</button>
+  <button type="button" data-wtk="reset" class="wtk-reset">↺ Start over</button>
+</div>
+<div class="wtk-panel" id="wtkPanel" hidden>
+  <div class="wtk-row"><b>Text size:</b> <button type="button" data-wtk="smaller">A−</button> <button type="button" data-wtk="bigger">A+</button> <span id="wtkSizeTxt"></span></div>
+  <div class="wtk-row">
+    <button type="button" data-wtk="easy" aria-pressed="false">↔ Easy-read spacing</button>
+    <button type="button" data-wtk="hc" aria-pressed="false">🔆 High contrast</button>
+    <button type="button" data-wtk="calm" aria-pressed="false">🌙 Calm mode (no shaking, sounds, or confetti)</button>
+    <button type="button" data-wtk="slow" aria-pressed="false">🐢 Slower read-aloud</button>
+    <button type="button" data-wtk="fewer" aria-pressed="false">✌ Fewer answer choices</button>
+  </div>
+  <p>These settings stay on for this computer. Nothing has a timer, so take all the time you need.</p>
+</div>
+<div class="wtk-modal" id="wtkWords" hidden role="dialog" aria-modal="true" aria-labelledby="wtkWordsTitle">
+  <div class="box">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem"><h2 id="wtkWordsTitle" style="margin:0">📖 Word help</h2><button type="button" data-wtk="closewords" class="btn" style="font:inherit;font-weight:700;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:.35rem .8rem;cursor:pointer">Close</button></div>
+    <p style="margin:.4rem 0 0">Tap 🔊 to hear a word.</p>
+    <div class="wtk-words" id="wtkWordList"></div>
+  </div>
+</div>
+<div class="wtk-toast" id="wtkToast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+  const root = document.documentElement;
+  const SIZES = [100,115,130,150];
+  let S = { size:0, easy:false, hc:false, calm:false, tap:false, slow:false, fewer:false };
+  try{ Object.assign(S, JSON.parse(localStorage.getItem('wtk-settings')||'{}')); }catch(e){}
+  const WORDS = [
+    ['🌊','wave','A movement that carries energy from one place to another.'],
+    ['⛰️','crest','The top of a wave.'],
+    ['🕳️','trough','The bottom of a wave.'],
+    ['📏','wave height','From the bottom (trough) to the top (crest). Wave height = crest − trough.'],
+    ['↕️','amplitude','How far the water moves up from still water. Taller wave = bigger amplitude = more energy.'],
+    ['➖','still water (rest position)','Where the water is with no waves. On our graphs it is 0.'],
+    ['⚡','energy','The ability to make something move or change.'],
+    ['🔌','power','How fast energy is made or used. We measure it in kilowatts (kW).'],
+    ['🏠','kilowatt (kW)','A unit of power. One home uses about 1.2 kW on average.'],
+    ['🔋','kilowatt-hour (kWh)','A unit of energy. It is power that piles up over time.'],
+    ['🛟','buoy','A floating machine in the water. NOAA buoys measure waves.'],
+    ['⚙️','generator','A machine that turns motion into electricity.'],
+    ['♻️','renewable','Will not run out. The wind keeps making waves.'],
+    ['🔒','constant','Something you keep the same in a fair test.'],
+    ['🔀','variable','Something you change or measure in a test.'],
+    ['➖','negative number','A number less than zero. On a water graph it is below the 0 line.'],
+    ['✅','feasible','Possible to really do.'],
+    ['🗣️','claim','One sentence that answers the question.'],
+    ['📊','evidence','Data (numbers and facts) that support your claim.'],
+    ['🧠','reasoning','The science idea that explains why your evidence supports your claim.'],
+    ['🔁','conservation of energy','Energy cannot be made or destroyed. It can only move or change form.'],
+  ];
+  const $ = s => document.querySelector(s);
+  let app = null, resetArmed = 0;
+  function persist(){ try{ localStorage.setItem('wtk-settings', JSON.stringify(S)); }catch(e){} }
+  function apply(){
+    root.style.fontSize = SIZES[S.size] + '%';
+    root.classList.toggle('wtk-easy', !!S.easy); root.classList.toggle('wtk-hc', !!S.hc);
+    root.classList.toggle('wtk-calm', !!S.calm); root.classList.toggle('wtk-tap', !!S.tap);
+    root.classList.toggle('wtk-fewer', !!S.fewer);
+    document.querySelectorAll('[data-wtk]').forEach(b=>{ const k=b.dataset.wtk; if(k in S && typeof S[k]==='boolean') b.setAttribute('aria-pressed', S[k]); });
+    const st = $('#wtkSizeTxt'); if(st) st.textContent = 'Size ' + (S.size+1) + ' of 4';
+    persist(); window.dispatchEvent(new CustomEvent('wtk-change'));
+  }
+  function toast(msg){ const t=$('#wtkToast'); if(!t) return; t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'), 2600); }
+  const W = window.WTK = {
+    calm: ()=>!!S.calm, fewer: ()=>!!S.fewer, rate: ()=> S.slow ? 0.7 : 0.9, toast,
+    speak(text){ if(!('speechSynthesis' in window) || !text) return; try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(String(text).replace(/\u2212/g,' minus ').replace(/×/g,' times ')); u.rate=W.rate(); speechSynthesis.speak(u); }catch(e){} },
+    register(o){
+      app = o;
+      let loaded = false;
+      try{ const raw = localStorage.getItem(o.key); if(raw){ o.set(JSON.parse(raw)); loaded = true; } }catch(e){}
+      if(loaded) setTimeout(()=>toast('👋 Welcome back! Your saved work is loaded.'), 400);
+      setInterval(()=>W.save(true), 15000);
+      window.addEventListener('pagehide', ()=>W.save(true));
+      document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') W.save(true); });
+      return loaded;
+    },
+    save(quiet){
+      if(!app) return;
+      try{ localStorage.setItem(app.key, JSON.stringify(app.get())); if(!quiet) toast('💾 Saved on this computer at ' + new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})); }
+      catch(e){ if(!quiet) toast('Saving is blocked in this browser. Use Copy for Canvas to keep your work.'); }
+    },
+    name(v){ try{ if(v!==undefined) localStorage.setItem('wtk-name', v); return localStorage.getItem('wtk-name') || ''; }catch(e){ return v||''; } },
+    async copyRich(html, text){
+      try{ if(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){ await navigator.clipboard.write([new ClipboardItem({'text/html': new Blob([html],{type:'text/html'}), 'text/plain': new Blob([text],{type:'text/plain'})})]); return true; } }catch(e){}
+      try{ await navigator.clipboard.writeText(text); return true; }catch(e){ return false; }
+    },
+    download(text, filename){
+      try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'})); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500); return true; }catch(e){ return false; }
+    },
+    print(html){ const pa=document.getElementById('printArea'); if(!pa) return false; pa.innerHTML = html; try{ window.print(); return true; }catch(e){ return false; } },
+    esc: s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'),
+    /* Name check: 3 letters made from the student's name + the activity. Ms. Welch checks it in her planner. */
+    nameCheck(name, key){
+      const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789'; const n=String(name||'').toLowerCase().replace(/[^a-z]/g,''); if(!n) return '---';
+      let h=2166136261; const str=n+'|'+key+'|wel2027'; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+      let out=''; for(let i=0;i<3;i++){ out+=A[h%A.length]; h=Math.floor(h/A.length); } return out;
+    },
+    /* Certificate with the fixed unlock code + name check. o: { key, title, lesson, enc, unlocked, steps:[[text,done]], details:[...] } */
+    cert(container, o){
+      if(!container) return;
+      if(!o.unlocked){
+        container.innerHTML = `<div class="wtk-cert locked"><h3>🔒 Unlock code: ${o.title}</h3><p>Finish these to unlock your code for Classkick:</p><ul>${(o.steps||[]).map(([t,d])=>`<li>${d?'✅':'⬜'} ${t}</li>`).join('')}</ul></div>`;
+        return;
+      }
+      const code = atob(o.enc).split('').reverse().join('');
+      const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+      container.innerHTML = `<div class="wtk-cert" aria-live="polite">
+        <h3>🏅 Certificate of Completion</h3>
+        <p><b>${o.title}</b> · Lesson ${o.lesson} · ${today}</p>
+        <p><label for="cert-${o.key}"><b>Name:</b></label> <input type="text" id="cert-${o.key}" autocomplete="name" value="${W.esc(W.name())}"></p>
+        ${o.details && o.details.length ? `<ul>${o.details.map(d=>`<li>${d}</li>`).join('')}</ul>` : ''}
+        <p>Unlock code: <span class="big">${code}</span></p>
+        <p>Name check: <span class="chk" data-chk>${W.nameCheck(W.name(), o.key)}</span></p>
+        <p><b>Turn it in on Classkick:</b></p>
+        <ol><li>Type the <b>unlock code</b> in the Classkick box.</li><li>Take a screenshot of this certificate with your name on it. On a Chromebook press <b>Ctrl + Shift + Show windows</b> (⧉), then drag over the certificate. On Windows press <b>Windows + Shift + S</b>.</li><li>Paste the screenshot into Classkick.</li></ol>
+      </div>`;
+      const inp = container.querySelector('input'), chk = container.querySelector('[data-chk]');
+      inp.addEventListener('input', ()=>{ W.name(inp.value); chk.textContent = W.nameCheck(inp.value, o.key); const other=document.getElementById('wtkName'); if(other && other!==inp) other.value = inp.value; });
+    },
+    /* Renders the "Turn in your work" panel. opts: { buildText(name), buildHtml(name), buildPrint(name)?, filename } */
+    submitPanel(container, opts){
+      const name = W.name();
+      container.innerHTML = `<div class="wtk-submit">
+        <h3>📤 Turn in your work</h3>
+        <label for="wtkName">Your name:</label> <input type="text" id="wtkName" autocomplete="name" value="${W.esc(name)}">
+        <div class="wtk-btns">
+          <button type="button" class="main" data-sub="copy">📋 Copy for Canvas</button>
+          <button type="button" data-sub="print">🖨️ Print or save as PDF</button>
+          <button type="button" data-sub="dl">⬇️ Download as a text file</button>
+        </div>
+        <p class="note" data-sub="msg" role="status" aria-live="polite"></p>
+        <p><b>How to turn it in on Canvas:</b></p>
+        <ol><li>Press <b>📋 Copy for Canvas</b>.</li><li>In Canvas, open the assignment and press <b>Start Assignment</b>.</li><li>Choose <b>Text Entry</b>. Click inside the big box.</li><li>Press <b>Ctrl + V</b> (or Command + V on a Mac) to paste.</li><li>Press <b>Submit Assignment</b>.</li></ol>
+        <p><b>If Copy does not work:</b> press <b>Select all</b>, then press Ctrl + C, then paste in Canvas.</p>
+        <textarea readonly aria-label="Your work as text" data-sub="text"></textarea>
+        <div class="wtk-btns"><button type="button" data-sub="select">Select all</button></div>
+      </div>`;
+      const q = s => container.querySelector(`[data-sub="${s}"]`);
+      const nameIn = container.querySelector('#wtkName');
+      const refresh = ()=>{ q('text').value = opts.buildText(nameIn.value.trim()); };
+      nameIn.addEventListener('input', ()=>{ W.name(nameIn.value); refresh(); });
+      refresh();
+      const needName = ()=>{ if(!nameIn.value.trim()){ q('msg').textContent='Type your name first.'; nameIn.focus(); return true; } return false; };
+      q('copy').addEventListener('click', async()=>{ if(needName()) return; refresh(); const ok = await W.copyRich(opts.buildHtml(nameIn.value.trim()), q('text').value); q('msg').textContent = ok ? '✅ Copied! Now paste it into Canvas (Ctrl + V).' : 'Copy is blocked here. Press Select all, then Ctrl + C.'; });
+      q('print').addEventListener('click', ()=>{ if(needName()) return; const ok = W.print((opts.buildPrint||opts.buildHtml)(nameIn.value.trim())); if(!ok) q('msg').textContent='Printing is blocked here. Use Copy for Canvas instead.'; else q('msg').textContent='In the print window, choose “Save as PDF” to make a PDF.'; });
+      q('dl').addEventListener('click', ()=>{ if(needName()) return; refresh(); const ok = W.download(q('text').value, opts.filename); q('msg').textContent = ok ? 'If nothing downloaded, use Copy for Canvas instead.' : 'Downloading is blocked here. Use Copy for Canvas instead.'; });
+      q('select').addEventListener('click', ()=>{ refresh(); const t=q('text'); t.focus(); t.select(); });
+    }
+  };
+  // toolbar
+  document.addEventListener('click', e=>{
+    const b = e.target.closest('[data-wtk]'); if(!b) return;
+    const k = b.dataset.wtk;
+    if(k==='size'){ S.size = (S.size+1) % SIZES.length; apply(); toast('Text size ' + (S.size+1) + ' of 4'); return; }
+    if(k==='bigger'){ S.size = Math.min(3, S.size+1); apply(); return; }
+    if(k==='smaller'){ S.size = Math.max(0, S.size-1); apply(); return; }
+    if(k==='more'){ const p=$('#wtkPanel'); p.hidden=!p.hidden; b.setAttribute('aria-expanded', !p.hidden); return; }
+    if(k==='words'){ $('#wtkWords').hidden=false; $('[data-wtk="closewords"]').focus(); return; }
+    if(k==='closewords'){ $('#wtkWords').hidden=true; return; }
+    if(k==='save'){ W.save(false); return; }
+    if(k==='reset'){
+      if(!resetArmed){ resetArmed = 1; b.classList.add('armed'); b.textContent='Tap again to erase ALL my work'; setTimeout(()=>{ resetArmed=0; b.classList.remove('armed'); b.textContent='↺ Start over'; }, 4000); return; }
+      try{ (app && app.keys ? app.keys : (app?[app.key]:[])).forEach(x=>localStorage.removeItem(x)); }catch(e){}
+      if(app && app.onReset) app.onReset();
+      history.replaceState(null,'',location.pathname); location.reload(); return;
+    }
+    if(k in S && typeof S[k]==='boolean'){ S[k] = !S[k]; apply(); if(k==='tap' && S.tap) W.speak('Tap to hear is on. Tap any sentence to hear it.'); }
+  });
+  $('#wtkWords').addEventListener('click', e=>{ if(e.target.id==='wtkWords') e.target.hidden=true; });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('#wtkWords').hidden=true; });
+  $('#wtkWordList').innerHTML = WORDS.map((w,i)=>`<div><button type="button" data-say-word="${i}" aria-label="Hear ${w[1]}">🔊</button><b>${w[0]} ${w[1]}</b>${w[2]}</div>`).join('');
+  $('#wtkWordList').addEventListener('click', e=>{ const b=e.target.closest('[data-say-word]'); if(b){ const w=WORDS[+b.dataset.sayWord]; W.speak(w[1]+'. '+w[2]); } });
+  // tap to hear
+  document.addEventListener('click', e=>{
+    if(!S.tap || !e.isTrusted || e.target.closest('.wtk-bar,.wtk-panel,[data-say-word],select,input,textarea')) return;
+    const el = e.target.closest('p,li,h1,h2,h3,td,th,label,button,.cstat,.chip,.opt,.bigq,small,.target-tag,.coach');
+    if(!el) return;
+    let t = el.innerText || el.getAttribute('aria-label') || '';
+    t = t.trim(); if(!t) return;
+    W.speak(t.slice(0,600)); el.classList.add('wtk-said'); setTimeout(()=>el.classList.remove('wtk-said'), 900);
+  }, true);
+  apply();
+  { const hl=document.querySelector('.wtk-home'); if(hl && (/github\.io$/.test(location.hostname) || location.protocol==='file:')) hl.hidden=false; }
+})();
+</script>
+<!-- ===== end WTK ===== -->
+
+<canvas id="confetti" aria-hidden="true"></canvas>
+<div class="wrap">
+  <div class="hud">
+    <h1>Wave Power Engineer</h1>
+    <div class="coins" id="coins" aria-live="polite" title="Your budget"><span class="c">$</span><span id="coinNum">100</span></div>
+    <button class="iconbtn" id="soundBtn" type="button" aria-pressed="true">🔊 Sound on</button>
+  </div>
+
+  <div class="process" aria-label="Engineering design steps">
+    <div data-p="0"><b>1</b><span>Ask: pick a place</span></div>
+    <div data-p="1"><b>2</b><span>Plan: design it</span></div>
+    <div data-p="2"><b>3</b><span>Test it</span></div>
+    <div data-p="3"><b>4</b><span>Improve it</span></div>
+    <div data-p="4"><b>5</b><span>Report: power Ohio?</span></div>
+  </div>
+
+  <!-- INTRO -->
+  <section class="screen on" id="scr-intro" data-say="Your mission. Towns need clean electricity. Ocean waves have lots of energy. Your job is to design a wave power machine. Then test it on real ocean waves. Then make it better. Remember: taller waves have a bigger amplitude, so they carry more energy and make more power.">
+    <div class="hero">
+      <div>
+        <h2>Your mission</h2>
+        <button class="say" type="button">🔊 Read to me</button>
+        <p class="big">Towns need clean electricity. Ocean waves have lots of energy.</p>
+        <p class="big">Your job: <b>design a wave power machine</b>, test it on <b>real ocean waves</b>, and make it better.</p>
+        <div class="feats">
+          <div><span class="e">📡</span><span>Use real wave data from NOAA ocean buoys.</span></div>
+          <div><span class="e">🛠️</span><span>Pick your machine, its size, and how strong it is.</span></div>
+          <div><span class="e">⛈️</span><span>Test it in a storm. Earn up to 3 stars.</span></div>
+        </div>
+        <p><b>Remember:</b> Taller waves have a bigger <b>amplitude</b>. They carry more energy, so they make more power.</p>
+        <div class="row" style="margin-top:1rem"><button class="btn go" id="startBtn" type="button">Start mission</button></div>
+      </div>
+      <svg viewBox="0 0 400 300" role="img" aria-label="A yellow NOAA-style buoy floating on ocean waves.">
+        <rect width="400" height="300" fill="var(--sky)"/>
+        <path d="M0 170 C 50 140 100 140 150 170 S 250 200 300 170 S 380 140 400 160 L400 300 L0 300Z" fill="var(--sea)"/>
+        <path d="M0 210 C 60 190 120 190 180 210 S 300 230 400 205 L400 300 L0 300Z" fill="var(--sea-deep)" opacity=".6"/>
+        <g transform="translate(200 150)">
+          <rect x="-6" y="-95" width="12" height="60" fill="var(--ink)"/>
+          <rect x="-22" y="-60" width="44" height="14" rx="3" fill="var(--ink)"/>
+          <circle cx="0" cy="-100" r="8" fill="var(--bad)"/>
+          <path d="M-60 -30 L60 -30 L45 10 L-45 10 Z" fill="var(--power)" stroke="var(--ink)" stroke-width="4"/>
+          <rect x="-30" y="-25" width="60" height="16" rx="3" fill="#fff" opacity=".85"/>
+          <text x="0" y="-12" text-anchor="middle" font-size="12" font-weight="700" fill="#102A43" font-family="Verdana, sans-serif">NOAA</text>
+        </g>
+        <path d="M120 60 q10 -10 20 0 M150 45 q10 -10 20 0" stroke="var(--muted)" stroke-width="3" fill="none"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- PLACE -->
+  <section class="screen" id="scr-place" data-say="Step 1. Ask: where should we build? These are real ocean buoys. A buoy is a floating machine that measures waves. Look at the waves at each place. Answer the Buoy Detective questions to earn more money. Then tap a place to build there.">
+    <h2>Step 1: Where should we build?</h2>
+    <button class="say" type="button">🔊 Read to me</button>
+    <p>These are real NOAA <b>buoys</b>. A buoy is a floating machine that measures waves.</p>
+    <div class="datastatus" aria-live="polite">
+      <span class="dot" id="dataDot"></span><span id="dataText">Loading wave data…</span>
+      <button class="iconbtn" id="refreshBtn" type="button">Check for new data</button>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin-top:0">Compare the buoys</h3>
+      <div class="tabs" role="group" aria-label="What to compare">
+        <button type="button" data-k="h" aria-pressed="true">Wave height</button>
+        <button type="button" data-k="p" aria-pressed="false">Power from a test machine</button>
+      </div>
+      <div class="bars" id="bars"></div>
+      <p class="note" id="chartNote"></p>
+    </div>
+
+    <div class="panel detective">
+      <h3 style="margin-top:0">🔎 Buoy Detective: earn $10 for each right answer</h3>
+      <p class="note">Use the chart. You get one try for each question.</p>
+      <div id="detQs"></div>
+    </div>
+
+    <div class="panel trainpromo">
+      <h3 style="margin-top:0">🎯 Buoy Training: earn up to $50</h3>
+      <p>Practice reading wave graphs and working with negative numbers. Earn $5 for each problem you get right on the first try.</p>
+      <button class="btn go" id="trainBtn" type="button">Start Buoy Training</button>
+    </div>
+    <div class="row" style="margin-top:1rem"><button class="btn" id="cerBtn2" type="button">📝 Final report: Could we power Ohio?</button></div>
+    <div id="wpeCertPlace"></div>
+    <h3>Tap a place to build there</h3>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <!-- DESIGN -->
+  <section class="screen" id="scr-design" data-say="Step 2. Plan your machine. Pick a machine type, a size, and a strength. Bigger machines make more power but cost more. Stronger machines survive bigger storm waves but cost more. Stay under your budget. Then press Build and test.">
+    <h2>Step 2: Plan your machine</h2>
+    <button class="say" type="button">🔊 Read to me</button>
+    <div class="sitebox" id="siteBox"></div>
+    <div class="lab">
+      <div>
+        <div class="group">
+          <h3>1. Machine type</h3>
+          <div class="opts" id="optType"></div>
+        </div>
+        <div class="group">
+          <h3>2. Size</h3>
+          <p class="note">Bigger catches more waves. More power, but more money.</p>
+          <div class="opts" id="optSize"></div>
+        </div>
+        <div class="group">
+          <h3>3. Strength</h3>
+          <p class="note">Strong machines survive big storm waves.</p>
+          <div class="opts" id="optStr"></div>
+        </div>
+      </div>
+      <div class="panel preview">
+        <svg class="machine-svg" id="machinePic" viewBox="0 0 300 150" role="img" aria-label="Picture of your machine"></svg>
+        <div class="gauge">
+          <div class="lbl"><span>Cost</span><span id="costTxt"></span></div>
+          <div class="track"><div class="fill" id="costFill"></div></div>
+        </div>
+        <div class="check"><span class="i" id="ckStorm"></span><span id="ckStormTxt"></span></div>
+        <div class="check"><span class="i" id="ckPow"></span><span id="ckPowTxt"></span></div>
+        <div class="check"><span class="i" id="ckMatch"></span><span id="ckMatchTxt"></span></div>
+        <div class="row" style="margin-top:.8rem">
+          <button class="btn go" id="buildBtn" type="button">Build and test</button>
+        </div>
+        <p class="note" id="buildNote"></p>
+        <div class="row" style="margin-top:.5rem"><button class="btn" data-goto="place" type="button">Back to places</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEST -->
+  <section class="screen" id="scr-test" data-say="Step 3. Test. Watch your machine for 48 hours of waves. Look for the storm. If a wave is taller than your machine can handle, it breaks.">
+    <h2>Step 3: Test it for 48 hours</h2>
+    <button class="say" type="button">🔊 Read to me</button>
+    <p class="note" id="testSource"></p>
+    <div class="stage" id="stage">
+      <canvas id="cv" role="img" aria-label="Your wave machine being tested on ocean waves."></canvas>
+      <div class="flash" id="flash"></div>
+      <div class="banner" id="banner">💥 Your machine broke!</div>
+    </div>
+    <div class="hudrow">
+      <div class="stat"><span>Time</span><strong id="sHour">Hour 0</strong></div>
+      <div class="stat"><span>Wave height now</span><strong id="sWave">0 m</strong></div>
+      <div class="stat"><span>Homes powered now</span><strong id="sHomes">0</strong></div>
+      <div class="stat"><span>Average homes</span><strong id="sAvg">0</strong></div>
+    </div>
+    <div class="chartbox"><canvas id="chart" role="img" aria-label="Line graph of wave height over 48 hours, with a dashed line where your machine breaks."></canvas></div>
+    <div class="row" style="margin-top:.75rem"><button class="btn" id="skipBtn" type="button">Skip to the end</button></div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="screen" id="scr-results" data-say="Step 4. Improve. Look at your stars. Read the engineer tips. Then change one thing and test again. Real engineers test many times.">
+    <h2>Step 4: How did it go?</h2>
+    <button class="say" type="button">🔊 Read to me</button>
+    <div class="starrow">
+      <div class="starbox" id="st0"><div class="s">⭐</div><p>Survived the storm</p></div>
+      <div class="starbox" id="st1"><div class="s">⭐</div><p id="st1txt">Met the homes goal</p></div>
+      <div class="starbox" id="st2"><div class="s">⭐</div><p>Saved $15 or more</p></div>
+    </div>
+    <div class="panel tips">
+      <h3 style="margin-top:0">Engineer tips</h3>
+      <div id="tips"></div>
+    </div>
+    <div class="row">
+      <button class="btn go" id="improveBtn" type="button">Improve my design</button>
+      <button class="btn" data-goto="place" type="button">Pick a new place</button>
+      <button class="btn" id="cerBtn1" type="button">📝 Final report: Could we power Ohio?</button>
+    </div>
+
+    <div class="panel report">
+      <h3 style="margin-top:0">⚡ Power report card</h3>
+      <div class="hudrow" id="report"></div>
+      <div class="bars" id="reportBars"></div>
+      <p class="note">kW tells how fast your machine makes power. kWh tells how much energy piles up over time. It is like miles per hour and miles.</p>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin-top:0">🏙️ Power Ohio challenge</h3>
+      <p>Ohio has about <b>4.9 million homes</b>. How many of your machines would it take to power all of them?</p>
+      <div id="ohio"></div>
+      <p class="note">Sources: U.S. Census Bureau (Ohio homes, 2024). U.S. Energy Information Administration (one home uses about 10,500 kWh a year). Ohio Department of Natural Resources (Lake Erie shore).</p>
+    </div>
+
+    <h3>📓 Engineer’s notebook</h3>
+    <p class="note">Every test you run is saved here. Compare your designs.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Test</th><th>Place</th><th>Machine</th><th>Cost</th><th>Average homes</th><th>Goal</th><th>Survived?</th><th>Stars</th><th>Machines to power Ohio</th></tr></thead>
+        <tbody id="nbRows"></tbody>
+      </table>
+    </div>
+    <h3>Explain your best design</h3>
+    <p class="starter">My best design was a ______ at ______. It worked because the waves were ______, so I chose ______.</p>
+    <label class="note" for="why">Type here:</label>
+    <textarea id="why"></textarea>
+    <div class="row" style="margin-top:.5rem"><button class="btn" id="copyBtn" type="button">Copy my answer</button><span class="note" id="copyMsg" aria-live="polite"></span></div>
+  </section>
+
+  <!-- BUOY TRAINING -->
+  <section class="screen" id="scr-train" data-say="">
+    <h2>🎯 Buoy Training</h2>
+    <button class="say" type="button">🔊 Read to me</button>
+    <div class="sitebox">
+      <div class="chip">💰 Earned: <b id="trEarned">$0</b> of $50</div>
+      <div class="chip">🔥 Streak: <b id="trStreak">0</b></div>
+    </div>
+    <div class="panel tipsbox">
+      <p><b>Above the 0 line</b> = positive (+). <b>Below the 0 line</b> = negative (−).</p>
+      <p><b>Wave height</b> = crest − trough. <b>Change</b> = end − start.</p>
+      <p><b>Subtracting a negative is the same as adding:</b> 6 − (−8) = 6 + 8 = 14</p>
+    </div>
+    <div class="tabs" id="trainTabs" role="group" aria-label="Training level"></div>
+    <div class="panel">
+      <p class="note" id="trainSrc"></p>
+      <div class="trainwrap">
+        <div class="graphbox" id="trainGraph"></div>
+        <div id="trainNL"></div>
+      </div>
+      <p class="bigq" id="trainQ"></p>
+      <div class="choices big" id="trainChoices"></div>
+      <div id="trainFb" aria-live="polite"></div>
+      <div class="row" style="margin-top:.75rem">
+        <button class="btn" id="nlBtn" type="button">Show me on a number line</button>
+        <button class="btn go" id="nextQ" type="button">Next problem</button>
+      </div>
+    </div>
+    <div id="trainCert"></div>
+    <div class="row"><button class="btn" id="trainBack" type="button">Back to places</button></div>
+  </section>
+
+  <!-- FEASIBILITY CER -->
+  <section class="screen" id="scr-cer" data-say="">
+    <h2>Final report: Could we really power Ohio?</h2>
+    <button class="say" type="button">🔊 Read to me</button>
+    <div class="cerbar" id="cerBar"></div>
+    <div id="cerBody"></div>
+    <div class="row" id="cerNav" style="margin-top:1rem; justify-content:space-between">
+      <button class="btn" id="cerBack" type="button">Back</button>
+      <button class="btn go" id="cerNext" type="button">Next</button>
+    </div>
+  </section>
+</div>
+<div id="printArea"></div>
+
+<script>
+(function(){
+"use strict";
+/* ================= DATA ================= */
+// Saved snapshot from NOAA NDBC latest observations file (Nov 18, 2026, 09:20–09:56 UTC).
+const SNAPSHOT_UTC = Date.UTC(2026,10,18,9,50);
+const BUOYS = [
+  {id:'45164', name:'Lake Erie, near Cleveland, Ohio', where:'Great Lakes', h:0.4, t:3},
+  {id:'44007', name:'Portland, Maine', where:'Atlantic Ocean', h:0.4, t:4},
+  {id:'44013', name:'Boston, Massachusetts', where:'Atlantic Ocean', h:0.7, t:3},
+  {id:'41120', name:'Cape Hatteras, North Carolina', where:'Atlantic Ocean', h:0.8, t:5},
+  {id:'42001', name:'Middle of the Gulf of Mexico', where:'Gulf of Mexico', h:3.2, t:11},
+  {id:'46225', name:'Torrey Pines, San Diego, California', where:'Pacific Ocean', h:1.5, t:13},
+  {id:'46042', name:'Monterey Bay, California', where:'Pacific Ocean', h:2.5, t:13},
+  {id:'46014', name:'Point Arena, California', where:'Pacific Ocean', h:4.3, t:8},
+  {id:'46050', name:'Stonewall Bank, Oregon', where:'Pacific Ocean', h:4.4, t:10},
+  {id:'46029', name:'Columbia River, Oregon', where:'Pacific Ocean', h:2.8, t:8},
+  {id:'51201', name:'Waimea Bay, Hawaii', where:'Pacific Ocean', h:2.0, t:12},
+  {id:'46073', name:'Bering Sea, Alaska', where:'Bering Sea', h:10.2, t:15},
+];
+BUOYS.forEach((b,i)=>{ b.seed = i*1.37+0.4; b.obs = SNAPSHOT_UTC; b.liveSeries = null; });
+
+let dataMode = 'saved'; // 'saved' or 'live'
+let dataTime = SNAPSHOT_UTC;
+
+/* ================= MACHINE MODEL ================= */
+const TYPES = {
+  buoy:{ name:'Bobbing Buoy', icon:'🟡', cost:30, bonus:0, eff:h=>h>=1.5?1:0.6,
+         d:'Floats out at sea and bobs up and down. Best with medium and tall waves (1.5 m or taller).', fit:'medium and tall waves (1.5 m or taller)' },
+  flap:{ name:'Flap Door', icon:'🚪', cost:20, bonus:0, eff:h=>h<=2.5?1:0.6,
+         d:'A door on the sea floor near shore swings back and forth. Best with small and medium waves (2.5 m or shorter).', fit:'small and medium waves (2.5 m or shorter)' },
+  tube:{ name:'Air Tube', icon:'🌬️', cost:40, bonus:2, eff:()=>0.75,
+         d:'Waves push air up a tube to spin a fan. OK with any waves. Built in rock: +2 m stronger.', fit:'any waves' },
+};
+const SIZES = { s:{name:'Small', w:10, cost:10, d:'Catches 10 m of wave.'}, m:{name:'Medium', w:20, cost:25, d:'Catches 20 m of wave.'}, l:{name:'Large', w:35, cost:45, d:'Catches 35 m of wave.'} };
+const STRS = { light:{name:'Light', max:3, cost:5, d:'Breaks if waves are over 3 m.'}, strong:{name:'Strong', max:6, cost:20, d:'Breaks if waves are over 6 m.'}, super:{name:'Super', max:12, cost:45, d:'Breaks if waves are over 12 m.'} };
+const BASE_BUDGET = 100;
+const HOME_KW = 1.2;
+
+// Power depends only on wave height (amplitude). Time between waves is held constant (8 s) so nothing contradicts
+// Ohio's statement that a mechanical wave's energy increases with amplitude and decreases with wavelength.
+const T_REF = 8;
+const kwAt = (d,h)=> 0.5*h*h*T_REF * SIZES[d.size].w * TYPES[d.type].eff(h);
+const costOf = d => TYPES[d.type].cost + SIZES[d.size].cost + STRS[d.str].cost;
+const maxWave = d => STRS[d.str].max + TYPES[d.type].bonus;
+const powerScore = b => 0.5*b.h*b.h*T_REF*20; // kW from a 20 m test machine
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const fmtScore = n => n<10 ? n.toFixed(1) : fmt(n);
+
+function synthSeries(b){
+  const out=[];
+  for(let i=0;i<48;i++){
+    const storm = Math.exp(-Math.pow((i-30)/4,2));
+    let h = b.h*(0.86 + 0.08*Math.sin(i/6+b.seed) + 0.04*Math.sin(i/1.7+b.seed*2)) + b.h*0.3*storm;
+    h = Math.max(0.1, Math.round(h*10)/10);
+    let t = Math.max(2, Math.round(b.t + Math.sin(i/9+b.seed)*1 + storm));
+    out.push({h,t});
+  }
+  return out;
+}
+function seriesOf(b){ return b.liveSeries || synthSeries(b); }
+function simulate(d, series){
+  let broken=false, breakHour=-1, sum=0; const hours=[];
+  const lim = maxWave(d);
+  series.forEach((p,i)=>{
+    if(!broken && p.h > lim + 1e-9){ broken=true; breakHour=i; }
+    const kw = broken ? 0 : kwAt(d,p.h,p.t);
+    sum += kw; hours.push({...p, kw, broken});
+  });
+  return { hours, broken, breakHour, avgHomes: sum/series.length/HOME_KW };
+}
+function allDesigns(){ const a=[]; for(const type in TYPES) for(const size in SIZES) for(const str in STRS) a.push({type,size,str}); return a; }
+function computeGoals(){
+  BUOYS.forEach(b=>{
+    const s = seriesOf(b);
+    b.peak = Math.max(...s.map(p=>p.h));
+    let best=0, anySurvive=false;
+    allDesigns().forEach(d=>{
+      if(costOf(d)>BASE_BUDGET) return;
+      const r = simulate(d,s);
+      if(!r.broken){ anySurvive=true; best=Math.max(best,r.avgHomes); }
+    });
+    b.tooWild = !anySurvive;
+    if(!anySurvive){ allDesigns().forEach(d=>{ if(costOf(d)<=BASE_BUDGET) best=Math.max(best, simulate(d,s).avgHomes); }); }
+    b.goal = Math.max(1, Math.round(best*0.7));
+    b.level = b.tooWild ? 'expert' : b.peak<=3 ? 'easy' : b.peak<=6 ? 'medium' : 'expert';
+  });
+}
+
+/* ================= SOUND ================= */
+let ac=null, soundOn=true;
+function tone(f,dur,type,vol,slide){
+  if(!soundOn || (window.WTK && WTK.calm())) return;
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const o=ac.createOscillator(), g=ac.createGain(), now=ac.currentTime;
+    o.type=type||'sine'; o.frequency.setValueAtTime(f,now);
+    if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(40,f+slide), now+dur);
+    g.gain.setValueAtTime(vol||0.1,now); g.gain.exponentialRampToValueAtTime(0.0008,now+dur);
+    o.connect(g); g.connect(ac.destination); o.start(now); o.stop(now+dur+0.02);
+  }catch(e){}
+}
+function noise(dur,vol){
+  if(!soundOn || (window.WTK && WTK.calm())) return;
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const len = Math.floor(ac.sampleRate*dur), buf = ac.createBuffer(1,len,ac.sampleRate), data=buf.getChannelData(0);
+    for(let i=0;i<len;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/len,2);
+    const src=ac.createBufferSource(), f=ac.createBiquadFilter(), g=ac.createGain();
+    f.type='lowpass'; f.frequency.value=700; g.gain.value=vol||0.4;
+    src.buffer=buf; src.connect(f); f.connect(g); g.connect(ac.destination); src.start();
+  }catch(e){}
+}
+const sfx = {
+  click:()=>tone(520,0.06,'square',0.04),
+  coin:()=>{ tone(988,0.09,'square',0.07); setTimeout(()=>tone(1319,0.18,'square',0.07),90); },
+  wrong:()=>tone(240,0.25,'sawtooth',0.05,-90),
+  crash:()=>{ noise(0.7,0.5); tone(140,0.5,'sawtooth',0.08,-90); },
+  star:i=>tone([659,784,988][i]||988,0.3,'triangle',0.12),
+  win:()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,0.22,'triangle',0.1),i*110)),
+  build:()=>{ [0,1,2].forEach(i=>setTimeout(()=>tone(300+i*80,0.07,'square',0.05),i*90)); },
+};
+const soundBtn = document.getElementById('soundBtn');
+soundBtn.addEventListener('click',()=>{ soundOn=!soundOn; soundBtn.setAttribute('aria-pressed',soundOn); soundBtn.textContent = soundOn?'🔊 Sound on':'🔇 Sound off'; });
+
+/* ================= READ ALOUD ================= */
+const canSpeak = 'speechSynthesis' in window;
+document.querySelectorAll('.say').forEach(b=>{
+  if(!canSpeak){ b.style.display='none'; return; }
+  b.addEventListener('click',()=>{ try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(b.closest('section').dataset.say); u.rate=window.WTK?WTK.rate():0.9; speechSynthesis.speak(u);}catch(e){} });
+});
+
+/* ================= COINS ================= */
+let bonus = 0;
+const budget = ()=> BASE_BUDGET + bonus;
+const coinNum = document.getElementById('coinNum'), coinsEl = document.getElementById('coins');
+function showCoins(){
+  const target = budget(); let cur = +coinNum.textContent;
+  const step = ()=>{ if(cur<target){ cur++; coinNum.textContent=cur; requestAnimationFrame(step);} else coinNum.textContent=target; };
+  step(); coinsEl.classList.remove('bump'); void coinsEl.offsetWidth; coinsEl.classList.add('bump');
+}
+
+/* ================= SCREENS ================= */
+const screens = { intro:'scr-intro', place:'scr-place', design:'scr-design', test:'scr-test', results:'scr-results', cer:'scr-cer', train:'scr-train' };
+const procIndex = { intro:-1, place:0, design:1, test:2, results:3, cer:4, train:0 };
+let curScreen='intro';
+function go(name){
+  curScreen=name;
+  Object.values(screens).forEach(id=>document.getElementById(id).classList.toggle('on', id===screens[name]));
+  document.querySelectorAll('.process div').forEach(d=>d.classList.toggle('now', +d.dataset.p===procIndex[name]));
+  if(canSpeak) try{ speechSynthesis.cancel(); }catch(e){}
+  if(name!=='test') stopTest();
+  window.scrollTo({top:0});
+  if(window.WTK) WTK.save(true);
+}
+document.getElementById('startBtn').addEventListener('click',()=>{ sfx.click(); go('place'); });
+document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>{ sfx.click(); renderPlace(); go(b.dataset.goto); }));
+
+/* ================= PLACE SCREEN ================= */
+let chartKey='h';
+const bestStars = {}; // buoy id -> best stars
+function timeText(ms){ return new Date(ms).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}); }
+function renderStatus(){
+  const dot=document.getElementById('dataDot'), txt=document.getElementById('dataText');
+  if(dataMode==='live'){ dot.className='dot live'; txt.innerHTML = `<b>Live NOAA data.</b> Newest reading: ${timeText(dataTime)}.`; }
+  else { dot.className='dot'; txt.innerHTML = `<b>Saved NOAA data</b> from ${timeText(dataTime)}. Live data could not load here.`; }
+}
+function renderBars(){
+  const box=document.getElementById('bars'); const note=document.getElementById('chartNote');
+  const val = b => chartKey==='h'?b.h : powerScore(b);
+  const unit = chartKey==='h'?' m' : ' kW';
+  let max = Math.max(...BUOYS.map(val)); let cap = max;
+  if(chartKey==='p'){ cap = 2000; }
+  box.innerHTML = BUOYS.map(b=>{
+    const v=val(b); const pct=Math.min(100, v/cap*100); const off = v>cap;
+    const shown = chartKey==='p' ? fmtScore(v) : (chartKey==='h'? v.toFixed(1) : v);
+    return `<div class="bar"><span>${b.name.split(',')[0]}</span><div class="track"><div class="fill${off?' off':''}" style="width:${pct}%"></div></div><span class="v">${shown}${unit}</span></div>`;
+  }).join('');
+  note.textContent = chartKey==='h' ? 'Wave height is how tall the waves are, in meters.'
+    : 'Power one 20 m test machine would make, in kW. Taller waves carry more energy, so they make more power. Striped bars are off the chart!';
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
+  sfx.click(); chartKey=b.dataset.k;
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-pressed', x===b));
+  renderBars();
+}));
+
+// Buoy Detective
+let detQs = null; const detDone = {};
+function buildDetQs(){
+  const defs = [
+    {q:'Which place has the tallest waves right now?', key:b=>b.h, dir:1, why:'It has the tallest bar on the Wave height chart.'},
+    {q:'Which place has the smallest waves?', key:b=>b.h, dir:-1, why:'It has the shortest bar on the Wave height chart.'},
+    {q:'Which Atlantic Ocean place has the tallest waves?', key:b=>b.h, dir:1, only:b=>b.where==='Atlantic Ocean', why:'Check the Wave height chart. Only look at Atlantic places.'},
+  ];
+  return defs.map((d,qi)=>{
+    const pool = d.only ? BUOYS.filter(d.only) : BUOYS;
+    const sorted = pool.slice().sort((a,b)=>(d.key(b)-d.key(a))*d.dir);
+    const correct = sorted[0]; const cv = d.key(correct);
+    const others = sorted.filter(b=>Math.abs(d.key(b)-cv)>1e-9);
+    const picks = [];
+    [Math.floor(others.length/2), others.length-1-(qi%2), others.length-1, 0].forEach(ix=>{ const o=others[ix]; if(o && picks.length<2 && !picks.includes(o)) picks.push(o); });
+    const opts = [correct, ...picks];
+    // stable shuffle
+    opts.sort((a,b)=>((a.seed*7+qi)%3)-((b.seed*7+qi)%3));
+    return {...d, correct, opts};
+  });
+}
+function renderDet(){
+  if(!detQs) detQs = buildDetQs();
+  const box = document.getElementById('detQs');
+  box.innerHTML='';
+  detQs.forEach((q,qi)=>{
+    const div=document.createElement('div'); div.className='q';
+    div.innerHTML = `<p>${qi+1}. ${q.q}</p><div class="choices"></div><div class="fb" aria-live="polite"></div>`;
+    const ch=div.querySelector('.choices'), fb=div.querySelector('.fb');
+    q.opts.forEach(o=>{
+      const btn=document.createElement('button'); btn.type='button'; btn.textContent=o.name;
+      if(o!==q.correct && o!==q.opts.find(x=>x!==q.correct)) btn.dataset.extra='1';
+      if(detDone[qi]){ btn.disabled=true; if(o===q.correct) btn.classList.add('right'); if(detDone[qi].pick===o.id && o!==q.correct) btn.classList.add('wrong'); }
+      btn.addEventListener('click',()=>{
+        if(detDone[qi]) return;
+        const ok = o===q.correct; detDone[qi]={ok, pick:o.id};
+        if(ok){ bonus+=10; showCoins(); sfx.coin(); } else sfx.wrong();
+        renderDet();
+      });
+      ch.appendChild(btn);
+    });
+    if(detDone[qi]){
+      fb.className = 'fb '+(detDone[qi].ok?'right':'wrong');
+      fb.textContent = detDone[qi].ok ? `Yes! +$10. ${q.why}` : `Not this time. The answer is ${q.correct.name}. ${q.why}`;
+    }
+    box.appendChild(div);
+  });
+}
+function renderCards(){
+  const box=document.getElementById('cards'); box.innerHTML='';
+  BUOYS.forEach(b=>{
+    const c=document.createElement('button'); c.type='button'; c.className='card';
+    const lvl = b.tooWild ? 'Too wild?' : b.level[0].toUpperCase()+b.level.slice(1);
+    const stars = bestStars[b.id] ? '★'.repeat(bestStars[b.id]) + '☆'.repeat(3-bestStars[b.id]) : '';
+    c.innerHTML = `<span class="tag ${b.level}">${lvl}</span>
+      <span class="name">${b.name}</span><span class="where">${b.where}</span>
+      <span class="cstat"><span>Wave height</span><b>${b.h.toFixed(1)} m</b></span>
+      <span class="cstat"><span>Test machine power</span><b>${fmtScore(powerScore(b))} kW</b></span>
+      <span class="cstat"><span>Goal</span><b>${fmt(b.goal)} homes</b></span>
+      <span class="stars" aria-label="${bestStars[b.id]||0} stars earned">${stars}</span>
+      <span class="buoyid">NOAA buoy ${b.id}</span>`;
+    c.addEventListener('click',()=>{ sfx.click(); openDesign(b); });
+    box.appendChild(c);
+  });
+}
+function renderPlace(){ renderStatus(); renderBars(); renderDet(); renderCards(); renderWpeCert("wpeCertPlace"); }
+
+/* ================= LIVE DATA ================= */
+async function tryLive(){
+  const txt=document.getElementById('dataText'); txt.textContent='Checking NOAA for new data…';
+  let got=false;
+  const ids = BUOYS.map(b=>b.id);
+  // 1) Newest reading for every buoy
+  try{
+    const r = await fetch('https://www.ndbc.noaa.gov/data/latest_obs/latest_obs.txt',{cache:'no-store'});
+    if(r.ok){
+      const lines=(await r.text()).split('\n');
+      let newest=0;
+      lines.forEach(l=>{
+        const f=l.trim().split(/\s+/); if(!ids.includes(f[0])) return;
+        const h=parseFloat(f[11]), t=parseFloat(f[12]);
+        if(isFinite(h)&&isFinite(t)&&t>0){
+          const b=BUOYS.find(x=>x.id===f[0]);
+          const ms=Date.UTC(+f[3],+f[4]-1,+f[5],+f[6],+f[7]);
+          b.h=h; b.t=t; b.obs=ms; newest=Math.max(newest,ms); got=true;
+        }
+      });
+      if(got){ dataTime=newest; }
+    }
+  }catch(e){}
+  // 2) Last 2 days of readings, for real test runs
+  try{
+    const q = 'station,time,wvht,dpd&station=~' + encodeURIComponent('"('+ids.join('|')+')"') + '&time%3E=now-2days';
+    const r = await fetch('https://coastwatch.pfeg.noaa.gov/erddap/tabledap/cwwcNDBCMet.json?'+q,{cache:'no-store'});
+    if(r.ok){
+      const js=await r.json(); const cols=js.table.columnNames; const rows=js.table.rows;
+      const iS=cols.indexOf('station'), iT=cols.indexOf('time'), iH=cols.indexOf('wvht'), iP=cols.indexOf('dpd');
+      const by={};
+      rows.forEach(row=>{
+        const h=row[iH], t=row[iP]; if(h==null||t==null||!(t>0)) return;
+        const ms=Date.parse(row[iT]); const hourKey=Math.floor(ms/3600000);
+        (by[row[iS]] = by[row[iS]]||{})[hourKey] = {h:Math.round(h*10)/10, t:Math.round(t), ms};
+      });
+      BUOYS.forEach(b=>{
+        const m=by[b.id]; if(!m) return;
+        const arr=Object.keys(m).sort((a,c)=>a-c).map(k=>m[k]).slice(-48);
+        if(arr.length>=12){
+          b.liveSeries = arr.map(p=>({h:p.h,t:p.t}));
+          const last=arr[arr.length-1];
+          if(!got || last.ms>b.obs){ b.h=last.h; b.t=last.t; b.obs=last.ms; }
+          dataTime=Math.max(dataMode==='live'?dataTime:0, last.ms); got=true;
+        }
+      });
+    }
+  }catch(e){}
+  if(got){ dataMode='live'; detQs=null; Object.keys(detDone).forEach(k=>delete detDone[k]); computeGoals(); }
+  renderPlace();
+}
+document.getElementById('refreshBtn').addEventListener('click',()=>{ sfx.click(); tryLive(); });
+
+/* ================= DESIGN SCREEN ================= */
+let site=null; let design={type:'buoy', size:'m', str:'strong'};
+function optButtons(boxId, dict, key){
+  const box=document.getElementById(boxId); box.innerHTML='';
+  Object.entries(dict).forEach(([k,v])=>{
+    const b=document.createElement('button'); b.type='button'; b.className='opt';
+    b.setAttribute('aria-pressed', design[key]===k);
+    b.innerHTML = `<span class="t">${v.icon?v.icon+' ':''}${v.name}</span><span class="d">${v.d}</span><span class="p">$${v.cost}</span>`;
+    b.addEventListener('click',()=>{ sfx.click(); design[key]=k; renderDesign(); });
+    box.appendChild(b);
+  });
+}
+function openDesign(b){ site=b; go('design'); renderDesign(); }
+function machineSVG(d, broken){
+  const s = SIZES[d.size].w/20; const col = broken? 'var(--storm)' : 'var(--power)';
+  let m='';
+  if(d.type==='buoy'){
+    const w=34*s, hgt=16*Math.sqrt(s);
+    m = `<line x1="150" y1="78" x2="150" y2="128" stroke="var(--ink)" stroke-width="3"/>
+         <circle cx="150" cy="132" r="9" fill="var(--card)" stroke="var(--ink)" stroke-width="3"/>
+         <ellipse cx="150" cy="70" rx="${w}" ry="${hgt}" fill="${col}" stroke="var(--ink)" stroke-width="3"/>`;
+  } else if(d.type==='flap'){
+    const hh=40*Math.sqrt(s), ww=10+6*s;
+    m = `<rect x="${150-ww/2}" y="${140-hh}" width="${ww}" height="${hh}" rx="3" fill="${col}" stroke="var(--ink)" stroke-width="3" transform="rotate(12 150 140)"/>
+         <circle cx="150" cy="140" r="6" fill="var(--ink)"/>`;
+  } else {
+    const ww=36+18*s;
+    m = `<rect x="${150-ww/2}" y="30" width="${ww}" height="110" fill="var(--storm)" stroke="var(--ink)" stroke-width="3"/>
+         <rect x="${150-ww/2+8}" y="75" width="${ww-16}" height="62" fill="var(--sea)"/>
+         <circle cx="150" cy="44" r="10" fill="${col}" stroke="var(--ink)" stroke-width="3"/>`;
+  }
+  const str = d.str==='light'?1 : d.str==='strong'?2:3;
+  const chains = Array.from({length:str},(_,i)=>`<line x1="${110-i*10}" y1="145" x2="${135}" y2="${100+i*8}" stroke="var(--ink)" stroke-width="${1.5+i}" stroke-dasharray="4 3"/>`).join('');
+  return `<rect width="300" height="150" fill="var(--sky)"/>
+    <path d="M0 70 Q 37 55 75 70 T 150 70 T 225 70 T 300 70 L300 150 L0 150Z" fill="var(--sea)"/>
+    <rect y="140" width="300" height="10" fill="var(--sea-deep)"/>
+    ${d.type!=='tube'?chains:''}${m}
+    <text x="10" y="22" font-size="15" font-weight="700" fill="var(--ink)" font-family="Atkinson Hyperlegible, Verdana, sans-serif">${TYPES[d.type].name}, ${SIZES[d.size].name}, ${STRS[d.str].name}</text>`;
+}
+function renderDesign(){
+  if(!site) return;
+  const b=site;
+  const series=seriesOf(b);
+  document.getElementById('siteBox').innerHTML =
+    `<div class="chip">📍 <b>${b.name}</b></div>
+     <div class="chip">Waves now: <b>${b.h.toFixed(1)} m</b> tall</div>
+     <div class="chip warn">⛈️ Storm in the test: waves up to <b>${b.peak.toFixed(1)} m</b></div>
+     <div class="chip">🏠 Goal: <b>${fmt(b.goal)} homes</b></div>`;
+  optButtons('optType', TYPES, 'type'); optButtons('optSize', SIZES, 'size'); optButtons('optStr', STRS, 'str');
+  document.getElementById('machinePic').innerHTML = machineSVG(design,false);
+  const cost=costOf(design), bud=budget();
+  document.getElementById('costTxt').textContent = `$${cost} of $${bud}`;
+  const cf=document.getElementById('costFill'); cf.style.width=Math.min(100,cost/bud*100)+'%'; cf.classList.toggle('over', cost>bud);
+  const lim=maxWave(design), survives = b.peak <= lim+1e-9;
+  document.getElementById('ckStorm').textContent = survives?'✅':'⚠️';
+  document.getElementById('ckStormTxt').innerHTML = survives ? `Strong enough: handles waves up to ${lim} m.` : `<b>Too weak!</b> It breaks above ${lim} m. The storm brings ${b.peak.toFixed(1)} m waves.`;
+  const homesNow = kwAt(design,b.h)/HOME_KW;
+  const okPow = homesNow >= b.goal;
+  document.getElementById('ckPow').textContent = okPow?'✅':'🏠';
+  document.getElementById('ckPowTxt').innerHTML = `With today’s waves: about <b>${fmt(homesNow)} homes</b>. Goal: ${fmt(b.goal)}.`;
+  const eff = TYPES[design.type].eff(b.h);
+  document.getElementById('ckMatch').textContent = eff>=1?'✅': eff<0.7?'⚠️':'👌';
+  document.getElementById('ckMatchTxt').textContent = eff>=1 ? `Good match! ${TYPES[design.type].name} fits these waves.`
+     : eff<0.7 ? `Poor match. ${TYPES[design.type].name} works best with ${TYPES[design.type].fit}.`
+     : `OK match. The Air Tube works with any waves, but not at full power.`;
+  const btn=document.getElementById('buildBtn'); btn.disabled = cost>bud;
+  document.getElementById('buildNote').textContent = cost>bud ? `Too expensive! You are $${cost-bud} over budget. Pick a cheaper part.` : `You will have $${bud-cost} left over.`;
+}
+document.getElementById('buildBtn').addEventListener('click',()=>{ sfx.build(); startTest(); });
+
+/* ================= TEST SCREEN ================= */
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const chart=document.getElementById('chart'), cctx=chart.getContext('2d');
+let C={};
+function readColors(){ const s=getComputedStyle(document.documentElement); ['sea','sea-deep','sky','sand','power','ink','muted','house','card','bad','storm','line','good'].forEach(k=>C[k]=s.getPropertyValue('--'+k).trim()); }
+readColors(); try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readColors); }catch(e){}
+const _rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isCalm = ()=> _rm || !!(window.WTK && WTK.calm());
+let run=null, rafId=null;
+const SEC_PER_HOUR = 0.3;
+function startTest(){
+  const series = seriesOf(site);
+  run = { d:{...design}, series, res:simulate(design,series), hour:0, last:null, simT:0, broke:false, sum:0, n:0, rotor:0, done:false, prevBy:null, crashT:-1 };
+  document.getElementById('testSource').textContent = site.liveSeries
+    ? `Real waves from NOAA buoy ${site.id} over the last 2 days.`
+    : `Waves like today’s at buoy ${site.id}, with a storm. The real ocean goes up and down like this.`;
+  document.getElementById('banner').style.display='none';
+  go('test');
+  cancelAnimationFrame(rafId); rafId=requestAnimationFrame(loop);
+}
+function stopTest(){ cancelAnimationFrame(rafId); rafId=null; }
+document.getElementById('skipBtn').addEventListener('click',()=>{ if(run){ run.hour=47.999; } });
+
+function interp(i){ const s=run.series; const a=Math.floor(i), f=i-a; const p=s[Math.min(a,s.length-1)], q=s[Math.min(a+1,s.length-1)]; return {h:p.h+(q.h-p.h)*f, t:p.t+(q.t-p.t)*f, idx:Math.min(a,s.length-1)}; }
+function sizeCanvas(c){ const dpr=window.devicePixelRatio||1; const w=c.clientWidth, h=c.clientHeight; if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){ c.width=Math.round(w*dpr); c.height=Math.round(h*dpr);} const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); return {w,h}; }
+
+function loop(ts){
+  rafId=requestAnimationFrame(loop);
+  if(!run) return;
+  const dt = run.last==null?0:Math.min(0.05,(ts-run.last)/1000); run.last=ts;
+  if(!run.done){ run.hour = Math.min(48, run.hour + dt/SEC_PER_HOUR); }
+  const cur = interp(Math.min(run.hour,47.999));
+  const hrRes = run.res.hours[cur.idx];
+  // break event
+  if(!run.broke && run.res.broken && cur.idx>=run.res.breakHour){
+    run.broke=true; run.crashT=ts; sfx.crash();
+    const st=document.getElementById('stage'); if(!isCalm()){ st.classList.remove('shake'); void st.offsetWidth; st.classList.add('shake'); }
+    const fl=document.getElementById('flash'); fl.classList.add('on'); setTimeout(()=>fl.classList.remove('on'),60);
+    const bn=document.getElementById('banner'); bn.textContent=`💥 Your machine broke! Wave: ${run.series[run.res.breakHour].h.toFixed(1)} m`; bn.style.display='block';
+  }
+  const kwNow = run.broke?0:kwAt(run.d,cur.h,cur.t);
+  // running average using completed hours
+  const done = Math.max(1, Math.min(48, Math.floor(run.hour)+1));
+  const avg = run.res.hours.slice(0,done).reduce((a,p)=>a+p.kw,0)/done/HOME_KW;
+  document.getElementById('sHour').textContent = `Hour ${Math.min(48,Math.floor(run.hour))} of 48`;
+  document.getElementById('sWave').textContent = cur.h.toFixed(1)+' m';
+  document.getElementById('sHomes').textContent = fmt(kwNow/HOME_KW);
+  document.getElementById('sAvg').textContent = fmt(avg);
+  run.simT += dt*2.5;
+  drawStage(cur, kwNow, ts);
+  drawChart();
+  if(run.hour>=48 && !run.done){ run.done=true; setTimeout(showResults, 700); }
+}
+function drawStage(cur, kwNow, ts){
+  const {w,h}=sizeCanvas(cv);
+  const lim=maxWave(run.d);
+  const stormy = Math.min(1, Math.max(0,(cur.h - site.h)/(site.h*0.3+0.01)));
+  // sky
+  ctx.fillStyle=C.sky; ctx.fillRect(0,0,w,h);
+  if(stormy>0){ ctx.fillStyle=`rgba(40,50,60,${0.45*stormy})`; ctx.fillRect(0,0,w,h);
+    ctx.fillStyle=`rgba(90,100,110,${0.8*stormy})`;
+    for(let i=0;i<4;i++){ const cx=(i*w/3.2 + run.simT*12)%(w+120)-60; ctx.beginPath(); ctx.ellipse(cx,30+i%2*14,60,18,0,0,Math.PI*2); ctx.fill(); }
+  }
+  const pxPerM = h*0.05, A=Math.min(h*0.3,(cur.h/2)*pxPerM), mid=h*0.45;
+  const lambda = Math.max(120, w*0.1 + cur.t*w*0.03), k=2*Math.PI/lambda, om=2*Math.PI/Math.max(2,cur.t);
+  const shoreX=w*0.82, floorY=h-24;
+  const surf = x=> mid - A*Math.cos(k*x - om*run.simT);
+  // land
+  ctx.fillStyle=C.sand; ctx.beginPath(); ctx.moveTo(shoreX-30,h); ctx.lineTo(shoreX+20,mid+8); ctx.lineTo(w,mid-6); ctx.lineTo(w,h); ctx.closePath(); ctx.fill();
+  // tube building sits at shore
+  // water
+  ctx.fillStyle=C.sea; ctx.beginPath(); ctx.moveTo(0,h);
+  const endX=shoreX+10;
+  for(let x=0;x<=endX;x+=4){ const fade = x>shoreX-60?Math.max(0,(endX-x)/70):1; ctx.lineTo(x, mid-(mid-surf(x))*fade); }
+  ctx.lineTo(endX,mid); ctx.lineTo(shoreX-30,h); ctx.closePath(); ctx.fill();
+  // foam at crests when stormy
+  if(cur.h>3){ ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=3; ctx.beginPath(); for(let x=0;x<shoreX-40;x+=4){ const y=surf(x); if(y<mid-A*0.8){ ctx.moveTo(x,y); ctx.lineTo(x+3,y);} } ctx.stroke(); }
+  ctx.fillStyle=C['sea-deep']; ctx.fillRect(0,floorY,shoreX-20,h-floorY);
+  // break line indicator on left: wave height ruler
+  const broken = run.broke;
+  const t = run.d.type, s = SIZES[run.d.size].w/20;
+  ctx.lineWidth=2.5; ctx.strokeStyle=C.ink;
+  let mx;
+  // cable to houses
+  ctx.setLineDash([6,5]); ctx.strokeStyle=broken?C.bad:C.ink;
+  if(t==='tube'){ mx = shoreX-40; }
+  else if(t==='flap'){ mx = shoreX-110; }
+  else { mx = w*0.45; }
+  ctx.beginPath(); ctx.moveTo(mx,floorY-6); ctx.lineTo(shoreX-34,floorY-2); ctx.lineTo(shoreX+24,mid+4); ctx.stroke(); ctx.setLineDash([]);
+  const crashAge = run.crashT>0 ? (ts-run.crashT)/1000 : 0;
+  ctx.save();
+  if(t==='buoy'){
+    const by = surf(mx);
+    const vel = run.prevBy==null?0:by-run.prevBy; run.prevBy=by;
+    if(!broken) run.rotor += Math.abs(vel)*0.12;
+    const drift = broken ? Math.min(140, crashAge*80) : 0;
+    const bx = mx + drift, byy = broken? surf(bx)+4 : by;
+    if(!broken){ ctx.strokeStyle=C.ink; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(mx,by+10); ctx.lineTo(mx,floorY-22); ctx.stroke(); }
+    else { ctx.strokeStyle=C.ink; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(mx,floorY-22); ctx.lineTo(mx+8,floorY-60); ctx.stroke(); }
+    ctx.translate(bx,byy); if(broken) ctx.rotate(0.5);
+    ctx.fillStyle=broken?C.storm:C.power; ctx.strokeStyle=C.ink; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.ellipse(0,0,20+16*s,9+5*s,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  } else if(t==='flap'){
+    const ang = broken ? 1.35 : 0.45*Math.sin(k*mx-om*run.simT) * Math.min(1,cur.h/2+0.3);
+    if(!broken) run.rotor += Math.abs(Math.cos(k*mx-om*run.simT))*0.05;
+    const L = Math.min(floorY-mid+A*0.4, 40+34*Math.sqrt(s));
+    ctx.translate(mx,floorY-4); ctx.rotate(ang);
+    ctx.fillStyle=broken?C.storm:C.power; ctx.strokeStyle=C.ink; ctx.lineWidth=2.5;
+    ctx.fillRect(-5-3*s,-L,10+6*s,L); ctx.strokeRect(-5-3*s,-L,10+6*s,L);
+    ctx.fillStyle=C.ink; ctx.beginPath(); ctx.arc(0,0,6,0,Math.PI*2); ctx.fill();
+  } else {
+    const ww=30+16*s, top=mid-60;
+    ctx.translate(mx,0);
+    ctx.fillStyle=C.storm; ctx.strokeStyle=C.ink; ctx.lineWidth=2.5;
+    ctx.fillRect(-ww/2,top,ww,floorY-top); ctx.strokeRect(-ww/2,top,ww,floorY-top);
+    const wl = broken? mid+20 : surf(mx);
+    ctx.fillStyle=C.sea; ctx.fillRect(-ww/2+6, wl, ww-12, floorY-wl-2);
+    if(!broken) run.rotor += Math.abs(Math.sin(k*mx-om*run.simT))*0.15;
+    if(broken){ ctx.strokeStyle=C.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-ww/2,top+10); ctx.lineTo(-4,top+30); ctx.lineTo(6,top+18); ctx.lineTo(ww/2,top+40); ctx.stroke(); }
+    // turbine on top
+    ctx.translate(0,top-12);
+    ctx.fillStyle=C.card; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    for(let i=0;i<3;i++){ const a=run.rotor+i*2.094; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*10,Math.sin(a)*10); ctx.stroke(); }
+  }
+  ctx.restore();
+  // generator (buoy and flap)
+  if(t!=='tube'){
+    const gx = mx, gy=floorY-14;
+    ctx.fillStyle=C.card; ctx.strokeStyle=C.ink; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(gx + (t==='flap'?-26:0),gy,12,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    for(let i=0;i<3;i++){ const a=run.rotor+i*2.094; ctx.beginPath(); ctx.moveTo(gx+(t==='flap'?-26:0),gy); ctx.lineTo(gx+(t==='flap'?-26:0)+Math.cos(a)*10,gy+Math.sin(a)*10); ctx.stroke(); }
+  }
+  // smoke when broken
+  if(broken && !isCalm()){
+    for(let i=0;i<6;i++){ const p=((ts/1000*0.6)+i/6)%1; ctx.fillStyle=`rgba(120,120,120,${0.5*(1-p)})`; ctx.beginPath(); ctx.arc(mx+Math.sin(i*2+p*3)*8, mid-10-p*70, 6+p*12, 0, Math.PI*2); ctx.fill(); }
+  }
+  // houses
+  const homes = kwNow/HOME_KW; const frac = Math.min(1, homes/Math.max(1,site.goal));
+  const lit = Math.round(frac*5);
+  const nH=5, hw=Math.min(24,(w-shoreX-26)/nH-3);
+  for(let i=0;i<nH;i++){
+    const hx=shoreX+26+i*(hw+3); const gy=(mid+8)-(hx-(shoreX+20))*(14/(w-shoreX-20)); const top=gy-hw*0.9; const on=i<lit;
+    if(on){ ctx.fillStyle='rgba(255,201,51,.35)'; ctx.beginPath(); ctx.arc(hx+hw/2,top+hw*0.3,hw*0.9,0,Math.PI*2); ctx.fill(); }
+    ctx.fillStyle=C.house; ctx.fillRect(hx,top,hw,hw*0.9);
+    ctx.beginPath(); ctx.moveTo(hx-3,top); ctx.lineTo(hx+hw/2,top-hw*0.55); ctx.lineTo(hx+hw+3,top); ctx.closePath(); ctx.fill();
+    ctx.fillStyle=on?C.power:C['sea-deep']; ctx.fillRect(hx+hw*0.3,top+hw*0.2,hw*0.4,hw*0.35);
+  }
+  // wave-height label
+  ctx.fillStyle=C.ink; ctx.font='bold 15px "Atkinson Hyperlegible", Verdana, sans-serif'; ctx.textAlign='left';
+  ctx.fillText(`Waves: ${cur.h.toFixed(1)} m   Breaks above: ${lim} m`, 12, h-6 < 0 ? 20 : 22);
+}
+function drawChart(){
+  const {w,h}=sizeCanvas(chart);
+  const lim=maxWave(run.d); const peak=Math.max(...run.series.map(p=>p.h));
+  const ymax = Math.max(peak, Math.min(lim, peak*2.2))*1.15;
+  const L=44, R=10, T=12, B=26, pw=w-L-R, ph=h-T-B;
+  const X=i=>L+i/47*pw, Y=v=>T+ph-(v/ymax)*ph;
+  cctx.clearRect(0,0,w,h);
+  cctx.font='13px "Atkinson Hyperlegible", Verdana, sans-serif'; cctx.fillStyle=C.muted; cctx.strokeStyle=C.line; cctx.lineWidth=1;
+  const step = ymax>8?2: ymax>3?1:0.5;
+  for(let v=0; v<=ymax; v+=step){ cctx.beginPath(); cctx.moveTo(L,Y(v)); cctx.lineTo(w-R,Y(v)); cctx.stroke(); cctx.textAlign='right'; cctx.fillText(v+' m',L-6,Y(v)+4); }
+  [0,12,24,36,47].forEach(i=>{ cctx.textAlign = i===47?'right':'center'; cctx.fillText(i===47?'48 h':i+' h',X(i),h-6); });
+  // break line
+  if(lim<=ymax){ cctx.strokeStyle=C.bad; cctx.lineWidth=2.5; cctx.setLineDash([8,6]); cctx.beginPath(); cctx.moveTo(L,Y(lim)); cctx.lineTo(w-R,Y(lim)); cctx.stroke(); cctx.setLineDash([]);
+    cctx.fillStyle=C.bad; cctx.textAlign='right'; cctx.font='bold 13px "Atkinson Hyperlegible", Verdana, sans-serif'; cctx.fillText(`Breaks above ${lim} m`, w-R-6, Y(lim)-5); }
+  // series up to current
+  const upto = Math.min(47, run.hour);
+  cctx.strokeStyle=C.sea; cctx.lineWidth=3; cctx.beginPath();
+  for(let i=0;i<=Math.floor(upto);i++){ const p=run.series[i]; i?cctx.lineTo(X(i),Y(p.h)):cctx.moveTo(X(i),Y(p.h)); }
+  const cur=interp(upto); cctx.lineTo(X(upto),Y(cur.h)); cctx.stroke();
+  cctx.fillStyle=run.broke?C.bad:C.power; cctx.strokeStyle=C.ink; cctx.lineWidth=2; cctx.beginPath(); cctx.arc(X(upto),Y(cur.h),6,0,Math.PI*2); cctx.fill(); cctx.stroke();
+  cctx.fillStyle=C.ink; cctx.textAlign='left'; cctx.font='bold 13px "Atkinson Hyperlegible", Verdana, sans-serif'; cctx.fillText('Wave height', L+6, h-B-6);
+}
+
+/* ================= RESULTS ================= */
+let notebook=[];
+try{ notebook = JSON.parse(localStorage.getItem('wpe-notebook')||'[]'); if(!Array.isArray(notebook)) notebook=[]; }catch(e){ notebook=[]; }
+function saveNb(){ try{ localStorage.setItem('wpe-notebook', JSON.stringify(notebook.slice(-40))); }catch(e){} }
+function showResults(){
+  stopTest();
+  const r=run.res, d=run.d, cost=costOf(d), bud=budget();
+  const s0 = !r.broken, s1 = r.avgHomes >= site.goal, s2 = (bud-cost) >= 15;
+  const stars=[s0,s1,s2];
+  const n = stars.filter(Boolean).length;
+  bestStars[site.id] = Math.max(bestStars[site.id]||0, n);
+  notebook.push({ place:site.name, machine:`${TYPES[d.type].name}, ${SIZES[d.size].name}, ${STRS[d.str].name}`, cost, avg:Math.round(r.avgHomes), goal:site.goal, survived:s0, stars:n, ohio: r.avgHomes>=0.5 ? Math.ceil(OHIO_HOMES/r.avgHomes) : null });
+  saveNb();
+  go('results');
+  document.getElementById('st1txt').textContent = `Powered ${fmt(site.goal)} homes on average`;
+  stars.forEach((ok,i)=>{ const el=document.getElementById('st'+i); el.classList.remove('won'); });
+  stars.forEach((ok,i)=>{ if(ok) setTimeout(()=>{ document.getElementById('st'+i).classList.add('won'); sfx.star(i); }, 350+i*450); });
+  if(n===3) setTimeout(()=>{ sfx.win(); confetti(); }, 350+3*450);
+  // tips
+  const tips=[];
+  if(r.broken) tips.push(`💥 Your machine broke at hour ${r.breakHour} when waves hit ${run.series[r.breakHour].h.toFixed(1)} m. It can only handle ${maxWave(d)} m. <b>Try a stronger build.</b>`);
+  else tips.push(`✅ It survived! The biggest wave was ${site.peak.toFixed(1)} m. Your machine can handle ${maxWave(d)} m.`);
+  if(!s1){
+    const eff=TYPES[d.type].eff(site.h);
+    if(eff<1 && d.type!=='tube') tips.push(`🔧 ${TYPES[d.type].name} works best with ${TYPES[d.type].fit}. These waves are ${site.h.toFixed(1)} m tall. <b>Try a different machine type.</b>`);
+    if(d.size!=='l') tips.push(`📏 It powered ${fmt(r.avgHomes)} homes. The goal is ${fmt(site.goal)}. <b>A bigger size catches more waves.</b>`);
+    if(r.broken) tips.push(`⚡ A broken machine makes zero power. Surviving the storm also helps you reach the goal.`);
+  } else tips.push(`🏠 It powered ${fmt(r.avgHomes)} homes on average. Goal met!`);
+  if(!s2) tips.push(`💰 You had $${bud-cost} left. To earn the money star, save $15 or more. <b>Is there a cheaper part that still works?</b> Buoy Detective answers also give you more money.`);
+  if(n===3) tips.push(`🏆 Three stars! You are a real wave power engineer. Try a harder place next.`);
+  document.getElementById('tips').innerHTML = tips.map(t=>`<p>${t}</p>`).join('');
+  renderReport(r);
+  renderOhio(r.avgHomes, d);
+  renderNb();
+}
+function renderNb(){
+  document.getElementById('nbRows').innerHTML = notebook.map((e,i)=>`<tr><td>${i+1}</td><td>${e.place}</td><td>${e.machine}</td><td>$${e.cost}</td><td>${fmt(e.avg)}</td><td>${fmt(e.goal)}</td><td>${e.survived?'Yes':'No'}</td><td>${'★'.repeat(e.stars)}${'☆'.repeat(3-e.stars)}</td><td>${e.ohio ? fmt(e.ohio) : 'Too many'}</td></tr>`).join('') || '<tr><td colspan="9">No tests yet.</td></tr>';
+}
+document.getElementById('improveBtn').addEventListener('click',()=>{ sfx.click(); go('design'); renderDesign(); });
+document.getElementById('copyBtn').addEventListener('click', async()=>{
+  const ta=document.getElementById('why'), m=document.getElementById('copyMsg');
+  try{ await navigator.clipboard.writeText(ta.value); m.textContent='Copied!'; }catch(e){ ta.select(); m.textContent='Press Ctrl + C to copy.'; }
+});
+
+/* ================= POWER REPORT + OHIO ================= */
+const OHIO_HOMES = 4900000;   // U.S. Census Bureau, ACS 2024: about 4.93 million households
+const OHIO_SHORE_MI = 312;     // Ohio DNR: Ohio's Lake Erie shore, about 312 miles
+const fmtKW = n => n<10 ? n.toFixed(1) : fmt(n);
+function renderReport(r){
+  const kws = r.hours.map(p=>p.kw);
+  let hi=0, lo=0; kws.forEach((k,i)=>{ if(k>kws[hi]) hi=i; if(k<kws[lo]) lo=i; });
+  const total = kws.reduce((a,b)=>a+b,0), avg = total/kws.length;
+  const tile=(label,val,sub)=>`<div class="stat"><span>${label}</span><strong>${val}</strong><span>${sub}</span></div>`;
+  document.getElementById('report').innerHTML =
+    tile('Most power', fmtKW(kws[hi])+' kW', `Hour ${hi}, waves ${r.hours[hi].h.toFixed(1)} m`) +
+    tile('Least power', fmtKW(kws[lo])+' kW', r.hours[lo].broken ? 'The machine was broken' : `Hour ${lo}, waves ${r.hours[lo].h.toFixed(1)} m`) +
+    tile('Average power', fmtKW(avg)+' kW', `About ${fmt(avg/HOME_KW)} homes`) +
+    tile('Energy in 48 hours', fmt(total)+' kWh', `In a whole year: about ${fmt(avg*8760)} kWh`);
+  const max = Math.max(0.001, kws[hi]);
+  document.getElementById('reportBars').innerHTML = [['Most power',kws[hi]],['Average power',avg],['Least power',kws[lo]]]
+    .map(([n,v])=>`<div class="bar"><span>${n}</span><div class="track"><div class="fill" style="width:${v/max*100}%"></div></div><span class="v">${fmtKW(v)} kW</span></div>`).join('');
+}
+function renderOhio(avgHomes, d){
+  const box = document.getElementById('ohio');
+  if(avgHomes < 0.5){
+    box.innerHTML = `<p><b>Your machine made almost no power.</b> No number of these machines could power Ohio. Build one that survives and makes power first!</p>`;
+    return;
+  }
+  const need = Math.ceil(OHIO_HOMES/avgHomes);
+  const k = Math.max(0, Math.round(Math.log10(need)));
+  const exps = k>=2 ? [k-2,k,k+2] : [k,k+2,k+4];
+  box.innerHTML = `<p><b>Make a guess first:</b></p><div class="choices" id="ohioGuess"></div><div id="ohioReveal" aria-live="polite"></div>`;
+  const g = box.querySelector('#ohioGuess');
+  exps.forEach(e=>{
+    const b=document.createElement('button'); b.type='button'; b.textContent='About '+fmt(Math.pow(10,e));
+    b.addEventListener('click',()=>{
+      g.querySelectorAll('button').forEach(x=>x.disabled=true);
+      const ok = e===k; b.classList.add(ok?'right':'wrong'); ok?sfx.coin():sfx.wrong();
+      const miles = need*SIZES[d.size].w/1609;
+      const ratio = miles/OHIO_SHORE_MI;
+      const compare = ratio<=1 ? 'They would fit along the shore!'
+        : ratio<2 ? 'That is longer than the whole shore!'
+        : `That is about ${fmt(ratio)} times longer than the whole shore!`;
+      box.querySelector('#ohioReveal').innerHTML =
+        `<p class="fb ${ok?'right':'wrong'}">${ok?'Good guess!':'Not quite. Here is the answer.'}</p>
+         <p class="ohio-big">${fmt(need)} machines</p>
+         <p>Each machine powers about ${fmtKW(avgHomes)} homes. 4,900,000 ÷ ${fmtKW(avgHomes)} ≈ ${fmt(need)}.</p>
+         <p>Lined up side by side, they would stretch about <b>${miles<10?miles.toFixed(1):fmt(miles)} miles</b>. Ohio’s whole Lake Erie shore is about ${OHIO_SHORE_MI} miles long. ${compare}</p>`;
+    });
+    g.appendChild(b);
+  });
+}
+
+/* ================= BUOY TRAINING ================= */
+const TRAIN_CAP = 50, TRAIN_PAY = 5, LEVEL_GOAL = 5;
+const LEVELS = ['Read the graph','Wave height','Change over time','Mixed'];
+const train = { level:0, earned:0, streak:0, done:[0,0,0,0], W:null, q:null, tries:0, solved:false, nl:false };
+const MINUS = '\u2212';
+const fv = v => v<0 ? MINUS+Math.abs(v) : String(v);
+const pv = v => v<0 ? '('+fv(v)+')' : fv(v);
+const rnd = n => Math.floor(Math.random()*n);
+const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+function pickBuoy(level){
+  const A = b => b.h*3.28084/2;
+  let pool = BUOYS.filter(b=>b.id!=='46073');
+  if(level===1 || level===2) pool = BUOYS.filter(b=>A(b)>=2);
+  if(level===3) pool = BUOYS.slice();
+  return pool[rnd(pool.length)];
+}
+function makeWave(b){
+  const A = Math.max(1, b.h*3.28084/2);
+  const step = A>12?4 : A>6?2 : 1;
+  const T = Math.max(3, b.t);
+  const win = Math.max(12, Math.round(3*T));
+  const dt = win>24 ? 2 : 1;
+  const phi=Math.random()*6.28, psi=Math.random()*6.28;
+  const pts=[];
+  for(let t=0;t<=win;t+=dt){
+    let y = A*Math.cos(2*Math.PI*t/T+phi) + 0.35*A*Math.cos(2*Math.PI*t/(T*0.55)+psi);
+    y = Math.round(y/step)*step; if(y===0) y=0;
+    pts.push({t,y});
+  }
+  return { b, A, step, pts, win };
+}
+function uniqChoices(list){ const seen=new Set(); return list.filter(c=>{ const k=String(c.v); if(seen.has(k)) return false; seen.add(k); return true; }); }
+function genRead(W){
+  const idx = W.pts.map((p,i)=>i).filter(i=>W.pts[i].y!==0);
+  if(!idx.length) return null;
+  const neg = idx.filter(i=>W.pts[i].y<0);
+  const i = (neg.length && Math.random()<0.6) ? neg[rnd(neg.length)] : idx[rnd(idx.length)];
+  const p=W.pts[i], y=p.y, s=W.step;
+  return { type:'read', guide:i, marks:[{i, label:''}],
+    text:`At ${p.t} seconds, where is the water?`,
+    answer:y,
+    choices: uniqChoices([
+      {v:y},
+      {v:-y, coach:'Check the sign. Is the point <b>above</b> or <b>below</b> the 0 line? Below the line means negative (\u2212).'},
+      {v:y+s, coach:'Close! Follow the dotted line up or down to the point. Then go straight across to the numbers on the left.'},
+      {v:y-s, coach:'Close! Follow the dotted line up or down to the point. Then go straight across to the numbers on the left.'},
+    ]),
+    work:`The point is ${y<0?'below':'above'} the 0 line, so the water is at <b>${fv(y)} ft</b>.`,
+    nl:{from:0, to:y} };
+}
+function localMax(W,i){ const y=W.pts[i].y, a=W.pts[i-1], b=W.pts[i+1]; return a && b && y>=a.y && y>=b.y && y>0; }
+function localMin(W,i){ const y=W.pts[i].y, a=W.pts[i-1], b=W.pts[i+1]; return a && b && y<=a.y && y<=b.y && y<0; }
+function genHeight(W){
+  const crests = W.pts.map((p,i)=>i).filter(i=>localMax(W,i));
+  const pairs=[];
+  crests.forEach(i=>{ for(let j=i+1;j<W.pts.length;j++){ if(localMin(W,j)){ pairs.push([i,j]); break; } } });
+  if(!pairs.length) return null;
+  const [i,j] = pairs[rnd(pairs.length)];
+  const c=W.pts[i].y, tr=W.pts[j].y, ans=c-tr;
+  return { type:'height', marks:[{i,label:'Crest'},{i:j,label:'Trough'}],
+    text:'Wave height = crest \u2212 trough. How tall is the marked wave?',
+    answer:ans,
+    choices: uniqChoices([
+      {v:ans},
+      {v:c+tr, coach:`Careful with the minus sign! The trough is <b>negative</b>. Crest \u2212 trough = ${fv(c)} \u2212 ${pv(tr)}. Subtracting a negative is the same as adding.`},
+      {v:-ans, coach:'Wave height is a distance, so it is always positive. Do crest \u2212 trough, not trough \u2212 crest.'},
+      {v:c, coach:'That is only the crest. Wave height goes from the trough all the way up to the crest.'},
+    ]),
+    work:`${fv(c)} \u2212 ${pv(tr)} = ${fv(c)} + ${Math.abs(tr)} = <b>${ans} ft</b>`,
+    nl:{from:tr, to:c} };
+}
+function genChange(W){
+  const n=W.pts.length; let tries=0;
+  while(tries++<40){
+    const i=rnd(n-2), j=i+1+rnd(Math.min(6,n-i-1));
+    const a=W.pts[i].y, b=W.pts[j].y;
+    if(a===b || (a>=0 && b>=0 && Math.random()<0.8)) continue;
+    const ans=b-a;
+    const work = a<0 ? `${fv(b)} \u2212 ${pv(a)} = ${fv(b)} + ${Math.abs(a)} = <b>${fv(ans)} ft</b>` : `${fv(b)} \u2212 ${a} = <b>${fv(ans)} ft</b>`;
+    return { type:'change', marks:[{i,label:'A'},{i:j,label:'B'}],
+      text:`How much did the water change from A (${W.pts[i].t} s) to B (${W.pts[j].t} s)? Change = end \u2212 start.`,
+      answer:ans,
+      choices: uniqChoices([
+        {v:ans},
+        {v:-ans, coach:'Do end \u2212 start: B \u2212 A. Start at A and end at B. Did the water go up or down?'},
+        {v:b+a, coach:'Subtract the start. Do not add it. Change = B \u2212 A.'},
+        {v:Math.abs(b)-Math.abs(a), coach:'Keep the negative signs! A number below the 0 line is negative.'},
+      ].filter(c=>c.v!==ans || c.coach===undefined)),
+      work: work + (ans>0 ? ' The water went <b>up</b>.' : ' The water went <b>down</b>.'),
+      nl:{from:a, to:b} };
+  }
+  return null;
+}
+function genLower(W){
+  const n=W.pts.length; let tries=0;
+  while(tries++<40){
+    const i=rnd(n), j=rnd(n); if(i===j) continue;
+    const a=W.pts[i].y, b=W.pts[j].y;
+    if(a===b || (a>=0 && b>=0) || Math.abs(a)===Math.abs(b)) continue;
+    const [li,lj] = i<j ? [i,j] : [j,i];
+    const A=W.pts[li].y, B=W.pts[lj].y;
+    const lowLabel = A<B ? 'A' : 'B', low=Math.min(A,B), high=Math.max(A,B);
+    return { type:'lower', marks:[{i:li,label:'A'},{i:lj,label:'B'}],
+      text:'Which point is lower: A or B?',
+      answer:lowLabel,
+      choices:[{v:'A', coach: lowLabel==='A'?null:'Lower means farther down on the graph. A bigger number with a minus sign is <b>lower</b>.'},{v:'B', coach: lowLabel==='B'?null:'Lower means farther down on the graph. A bigger number with a minus sign is <b>lower</b>.'}],
+      work:`${fv(low)} is lower than ${fv(high)}. It is farther below the 0 line.`,
+      nl:{from:high, to:low} };
+  }
+  return null;
+}
+function newTrainQ(){
+  for(let k=0;k<40;k++){
+    const W = makeWave(pickBuoy(train.level));
+    let type = train.level;
+    if(train.level===3) type = [0,1,2,'lower'][rnd(4)];
+    const q = type===0?genRead(W) : type===1?genHeight(W) : type===2?genChange(W) : genLower(W);
+    if(q){ train.W=W; train.q=q; train.tries=0; train.solved=false; train.nl=false; if(q.type!=='lower') q.choices=shuffle(q.choices); renderTrain(); return; }
+  }
+}
+function graphSVG(W,q){
+  const Wd=640,H=360,L=60,R=18,T=18,B=48,pw=Wd-L-R,ph=H-T-B;
+  const maxAbs=Math.max(...W.pts.map(p=>Math.abs(p.y)));
+  const ym=Math.ceil((maxAbs+W.step)/W.step)*W.step;
+  const X=t=>L+t/W.win*pw, Y=v=>T+ph/2-(v/ym)*(ph/2);
+  const lines=ym/W.step*2, labEvery = lines>20?2:1;
+  let s=`<svg viewBox="0 0 ${Wd} ${H}" role="img" aria-label="Line graph of water level in feet over time in seconds. Zero is still water.">`;
+  s+=`<rect x="${L}" y="${T}" width="${pw}" height="${ph/2}" fill="var(--sky)"/><rect x="${L}" y="${T+ph/2}" width="${pw}" height="${ph/2}" fill="var(--sea-light)"/>`;
+  for(let k=-ym/W.step;k<=ym/W.step;k++){
+    const v=k*W.step, y=Y(v);
+    s+=`<line x1="${L}" x2="${Wd-R}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1"/>`;
+    if(k%labEvery===0) s+=`<text x="${L-8}" y="${y+5}" text-anchor="end" font-size="15" fill="var(--ink)" font-weight="${v===0?700:400}" font-family="Atkinson Hyperlegible, Verdana, sans-serif">${fv(v)}</text>`;
+  }
+  s+=`<line x1="${L}" x2="${Wd-R}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="2.5"/>`;
+  s+=`<text x="${Wd-R-6}" y="${Y(0)-6}" text-anchor="end" font-size="14" font-weight="700" fill="var(--ink)" font-family="Atkinson Hyperlegible, Verdana, sans-serif">still water = 0</text>`;
+  const lab = W.pts.length>13 ? 2 : 1;
+  W.pts.forEach((p,i)=>{ s+=`<line x1="${X(p.t)}" x2="${X(p.t)}" y1="${T}" y2="${T+ph}" stroke="var(--line)" stroke-width="1" opacity=".6"/>`; if(i%lab===0) s+=`<text x="${X(p.t)}" y="${T+ph+20}" text-anchor="middle" font-size="14" fill="var(--ink)" font-family="Atkinson Hyperlegible, Verdana, sans-serif">${p.t}</text>`; });
+  s+=`<text x="${L+pw/2}" y="${H-4}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)" font-family="Atkinson Hyperlegible, Verdana, sans-serif">Time (seconds)</text>`;
+  s+=`<text transform="translate(16 ${T+ph/2}) rotate(-90)" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)" font-family="Atkinson Hyperlegible, Verdana, sans-serif">Water level (feet)</text>`;
+  if(q.type==='read'){ const p=W.pts[q.guide]; s+=`<line x1="${X(p.t)}" x2="${X(p.t)}" y1="${T+ph}" y2="${Y(p.y)}" stroke="var(--bad)" stroke-width="3" stroke-dasharray="7 5"/>`; if(train.solved || train.tries>0) s+=`<line x1="${L}" x2="${X(p.t)}" y1="${Y(p.y)}" y2="${Y(p.y)}" stroke="var(--bad)" stroke-width="3" stroke-dasharray="7 5"/>`; }
+  s+=`<polyline fill="none" stroke="var(--sea-deep)" stroke-width="3.5" stroke-linejoin="round" points="${W.pts.map(p=>X(p.t)+','+Y(p.y)).join(' ')}"/>`;
+  W.pts.forEach(p=>{ s+=`<circle cx="${X(p.t)}" cy="${Y(p.y)}" r="4.5" fill="var(--sea-deep)"/>`; });
+  q.marks.forEach(m=>{ const p=W.pts[m.i], cx=X(p.t), cy=Y(p.y);
+    s+=`<circle cx="${cx}" cy="${cy}" r="10" fill="var(--power)" stroke="var(--ink)" stroke-width="2.5"/>`;
+    if(m.label){ const up = p.y>=0 ? -18 : 30; s+=`<text x="${cx}" y="${cy+up}" text-anchor="middle" font-size="17" font-weight="700" fill="var(--ink)" stroke="var(--card)" stroke-width="4" paint-order="stroke" font-family="Atkinson Hyperlegible, Verdana, sans-serif">${m.label}</text>`; }
+  });
+  return s+'</svg>';
+}
+function numberLineSVG(W,q){
+  const maxAbs=Math.max(...W.pts.map(p=>Math.abs(p.y)));
+  const ym=Math.ceil((maxAbs+W.step)/W.step)*W.step;
+  const H=360, T=18, B=18, ph=H-T-B, x=80;
+  const Y=v=>T+ph/2-(v/ym)*(ph/2);
+  const lines=ym/W.step*2, labEvery = lines>20?2:1;
+  let s=`<svg viewBox="0 0 200 ${H}" role="img" aria-label="Number line from ${fv(q.nl.from)} to ${fv(q.nl.to)}">`;
+  s+=`<line x1="${x}" x2="${x}" y1="${T}" y2="${T+ph}" stroke="var(--ink)" stroke-width="3"/>`;
+  for(let k=-ym/W.step;k<=ym/W.step;k++){ const v=k*W.step, y=Y(v); s+=`<line x1="${x-8}" x2="${x+8}" y1="${y}" y2="${y}" stroke="var(--ink)" stroke-width="${v===0?3:1.5}"/>`; if(k%labEvery===0) s+=`<text x="${x-14}" y="${y+5}" text-anchor="end" font-size="15" font-weight="${v===0?700:400}" fill="var(--ink)" font-family="Atkinson Hyperlegible, Verdana, sans-serif">${fv(v)}</text>`; }
+  const a=q.nl.from, b=q.nl.to, ya=Y(a), yb=Y(b), dist=Math.abs(b-a), dir = b>a?'up':'down';
+  const ax=x+22;
+  s+=`<line x1="${ax}" x2="${ax}" y1="${ya}" y2="${yb + (b>a?8:-8)}" stroke="var(--bad)" stroke-width="4"/>`;
+  s+= b>a ? `<path d="M${ax-8} ${yb+10} L${ax} ${yb-2} L${ax+8} ${yb+10} Z" fill="var(--bad)"/>` : `<path d="M${ax-8} ${yb-10} L${ax} ${yb+2} L${ax+8} ${yb-10} Z" fill="var(--bad)"/>`;
+  s+=`<circle cx="${x}" cy="${ya}" r="7" fill="var(--sea)"/><circle cx="${x}" cy="${yb}" r="7" fill="var(--power)" stroke="var(--ink)" stroke-width="2"/>`;
+  s+=`<text x="${ax+12}" y="${(ya+yb)/2+6}" font-size="18" font-weight="700" fill="var(--bad)" font-family="Atkinson Hyperlegible, Verdana, sans-serif">${dir} ${dist}</text>`;
+  return s+'</svg>';
+}
+function renderTrain(){
+  const q=train.q, W=train.W; if(!q) return;
+  document.getElementById('trEarned').textContent = '$'+train.earned;
+  document.getElementById('trStreak').textContent = train.streak;
+  document.getElementById('trainTabs').innerHTML = LEVELS.map((l,i)=>`<button type="button" data-l="${i}" aria-pressed="${train.level===i}">${i+1}. ${l}${train.done[i]>=LEVEL_GOAL?' <span class="star">\u2605</span>':''}</button>`).join('');
+  document.querySelectorAll('#trainTabs button').forEach(b=>b.addEventListener('click',()=>{ sfx.click(); train.level=+b.dataset.l; newTrainQ(); }));
+  document.getElementById('trainSrc').textContent = `Water level at NOAA buoy ${W.b.id}, ${W.b.name}. Shaped from its waves: about ${(W.b.h*3.28084).toFixed(0)} ft tall. Level ${train.level+1} progress: ${Math.min(train.done[train.level],LEVEL_GOAL)} of ${LEVEL_GOAL} right.`;
+  document.getElementById('trainGraph').innerHTML = graphSVG(W,q);
+  document.getElementById('trainNL').innerHTML = train.nl ? numberLineSVG(W,q) : '';
+  document.getElementById('trainQ').textContent = q.text;
+  const box=document.getElementById('trainChoices'); box.innerHTML='';
+  q.choices.forEach(c=>{
+    const b=document.createElement('button'); b.type='button';
+    b.textContent = typeof c.v==='number' ? fv(c.v)+' ft' : c.v;
+    { const fw=q.choices.find(x=>String(x.v)!==String(q.answer)); if(String(c.v)!==String(q.answer) && c!==fw) b.dataset.extra='1'; }
+    if(train.solved && String(c.v)===String(q.answer)) b.classList.add('right');
+    if(c._wrong) b.classList.add('wrong');
+    b.disabled = train.solved;
+    b.addEventListener('click',()=>answerTrain(c));
+    box.appendChild(b);
+  });
+  document.getElementById('scr-train').dataset.say = q.text.replace(/\u2212/g,' minus ') + ' The choices are: ' + q.choices.map(c=>typeof c.v==='number' ? (c.v<0?'negative '+Math.abs(c.v):c.v)+' feet' : c.v).join(', ') + '.';
+  document.getElementById('nlBtn').textContent = train.nl ? 'Hide the number line' : 'Show me on a number line';
+  renderTrainCert();
+}
+function answerTrain(c){
+  const q=train.q; if(train.solved) return;
+  train.tries++;
+  const fb=document.getElementById('trainFb');
+  if(String(c.v)===String(q.answer)){
+    train.solved=true;
+    let pay='';
+    if(train.tries===1){
+      train.streak++; train.done[train.level]++;
+      if(train.earned<TRAIN_CAP){ train.earned+=TRAIN_PAY; bonus+=TRAIN_PAY; showCoins(); sfx.coin(); pay=` +$${TRAIN_PAY}!`; }
+      else { sfx.star(1); pay=' (You already earned the full $50. Great practice!)'; }
+      if(train.done[train.level]===LEVEL_GOAL){ setTimeout(()=>{ sfx.win(); confetti(); },300); pay += ` \u2b50 Level ${train.level+1} star!`; }
+    } else { train.streak=0; sfx.star(0); pay=' No money this time, but you fixed it!'; }
+    fb.innerHTML = `<p class="fb right">Yes!${pay}</p><p class="work">${q.work}</p>`;
+  } else {
+    c._wrong=true; train.streak=0; sfx.wrong(); train.nl=true;
+    fb.innerHTML = coachBox('fix', (c.coach || 'Not quite. Look at the graph again.') + ' The number line can help. Try again!');
+  }
+  renderTrain();
+}
+document.getElementById('trainBtn').addEventListener('click',()=>{ sfx.click(); go('train'); document.getElementById('trainFb').innerHTML=''; if(!train.q) newTrainQ(); else renderTrain(); });
+document.getElementById('nextQ').addEventListener('click',()=>{ sfx.click(); document.getElementById('trainFb').innerHTML=''; newTrainQ(); });
+document.getElementById('nlBtn').addEventListener('click',()=>{ sfx.click(); train.nl=!train.nl; renderTrain(); });
+document.getElementById('trainBack').addEventListener('click',()=>{ sfx.click(); renderPlace(); go('place'); });
+
+/* ================= UNLOCK CODES ================= */
+function wpeSteps(){
+  const erie = (bestStars['45164']||0) >= 2;
+  const ocean = BUOYS.some(b=>b.where!=='Great Lakes' && (bestStars[b.id]||0) >= 2);
+  const cerDone = !!(cer.claimOk && cer.evOk && cer.rsOk);
+  return [['Earn 2+ stars at Lake Erie', erie], ['Earn 2+ stars at an ocean place', ocean], ['Finish the “Could we power Ohio?” CER', cerDone]];
+}
+function renderWpeCert(id){
+  const steps = wpeSteps();
+  WTK.cert(document.getElementById(id), { key:'wpe', title:'Wave Power Engineer', lesson:'4.09', enc:'OTA0LVJFV09QLVlPVUI=', unlocked: steps.every(x=>x[1]), steps,
+    details:['Designed and tested wave power machines on real NOAA buoy data', 'Compared Lake Erie with the ocean', 'Wrote the “Could we power Ohio?” CER'] });
+}
+function renderTrainCert(){
+  const d0=Math.min(train.done[0],5), d1=Math.min(train.done[1],5);
+  WTK.cert(document.getElementById('trainCert'), { key:'buoy', title:'Buoy Training', lesson:'4.01', enc:'MTA0LUhHVU9SVC1UU0VSQw==', unlocked: d0>=5 && d1>=5,
+    steps:[[`5 right on the first try in Level 1: Read the graph (${d0} of 5)`, d0>=5], [`5 right on the first try in Level 2: Wave height (${d1} of 5)`, d1>=5]],
+    details:['Read water levels above and below 0 on real buoy graphs', 'Found wave height with crest − trough'] });
+}
+
+/* ================= FEASIBILITY CER ================= */
+const CER_STEPS = ['Question','My data','Claim','Evidence','Reasoning','Final report'];
+const cer = { step:0, guess:null, dataOk:false, dataPick:null, claim:null, claimOk:false, ev:[], evOk:false, evMsg:null, rs:[], rsOk:false, rsMsg:null, finalSig:'', final:null };
+const fmtMi = m => m==null ? 'more miles than we can count' : (m<10 ? m.toFixed(1) : fmt(m)) + ' miles';
+const fmtNeed = n => n ? fmt(n) : 'too many to count';
+function cerData(){
+  const list = notebook.map(e=>{ const b=BUOYS.find(x=>x.name===e.place); const size=/Large/.test(e.machine)?'l':/Medium/.test(e.machine)?'m':'s'; return Object.assign({}, e, {b, w:SIZES[size].w}); }).filter(e=>e.b);
+  const homesOf = e => e.ohio ? OHIO_HOMES/e.ohio : 0;
+  const best = arr => arr.sort((a,c)=>homesOf(c)-homesOf(a))[0];
+  const erie = best(list.filter(e=>e.b.id==='45164'));
+  const ocean = best(list.filter(e=>e.b.where!=='Great Lakes'));
+  if(!erie || !ocean) return {erie, ocean};
+  const es = erie.b.h, os = ocean.b.h;
+  const miles = e => e.ohio ? e.ohio*e.w/1609 : null;
+  return { erie, ocean, eb:erie.b, ob:ocean.b, es, os, ratio: os/Math.max(es,0.01), eh:homesOf(erie), oh:homesOf(ocean), em:miles(erie), om:miles(ocean) };
+}
+function claimCards(D){ return [
+  {t:'Yes. Lake Erie waves could power all of Ohio with just a few machines.', ok:false, why:`Check your data. It would take ${fmtNeed(D.erie.ohio)} Lake Erie machines. That is not a few!`},
+  {t:'No. Lake Erie waves do not have enough energy to power all of Ohio.', ok:true, why:'Yes! Your claim answers the question, and it matches your data.'},
+  {t:'Yes, if we put machines all along the Lake Erie shore.', ok:false, why:`Check your data. The machines would stretch ${fmtMi(D.em)}. The whole Ohio shore is only 312 miles long.`},
+];}
+function evCards(D){ return [
+  {t:'Lake Erie is a fun place to visit in the summer.', good:false, why:'That is true, but it does not help answer our question about power.'},
+  {t:`To power all of Ohio, we would need ${fmtNeed(D.erie.ohio)} Lake Erie machines. Lined up, they would stretch ${fmtMi(D.em)}. Ohio’s Lake Erie shore is only 312 miles long.`, good:true, num:true},
+  {t:'I think wave machines look really cool.', good:false, why:'That is an opinion. Evidence should be facts or data.'},
+  {t:`Lake Erie’s waves were ${D.es.toFixed(1)} m tall. ${D.ob.name}’s waves were ${D.os.toFixed(1)} m tall. That is about ${fmt(D.ratio)} times taller.`, good:true, num:true, cmp:true},
+  {t:'Lake Erie often freezes in winter. Ice stops the waves, so the machines would make no power then.', good:true},
+  {t:'Lake Erie has a lot of water.', good:false, why:'True, but lots of water does not mean big waves. It does not show how much power we can make.'},
+  {t:`One Lake Erie machine powered about ${fmtKW(D.eh)} homes. One machine at ${D.ob.name} powered about ${fmt(D.oh)} homes.`, good:true, num:true, cmp:true},
+];}
+const RS = [
+  {t:'If we build a big enough machine, it can make extra energy out of nothing.', good:false, why:'Careful! Energy cannot come from nothing. A machine can only catch energy the waves bring.'},
+  {t:'Energy cannot be created or destroyed. A machine can only catch energy that the waves already carry.', good:true, key:true},
+  {t:'Lake Erie is fresh water, and fresh water has no energy.', good:false, why:'Not quite. Fresh water waves still carry energy. The problem is that Lake Erie waves are small.'},
+  {t:'Taller waves have a bigger amplitude, so they carry much more energy.', good:true},
+  {t:'Wind gives waves their energy. Wind can blow across Lake Erie for only about 240 miles. Over an ocean, wind can blow for thousands of miles, so ocean waves get much more energy.', good:true},
+];
+const coachBox = (kind, html) => `<div class="coach ${kind||''}"><span class="face" aria-hidden="true">${kind==='good'?'🎉':kind==='fix'?'🤔':'🧑‍🔬'}</span><div><p><b>Coach:</b> ${html}</p></div></div>`;
+const stripTags = s => s.replace(/<[^>]+>/g,'');
+function openCER(){ sfx.click(); go('cer'); renderCER(); }
+document.getElementById('cerBtn1').addEventListener('click', openCER);
+document.getElementById('cerBtn2').addEventListener('click', openCER);
+function cerCanNext(){ return [cer.guess!=null, cer.dataOk, cer.claimOk, cer.evOk, cer.rsOk, false][cer.step]; }
+document.getElementById('cerBack').addEventListener('click',()=>{ sfx.click(); if(cer.step>0){ cer.step--; renderCER(); window.scrollTo({top:0}); } else { renderPlace(); go('results'); } });
+document.getElementById('cerNext').addEventListener('click',()=>{ if(!cerCanNext()) return; sfx.click(); cer.step++; renderCER(); window.scrollTo({top:0}); });
+function renderCER(){
+  const D = cerData();
+  const bar=document.getElementById('cerBar'), body=document.getElementById('cerBody'), nav=document.getElementById('cerNav');
+  const sec=document.getElementById('scr-cer');
+  if(!D.erie || !D.ocean){
+    bar.innerHTML=''; nav.style.display='none';
+    body.innerHTML = coachBox('', `Before you write your report, you need data from two places.</p>
+      <ul class="need"><li>${D.erie?'✅':'⬜'} Test a machine at <b>Lake Erie, near Cleveland, Ohio</b></li><li>${D.ocean?'✅':'⬜'} Test a machine at an <b>ocean</b> place</li></ul>
+      <p><button class="btn go" id="cerGoTest" type="button">Go test</button>`);
+    document.getElementById('cerGoTest').addEventListener('click',()=>{ sfx.click(); renderPlace(); go('place'); });
+    sec.dataset.say = 'Before you write your report, you need data from two places. Test a machine at Lake Erie. Then test a machine at an ocean place.';
+    return;
+  }
+  nav.style.display='flex';
+  bar.innerHTML = CER_STEPS.map((s,i)=>`<span class="${i===cer.step?'now':i<cer.step?'done':''}">${i<cer.step?'✓ ':''}${s}</span>`).join('');
+  const Q = 'Could Lake Erie waves make enough electricity to power all of Ohio?';
+  let html='', say='';
+  if(cer.step===0){
+    const c = cer.guess==null ? coachBox('', 'Here is our big question. First, make a guess. There is no wrong guess!') : coachBox('good', 'Nice! Scientists make a guess first. Then they check the data. Press Next to look at your data.');
+    html = `<p class="bigq">${Q}</p>${c}<div class="choices" id="cerGuess">${['Yes','No','Not sure'].map(g=>`<button type="button" class="${cer.guess===g?'right':''}">${g}</button>`).join('')}</div>`;
+    say = 'Here is our big question. ' + Q + ' First, make a guess. There is no wrong guess.';
+  }
+  if(cer.step===1){
+    const row=(l,a,b)=>`<tr><td>${l}</td><td>${a}</td><td>${b}</td></tr>`;
+    const c = cer.dataOk ? coachBox('good', `Right! One machine at ${D.ob.name} powers about ${fmt(D.oh)} homes. One Lake Erie machine powers about ${fmtKW(D.eh)}. Big differences like this make strong evidence.`)
+      : cer.dataPick ? coachBox('fix', 'Look again at the row “Homes one machine powers.” Which number is bigger?')
+      : coachBox('', 'This is your data from your tests. Look for the <b>biggest difference</b> between the two columns.');
+    html = `<div class="tablewrap"><table class="cmp"><thead><tr><th></th><th>Lake Erie, Ohio</th><th>${D.ob.name}</th></tr></thead><tbody>
+      ${row('Wave height', D.eb.h.toFixed(1)+' m', D.ob.h.toFixed(1)+' m')}
+      ${row('Test machine power', fmtScore(powerScore(D.eb))+' kW', fmtScore(powerScore(D.ob))+' kW')}
+      ${row('Your best machine', D.erie.machine, D.ocean.machine)}
+      ${row('Homes one machine powers', fmtKW(D.eh), fmt(D.oh))}
+      ${row('Machines to power Ohio', fmtNeed(D.erie.ohio), fmtNeed(D.ocean.ohio))}
+      ${row('Length of all those machines', fmtMi(D.em), fmtMi(D.om))}
+      </tbody></table></div>${c}
+      <p class="bigq" style="font-size:1.2rem">Which place makes more power with one machine?</p>
+      <div class="choices" id="cerDataQ"><button type="button" data-v="erie" class="${cer.dataPick==='erie'?'wrong':''}">Lake Erie</button><button type="button" data-v="ocean" class="${cer.dataOk?'right':''}">${D.ob.name}</button></div>`;
+    say = 'This is your data from your tests. Look for the biggest difference between the two columns. Which place makes more power with one machine?';
+  }
+  if(cer.step===2){
+    const cards = claimCards(D);
+    const c = cer.claim==null ? coachBox('', 'A <b>claim</b> answers the question in one sentence. Pick the claim that matches your data.')
+      : coachBox(cards[cer.claim].ok?'good':'fix', cards[cer.claim].why);
+    html = `<p class="bigq">${Q}</p>${c}<div class="pick" id="cerClaim">${cards.map((k,i)=>`<button type="button"${(!k.ok && i!==cards.findIndex(x=>!x.ok))?' data-extra="1"':''} aria-pressed="${cer.claim===i}"><span class="box">${cer.claim===i?'✓':''}</span><span>${k.t}</span></button>`).join('')}</div>`;
+    say = 'A claim answers the question in one sentence. Pick the claim that matches your data. ' + cards.map(k=>k.t).join(' ');
+  }
+  if(cer.step===3){
+    const cards = evCards(D);
+    const c = cer.evMsg ? coachBox(cer.evOk?'good':'fix', cer.evMsg) : coachBox('', '<b>Evidence</b> is data that supports your claim. Pick the cards that are real evidence. Pick at least 2. Then press Check my evidence.');
+    html = `${c}<div class="pick" id="cerEv">${cards.map((k,i)=>`<button type="button"${(!k.good && i!==cards.findIndex(x=>!x.good))?' data-extra="1"':''} aria-pressed="${cer.ev.includes(i)}"><span class="box">${cer.ev.includes(i)?'✓':''}</span><span>${k.t}</span></button>`).join('')}</div>
+      <div class="row" style="margin-top:.75rem"><button class="btn" id="cerEvCheck" type="button">Check my evidence</button></div>`;
+    say = 'Evidence is data that supports your claim. Pick the cards that are real evidence. Pick at least 2. ' + cards.map(k=>k.t).join(' ');
+  }
+  if(cer.step===4){
+    const c = cer.rsMsg ? coachBox(cer.rsOk?'good':'fix', cer.rsMsg) : coachBox('', '<b>Reasoning</b> explains the science. It tells <i>why</i> your evidence proves your claim. Pick the science ideas that are true and help. Then press Check my reasoning.');
+    html = `${c}<div class="pick" id="cerRs">${RS.map((k,i)=>`<button type="button"${(!k.good && i!==RS.findIndex(x=>!x.good))?' data-extra="1"':''} aria-pressed="${cer.rs.includes(i)}"><span class="box">${cer.rs.includes(i)?'✓':''}</span><span>${k.t}</span></button>`).join('')}</div>
+      <div class="row" style="margin-top:.75rem"><button class="btn" id="cerRsCheck" type="button">Check my reasoning</button></div>`;
+    say = 'Reasoning explains the science. It tells why your evidence proves your claim. Pick the science ideas that are true and help. ' + RS.map(k=>k.t).join(' ');
+  }
+  if(cer.step===5){
+    const ev = evCards(D); const sig = [cer.claim, cer.ev.join(','), cer.rs.join(','), D.erie.ohio, D.ocean.ohio].join('|');
+    if(!cer.final || cer.finalSig!==sig){
+      cer.finalSig = sig;
+      cer.final = {
+        c: claimCards(D)[cer.claim].t,
+        e: cer.ev.filter(i=>ev[i].good).map(i=>ev[i].t).join(' '),
+        r: cer.rs.filter(i=>RS[i].good).map(i=>RS[i].t).join(' ') + ' Lake Erie waves are small, so they carry only a little energy. That is why Lake Erie cannot power all of Ohio.'
+      };
+    }
+    html = `${coachBox('good', 'You built a full CER! Read it out loud. Change any words to make it sound like you.')}
+      <div class="panel final">
+        <p class="bigq" style="font-size:1.2rem; margin-top:0">Question: ${Q}</p>
+        <label for="cerC">Claim</label><textarea id="cerC">${cer.final.c}</textarea>
+        <label for="cerE">Evidence</label><textarea id="cerE" style="min-height:8rem">${cer.final.e}</textarea>
+        <label for="cerR">Reasoning</label><textarea id="cerR" style="min-height:8rem">${cer.final.r}</textarea>
+      </div>
+      <div class="panel checks"><h3 style="margin-top:0">Check your work</h3>
+        <label><input type="checkbox"> My claim answers the question.</label>
+        <label><input type="checkbox"> I used at least 2 numbers from my data.</label>
+        <label><input type="checkbox"> I compared Lake Erie to an ocean place.</label>
+        <label><input type="checkbox"> I explained the science: energy cannot be created.</label>
+      </div>
+      <div id="cerCert"></div><div id="cerSubmit"></div>`;
+    say = 'You built a full C E R. Read it out loud. Change any words to make it sound like you. Then check your work.';
+  }
+  body.innerHTML = html; sec.dataset.say = say;
+  const next=document.getElementById('cerNext'); next.style.visibility = cer.step===5?'hidden':'visible'; next.disabled = !cerCanNext();
+  // wire up
+  if(cer.step===0) body.querySelectorAll('#cerGuess button').forEach(b=>b.addEventListener('click',()=>{ sfx.click(); cer.guess=b.textContent; renderCER(); }));
+  if(cer.step===1) body.querySelectorAll('#cerDataQ button').forEach(b=>b.addEventListener('click',()=>{ cer.dataPick=b.dataset.v; cer.dataOk = b.dataset.v==='ocean'; cer.dataOk?sfx.coin():sfx.wrong(); renderCER(); }));
+  if(cer.step===2) body.querySelectorAll('#cerClaim button').forEach((b,i)=>b.addEventListener('click',()=>{ cer.claim=i; cer.claimOk=claimCards(D)[i].ok; cer.claimOk?sfx.coin():sfx.wrong(); renderCER(); }));
+  if(cer.step===3){
+    body.querySelectorAll('#cerEv button').forEach((b,i)=>b.addEventListener('click',()=>{ sfx.click(); cer.ev = cer.ev.includes(i)? cer.ev.filter(x=>x!==i) : cer.ev.concat(i); cer.evOk=false; cer.evMsg=null; renderCER(); }));
+    document.getElementById('cerEvCheck').addEventListener('click',()=>{
+      const cards=evCards(D), sel=cer.ev.map(i=>cards[i]), bad=sel.find(k=>!k.good); let ok=false, m;
+      if(!sel.length) m='Pick at least 2 cards first.';
+      else if(bad) m=`Look again at this card: “${bad.t}” ${bad.why}`;
+      else if(sel.length<2) m='Good start! Strong arguments use at least 2 pieces of evidence. Pick one more.';
+      else if(!sel.some(k=>k.num)) m='Try to add evidence with numbers. Numbers make evidence strong.';
+      else if(!sel.some(k=>k.cmp)) m='Your claim says Lake Erie is too weak. Add evidence that <b>compares</b> Lake Erie to an ocean place.';
+      else { ok=true; m='Great evidence! You used numbers, and you compared Lake Erie to the ocean.'; }
+      cer.evOk=ok; cer.evMsg=m; ok?sfx.coin():sfx.wrong(); renderCER();
+    });
+  }
+  if(cer.step===4){
+    body.querySelectorAll('#cerRs button').forEach((b,i)=>b.addEventListener('click',()=>{ sfx.click(); cer.rs = cer.rs.includes(i)? cer.rs.filter(x=>x!==i) : cer.rs.concat(i); cer.rsOk=false; cer.rsMsg=null; renderCER(); }));
+    document.getElementById('cerRsCheck').addEventListener('click',()=>{
+      const sel=cer.rs.map(i=>RS[i]), bad=sel.find(k=>!k.good); let ok=false, m;
+      if(!sel.length) m='Pick at least 1 science idea first.';
+      else if(bad) m=`Look again at this card: “${bad.t}” ${bad.why}`;
+      else if(!sel.some(k=>k.key)) m='Good! Now add the <b>big science idea</b>. Hint: Can a machine make more energy than the waves bring to it?';
+      else { ok=true; m='Excellent reasoning! You used the <b>law of conservation of energy</b>: a machine cannot make energy. It can only catch the energy the waves carry. Small waves carry little energy, so we get little power.'; }
+      cer.rsOk=ok; cer.rsMsg=m; ok?sfx.coin():sfx.wrong(); renderCER();
+    });
+  }
+  if(cer.step===5){
+    ['C','E','R'].forEach(k=>document.getElementById('cer'+k).addEventListener('input',e=>{ cer.final[k.toLowerCase()] = e.target.value; }));
+    const E=WTK.esc, today=()=>new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+    const rows=[['Wave height', D.eb.h.toFixed(1)+' m', D.ob.h.toFixed(1)+' m'],['Your best machine', D.erie.machine, D.ocean.machine],['Homes one machine powers', fmtKW(D.eh), fmt(D.oh)],['Machines to power Ohio', fmtNeed(D.erie.ohio), fmtNeed(D.ocean.ohio)],['Length of all those machines', fmtMi(D.em), fmtMi(D.om)]];
+    const td='border:1px solid #444;padding:4px 10px';
+    const tableHTML=`<table style="border-collapse:collapse;margin:6px 0"><tr><th style="${td};background:#e6f2f5"></th><th style="${td};background:#e6f2f5">Lake Erie, Ohio</th><th style="${td};background:#e6f2f5">${E(D.ob.name)}</th></tr>${rows.map(r=>`<tr><td style="${td}"><b>${r[0]}</b></td><td style="${td}">${E(r[1])}</td><td style="${td}">${E(r[2])}</td></tr>`).join('')}</table>`;
+    const htmlOut=n=>`<h2>Could we really power Ohio with wave energy?</h2><p><b>Name:</b> ${E(n)}<br><b>Date:</b> ${today()}</p><p><b>Question:</b> ${Q}</p><p><b>My data</b> (from my Wave Power Engineer tests):</p>${tableHTML}<p><b>CLAIM:</b> ${E(cer.final.c)}</p><p><b>EVIDENCE:</b> ${E(cer.final.e)}</p><p><b>REASONING:</b> ${E(cer.final.r)}</p>`;
+    renderWpeCert('cerCert');
+    WTK.submitPanel(document.getElementById('cerSubmit'), {
+      filename:'Power_Ohio_CER.txt',
+      buildText:n=>`Could we really power Ohio with wave energy?\nName: ${n}\nDate: ${today()}\n\nQuestion: ${Q}\n\nMy data (Lake Erie, Ohio vs. ${D.ob.name}):\n${rows.map(r=>`${r[0]}: ${r[1]} vs. ${r[2]}`).join('\n')}\n\nCLAIM: ${cer.final.c}\n\nEVIDENCE: ${cer.final.e}\n\nREASONING: ${cer.final.r}`,
+      buildHtml:htmlOut
+    });
+  }
+}
+
+/* ================= CONFETTI ================= */
+function confetti(){
+  if(isCalm()) return;
+  const c=document.getElementById('confetti'), x=c.getContext('2d');
+  const W=c.width=innerWidth, H=c.height=innerHeight;
+  const cols=[C.power,C.sea,C.good,C.bad,'#ffffff'];
+  const ps=Array.from({length:140},()=>({x:Math.random()*W, y:-20-Math.random()*H*0.5, vx:(Math.random()-.5)*3, vy:2+Math.random()*3, r:Math.random()*6.28, vr:(Math.random()-.5)*.3, c:cols[Math.floor(Math.random()*cols.length)], s:6+Math.random()*6}));
+  let t0=null;
+  (function f(ts){ if(t0==null) t0=ts; const age=(ts-t0)/1000; x.clearRect(0,0,W,H);
+    ps.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.05; p.r+=p.vr; x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle=p.c; x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); x.restore(); });
+    if(age<3.5) requestAnimationFrame(f); else x.clearRect(0,0,W,H); })(performance.now());
+}
+
+/* ================= START ================= */
+computeGoals();
+/* ================= SAVE / RESTORE (this browser only) ================= */
+let restored=false;
+if(window.WTK){
+  restored = WTK.register({ key:'wpe-save-v1', keys:['wpe-save-v1','wpe-notebook'],
+    get:()=>({ screen:curScreen, bonus, bestStars, detDone, design, siteId: site?site.id:null, cer,
+               train:{ level:train.level, earned:train.earned, streak:train.streak, done:train.done } }),
+    set:(st)=>{
+      if(typeof st.bonus==='number') bonus=st.bonus;
+      Object.assign(bestStars, st.bestStars||{});
+      Object.assign(detDone, st.detDone||{});
+      if(st.design) Object.assign(design, st.design);
+      if(st.siteId) site = BUOYS.find(b=>b.id===st.siteId) || null;
+      if(st.cer) Object.assign(cer, st.cer);
+      if(st.train) Object.assign(train, st.train);
+      coinNum.textContent = budget();
+      window.__wpeStart = st.screen;
+    }
+  });
+}
+renderPlace();
+renderNb();
+function openFromHash(){
+  const h=(location.hash||'').slice(1);
+  if(h==='training'){ go('train'); if(!train.q) newTrainQ(); else renderTrain(); return true; }
+  if(h==='report'){ go('cer'); renderCER(); return true; }
+  if(h==='play'){ renderPlace(); go('place'); return true; }
+  return false;
+}
+window.addEventListener('hashchange', openFromHash);
+{
+  if(openFromHash()){}
+  else if(restored){
+    const sc=window.__wpeStart;
+    if(sc==='train'){ go('train'); newTrainQ(); }
+    else if(sc==='cer'){ go('cer'); renderCER(); }
+    else if(sc==='design' && site){ go('design'); renderDesign(); }
+    else if(sc && sc!=='intro') go('place');
+  }
+}
+tryLive();
+})();
+</script>
+</body>
+</html>
